@@ -323,6 +323,119 @@
 
   .loading-hint { font-size: 0.72rem; color: var(--muted); text-align: center; padding: 8px; }
 
+  /* ── Calendar button ── */
+  .cal-btn {
+    font-size: 1rem; padding: 6px 10px; border-radius: 10px;
+    border: none; cursor: pointer; color: var(--text);
+    transition: all 0.3s; line-height: 1;
+    font-family: var(--sans);
+  }
+  .cal-btn:hover { transform: scale(1.08); background: rgba(255,255,255,0.08); }
+  .cal-btn:active { transform: scale(0.95); }
+
+  /* ── Calendar Overlay ── */
+  .cal-overlay {
+    position: fixed; inset: 0; z-index: 998;
+    background: rgba(7,8,13,0.88);
+    backdrop-filter: blur(16px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+    animation: fadeIn 0.25s ease;
+  }
+  .cal-modal {
+    width: 100%; max-width: 440px;
+    padding: 20px; border-radius: 20px;
+    max-height: 90vh; overflow-y: auto;
+    animation: calModalIn 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  @keyframes calModalIn { from { opacity:0; transform: scale(0.95) translateY(10px); } }
+
+  .cal-header {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+  }
+  .cal-title {
+    flex: 1; text-align: center;
+    font-size: 1rem; font-weight: 700; letter-spacing: -0.01em;
+  }
+  .cal-nav {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+    color: var(--text); width: 34px; height: 34px; border-radius: 10px;
+    font-size: 1.1rem; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; transition: all 0.2s; font-family: var(--sans);
+  }
+  .cal-nav:hover { background: rgba(255,255,255,0.1); }
+  .cal-close {
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
+    color: var(--muted); width: 34px; height: 34px; border-radius: 10px;
+    font-size: 0.8rem; cursor: pointer; display: flex; align-items: center;
+    justify-content: center; transition: all 0.2s; font-family: var(--sans);
+    margin-left: 4px;
+  }
+  .cal-close:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+
+  .cal-legend {
+    display: flex; gap: 8px; justify-content: center; margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+  .cal-leg-item {
+    font-size: 0.65rem; font-weight: 600; display: flex;
+    align-items: center; gap: 0; padding: 5px 12px;
+    border-radius: 8px; letter-spacing: 0.01em;
+  }
+  .cal-leg-item.leg-a {
+    background: rgba(245,158,11,0.08); color: var(--accent);
+    border: 1px solid rgba(245,158,11,0.12);
+  }
+  .cal-leg-item.leg-b {
+    background: rgba(59,130,246,0.08); color: var(--accent2);
+    border: 1px solid rgba(59,130,246,0.12);
+  }
+  .cal-leg-item.leg-ferien {
+    background: rgba(16,185,129,0.12); color: var(--green);
+    border: 1px solid rgba(16,185,129,0.15);
+  }
+
+  .cal-grid {
+    display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
+  }
+  .cal-day-head {
+    text-align: center; font-size: 0.58rem; font-weight: 700;
+    color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em;
+    padding: 4px 0 6px;
+  }
+  .cal-day {
+    aspect-ratio: 1; border-radius: 10px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    font-size: 0.75rem; font-weight: 600;
+    position: relative; transition: all 0.15s;
+    cursor: default; gap: 2px;
+  }
+  .cal-day.empty { background: transparent; }
+  .cal-day.weekend { color: var(--muted); opacity: 0.4; }
+  .cal-day.ferien {
+    background: rgba(16,185,129,0.12); color: var(--green);
+    border: 1px solid rgba(16,185,129,0.15);
+  }
+  .cal-day.week-a {
+    background: rgba(245,158,11,0.08);
+    border: 1px solid rgba(245,158,11,0.12);
+  }
+  .cal-day.week-b {
+    background: rgba(59,130,246,0.08);
+    border: 1px solid rgba(59,130,246,0.12);
+  }
+  .cal-day.today {
+    box-shadow: inset 0 0 0 2px var(--text);
+  }
+  .cal-week-label {
+    font-size: 7px; font-weight: 800; letter-spacing: 0.06em;
+    text-transform: uppercase; opacity: 0.7;
+  }
+  .cal-day.week-a .cal-week-label { color: var(--accent); }
+  .cal-day.week-b .cal-week-label { color: var(--accent2); }
+  .cal-day.ferien .cal-week-label { color: var(--green); }
+
   @media (max-width: 640px) {
     body { padding: 12px 10px 32px; }
     .header-left h1 { font-size: 1.3rem; }
@@ -344,10 +457,11 @@
 <div class="header">
   <div class="header-left">
     <h1>FST <span>1</span></h1>
-    <p>Josef-Greising-Schule · Stundenplan</p>
+    <p>Josef-Greising-Schule · Stundenplan · Sommersemester</p>
   </div>
   <div class="header-right">
     <span class="week-pill" id="week-pill">Woche A</span>
+    <button class="cal-btn glass" onclick="openCalendar()" title="Kalender">📅</button>
     <button class="group-badge g1" id="group-badge" onclick="showGroupOverlay()">Gruppe 1</button>
     <div class="clock glass" id="live-clock">--:--:--</div>
   </div>
@@ -390,6 +504,24 @@
   </table>
 </div>
 
+<!-- Calendar Modal -->
+<div id="cal-overlay" class="cal-overlay" style="display:none">
+  <div class="cal-modal glass">
+    <div class="cal-header">
+      <button class="cal-nav" onclick="calNav(-1)">‹</button>
+      <h3 class="cal-title" id="cal-title">Februar 2026</h3>
+      <button class="cal-nav" onclick="calNav(1)">›</button>
+      <button class="cal-close" onclick="closeCalendar()">✕</button>
+    </div>
+    <div class="cal-legend">
+      <span class="cal-leg-item leg-a">Woche A</span>
+      <span class="cal-leg-item leg-b">Woche B</span>
+      <span class="cal-leg-item leg-ferien">Ferien</span>
+    </div>
+    <div class="cal-grid" id="cal-grid"></div>
+  </div>
+</div>
+
 <script>
 // ══════════════════════════════════════════════════════
 //  DATA
@@ -414,7 +546,7 @@ const PLAN = [
 const LUNCH = { 0:8, 1:7, 2:7, 3:5 };
 
 const FACH_FULL = {
-  'Baukonstr':'Baukonstruktion','Bautechno':'Bautechnologie',
+  'Baukonstr':'Baukonstruktion','Baust. tech.':'Baustofftechnologie',
   'Wi_PuG':'Wirtschaft, Politik & Gesellschaft','Statik':'Statik & Festigkeitslehre',
   'Bauphysik':'Bauphysik','Baurecht':'Baurecht','Betr-psych':'Betriebspsychologie',
   'CAD/Verm':'CAD & Vermessung','CAD/Lab':'CAD-Labor','EDV':'EDV','EDV/Lab':'EDV-Labor',
@@ -424,7 +556,7 @@ const FACH_FULL = {
 };
 
 const FACH_COLOR = {
-  'Baukonstr':'--c-bau','Bautechno':'--c-tech','Wi_PuG':'--c-wipug',
+  'Baukonstr':'--c-bau','Baust. tech.':'--c-tech','Wi_PuG':'--c-wipug',
   'Statik':'--c-statik','Bauphysik':'--c-physik','Baurecht':'--c-recht',
   'Betr-psych':'--c-psych','CAD':'--c-cad','CAD/Verm':'--c-cad',
   'CAD/Lab':'--c-cad','CAD-Labor':'--c-cad','EDV':'--c-edv','EDV/Lab':'--c-edv',
@@ -434,9 +566,9 @@ const FACH_COLOR = {
 
 const COMMON = {
   0: {1:['Baukonstr','E 203','Reißer'],  2:['Baukonstr','E 203','Reißer'],
-      3:['Bautechno','E 203','Drexler'], 4:['Bautechno','E 203','Drexler'],
-      5:['Bautechno','E 203','Drexler'], 6:['Wi_PuG','E 203','Seiler'],
-      7:['Wi_PuG','E 203','Seiler'],     9:['Deutsch','E 202','Schnabel'],
+      3:['Baust. tech.','E 203','Drexler'], 4:['Baust. tech.','E 203','Drexler'],
+      5:['Baust. tech.','E 203','Drexler'], 6:['Wi_PuG','E 203','Seiler'],
+      7:['Wi_PuG','E 203','Seiler'],     9:['Deutsch','E 203','Schnabel'],
      10:['Deutsch','E 203','Schnabel']},
   1: {2:['Statik','E 203','Schäfer'],    3:['Statik','E 203','Schäfer'],
       4:['Statik','E 203','Schäfer'],    5:['Englisch','E 203','Finck'],
@@ -455,8 +587,8 @@ function getSchedule(group, weekType) {
   const s = JSON.parse(JSON.stringify(COMMON));
   const miCAD = (group === 1 && weekType === 'A') || (group === 2 && weekType === 'B');
   if (miCAD) {
-    s[2][8] = ['CAD','E 103','Summerer'];
-    s[2][9] = ['CAD','E 103','Summerer'];
+    s[2][8] = ['CAD','E 103','Sumereder'];
+    s[2][9] = ['CAD','E 103','Sumereder'];
   } else {
     s[2][8]  = ['Vermess','E 203','Schwind'];
     s[2][9]  = ['Vermess','E 203','Schwind'];
@@ -471,8 +603,8 @@ function getSchedule(group, weekType) {
   } else {
     s[3][1] = ['EDV','E 203','Reith'];
     s[3][2] = ['EDV','E 203','Reith'];
-    s[3][3] = ['CAD-Labor','E 103','Wolf'];
-    s[3][4] = ['CAD-Labor','E 103','Wolf'];
+    s[3][3] = ['CAD','E 203','Sumereder'];
+    s[3][4] = ['CAD','E 203','Sumereder'];
   }
   const frEDV = (group === 1 && weekType === 'A') || (group === 2 && weekType === 'B');
   if (frEDV) {
@@ -491,18 +623,65 @@ function getLunch(group, weekType) {
 // ══════════════════════════════════════════════════════
 let ferienRanges = [], ferienLoaded = false;
 
+// Hardcoded Bayern Ferien as fallback (API may fail due to CORS/offline)
+const FERIEN_FALLBACK = [
+  // Weihnachten 2025/26
+  ['2025-12-22','2026-01-05'],
+  // Frühjahr 2026
+  ['2026-02-16','2026-02-20'],
+  // Ostern 2026
+  ['2026-03-30','2026-04-10'],
+  // Pfingsten 2026
+  ['2026-05-26','2026-06-05'],
+  // Sommer 2026
+  ['2026-08-03','2026-09-14'],
+  // Herbst (Allerheiligen) 2026
+  ['2026-11-02','2026-11-06'],
+  // Buß- und Bettag 2026
+  ['2026-11-18','2026-11-18'],
+  // Weihnachten 2026/27
+  ['2026-12-24','2027-01-08'],
+  // Frühjahr 2027
+  ['2027-02-08','2027-02-12'],
+  // Ostern 2027
+  ['2027-03-22','2027-04-02'],
+  // Pfingsten 2027
+  ['2027-05-18','2027-05-28'],
+  // Sommer 2027
+  ['2027-08-02','2027-09-13'],
+];
+
+function parseFallback() {
+  return FERIEN_FALLBACK.map(([s,e]) => ({
+    start: new Date(s + 'T00:00:00'),
+    end: new Date(e + 'T00:00:00')
+  }));
+}
+
 async function loadFerien() {
+  // Try API first
   const years = [new Date().getFullYear(), new Date().getFullYear() + 1];
   const all = [];
   for (const y of years) {
     try {
-      const r = await fetch(`https://schulferien-api.de/api/v1/${y}/BY/`);
+      const r = await fetch(`https://ferien-api.de/api/v1/holidays/BY/${y}`);
       if (!r.ok) continue;
       const data = await r.json();
-      data.forEach(f => { if (f.start && f.end) all.push({ start: new Date(f.start), end: new Date(f.end) }); });
+      data.forEach(f => {
+        if (f.start && f.end) {
+          all.push({ start: new Date(f.start), end: new Date(f.end) });
+        }
+      });
     } catch(e) {}
   }
-  ferienRanges = all; ferienLoaded = true;
+
+  if (all.length > 0) {
+    ferienRanges = all;
+  } else {
+    // Fallback to hardcoded data
+    ferienRanges = parseFallback();
+  }
+  ferienLoaded = true;
   document.getElementById('loading-hint').style.display = 'none';
 }
 
@@ -666,6 +845,60 @@ function getSubjColorHex(abbr) {
   return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
 }
 
+// Find the next school day's first lesson start time and return a descriptive string
+function findNextSchoolStart(todayIdx, nowM, todayLastEndM, sch, lun, wt) {
+  const DAY_NAMES = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
+
+  // Helper: find first lesson start on a given day index using a schedule
+  function firstLessonStart(dIdx, schedule) {
+    for (let i = 0; i < PLAN.length; i++) {
+      const slot = PLAN[i];
+      if (slot.type !== 'hour') continue;
+      const info = schedule[dIdx]?.[slot.nr];
+      if (info) return fmt(slot.start);
+    }
+    return null;
+  }
+
+  // Check if today still has lessons ahead (before school started)
+  if (todayIdx >= 0 && todayIdx < 5 && (todayLastEndM === 0 || nowM < toMins(PLAN[0].start))) {
+    const startTime = firstLessonStart(todayIdx, sch);
+    if (startTime) return `Unterricht beginnt heute um ${startTime} Uhr`;
+  }
+
+  // Look ahead through the next days
+  for (let offset = 1; offset <= 7; offset++) {
+    const nextDayIdx = (todayIdx + offset) % 7; // 0-6 (Mo-So mapped)
+    // Skip weekends (Sat=5, Sun=6 in our 0-based Mo-Fr system)
+    if (nextDayIdx < 0 || nextDayIdx >= 5) continue;
+
+    // We need the schedule for that day – it might be next week with a different week type
+    let futureWt = wt;
+    const daysFromToday = offset;
+    // If we cross into next week (past Friday), flip week type
+    const todayDayJs = new Date().getDay(); // 0=Sun, 1=Mon...
+    const futureDayJs = ((todayDayJs - 1 + offset) % 7); // 0-based from Monday
+    // Check if we crossed a weekend boundary into a new school week
+    if (todayDayJs + offset > 5 + (todayDayJs === 0 ? -1 : 0)) {
+      // Simple: recalculate for the actual future date
+      const futureDate = new Date();
+      futureDate.setDate(futureDate.getDate() + offset);
+      futureWt = getWeekType(currentGroup, futureDate);
+    }
+
+    const futureSch = getSchedule(currentGroup, futureWt);
+    const startTime = firstLessonStart(nextDayIdx, futureSch);
+    if (startTime) {
+      if (offset === 1 && todayIdx >= 0 && todayIdx < 4) {
+        return `Unterricht beginnt morgen um ${startTime} Uhr`;
+      } else {
+        return `Unterricht beginnt ${DAY_NAMES[nextDayIdx]} um ${startTime} Uhr`;
+      }
+    }
+  }
+  return '';
+}
+
 function update() {
   if (!currentGroup) return;
   const now = new Date(), dayJs = now.getDay(), dayIdx = dayJs - 1;
@@ -727,9 +960,33 @@ function update() {
   nextEl.classList.add('hidden');
 
   if (activeRow === -1) {
-    label.textContent = 'Außerhalb der Schulzeit';
-    main.textContent = 'Keine aktive Stunde';
-    sub.textContent = ''; cpill.classList.add('hidden');
+    // Find last lesson end time of today
+    let lastEndM = 0;
+    if (dayIdx >= 0 && dayIdx < 5) {
+      PLAN.forEach((slot) => {
+        if (slot.type !== 'hour') return;
+        const info = sch[dayIdx]?.[slot.nr];
+        const isLunchSlot = lun[dayIdx] === slot.nr;
+        if (info || isLunchSlot) {
+          const eM = toMins(slot.end);
+          if (eM > lastEndM) lastEndM = eM;
+        }
+      });
+    }
+
+    // Find next school day's first lesson start
+    const nextStart = findNextSchoolStart(dayIdx, nowM, lastEndM, sch, lun, wt);
+
+    if (dayIdx >= 0 && dayIdx < 5 && nowM >= lastEndM && lastEndM > 0) {
+      label.textContent = 'Feierabend';
+      main.textContent = '🎉 Schulschluss';
+      sub.textContent = nextStart;
+    } else {
+      label.textContent = 'Außerhalb der Schulzeit';
+      main.textContent = 'Kein Unterricht';
+      sub.textContent = nextStart;
+    }
+    cpill.classList.add('hidden');
   } else if (activeType === 'pause') {
     dot.classList.add('pause'); label.textContent = 'Jetzt';
     main.textContent = '☕ Pause';
@@ -790,13 +1047,39 @@ function update() {
       showProg(Math.max(0, blockSecsLeft), blockTotalSecs, 'custom', subjColor);
       showNext(block.endRow, dayIdx, sch, lun);
     } else {
-      // Freistunde
-      dot.classList.add('active');
-      label.textContent = `${slot.nr}. Stunde`;
-      main.textContent = 'Freistunde'; sub.textContent = '';
-      cpill.textContent = fmtCD(secsLeft);
-      showProg(secsLeft, totalSecs, 'default', null);
-      showNext(activeRow, dayIdx, sch, lun);
+      // Check if there are any more lessons after this slot today
+      let hasMoreLessons = false;
+      for (let r = activeRow + 1; r < PLAN.length; r++) {
+        const s = PLAN[r];
+        if (s.type !== 'hour') continue;
+        if (lun[dayIdx] === s.nr) { hasMoreLessons = true; break; }
+        if (sch[dayIdx]?.[s.nr]) { hasMoreLessons = true; break; }
+      }
+
+      if (!hasMoreLessons) {
+        // No more lessons → Schulschluss
+        let lastEndM = 0;
+        PLAN.forEach((sl) => {
+          if (sl.type !== 'hour') return;
+          if (sch[dayIdx]?.[sl.nr] || lun[dayIdx] === sl.nr) {
+            const eM = toMins(sl.end);
+            if (eM > lastEndM) lastEndM = eM;
+          }
+        });
+        const nextStart = findNextSchoolStart(dayIdx, nowM, lastEndM, sch, lun, wt);
+        label.textContent = 'Feierabend';
+        main.textContent = '🎉 Schulschluss';
+        sub.textContent = nextStart;
+        cpill.classList.add('hidden');
+      } else {
+        // Real Freistunde (lessons still coming)
+        dot.classList.add('active');
+        label.textContent = `${slot.nr}. Stunde`;
+        main.textContent = 'Freistunde'; sub.textContent = '';
+        cpill.textContent = fmtCD(secsLeft);
+        showProg(secsLeft, totalSecs, 'default', null);
+        showNext(activeRow, dayIdx, sch, lun);
+      }
     }
   }
 
@@ -847,7 +1130,112 @@ function highlightColumn(dayIdx, activeRow) {
 function pad(n) { return String(n).padStart(2,'0'); }
 function fmt([h,m]) { return `${pad(h)}:${pad(m)}`; }
 function toMins([h,m]) { return h*60+m; }
-function fmtCD(s) { return `${pad(Math.floor(s/60))}:${pad(s%60)}`; }
+function fmtCD(s) {
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  const sec = s % 60;
+  if (h > 0) return `${h}:${pad(m)}:${pad(sec)}`;
+  return `${pad(m)}:${pad(sec)}`;
+}
+
+// ══════════════════════════════════════════════════════
+//  CALENDAR
+// ══════════════════════════════════════════════════════
+let calYear, calMonth; // 0-indexed month
+
+const MONTH_NAMES = ['Januar','Februar','März','April','Mai','Juni',
+  'Juli','August','September','Oktober','November','Dezember'];
+const CAL_DAY_NAMES = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+
+function openCalendar() {
+  const now = new Date();
+  calYear = now.getFullYear();
+  calMonth = now.getMonth();
+  renderCalendar();
+  document.getElementById('cal-overlay').style.display = 'flex';
+}
+
+function closeCalendar() {
+  document.getElementById('cal-overlay').style.display = 'none';
+}
+
+// Close on backdrop click
+document.addEventListener('click', e => {
+  if (e.target.id === 'cal-overlay') closeCalendar();
+});
+
+function calNav(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0) { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+
+function renderCalendar() {
+  document.getElementById('cal-title').textContent = `${MONTH_NAMES[calMonth]} ${calYear}`;
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+
+  // Day headers
+  CAL_DAY_NAMES.forEach(d => {
+    const el = document.createElement('div');
+    el.className = 'cal-day-head';
+    el.textContent = d;
+    grid.appendChild(el);
+  });
+
+  const firstDay = new Date(calYear, calMonth, 1);
+  // getDay: 0=Sun → we need Mon=0
+  let startOffset = firstDay.getDay() - 1;
+  if (startOffset < 0) startOffset = 6;
+
+  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
+
+  // Empty cells before first day
+  for (let i = 0; i < startOffset; i++) {
+    const el = document.createElement('div');
+    el.className = 'cal-day empty';
+    grid.appendChild(el);
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const date = new Date(calYear, calMonth, d);
+    const el = document.createElement('div');
+    const dayOfWeek = date.getDay(); // 0=Sun, 6=Sat
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const isFerienDay = ferienLoaded && isFerien(date);
+    const isToday = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}` === todayStr;
+
+    let cls = 'cal-day';
+    let weekLabel = '';
+
+    if (isWeekend) {
+      cls += ' weekend';
+    } else if (isFerienDay) {
+      cls += ' ferien';
+      weekLabel = 'Ferien';
+    } else if (currentGroup) {
+      const wt = getWeekType(currentGroup, date);
+      // Display week type from group perspective
+      const displayWt = currentGroup === 1 ? wt : (wt === 'A' ? 'B' : 'A');
+      if (displayWt === 'A') {
+        cls += ' week-a';
+        weekLabel = 'A';
+      } else {
+        cls += ' week-b';
+        weekLabel = 'B';
+      }
+    }
+
+    if (isToday) cls += ' today';
+
+    el.className = cls;
+    el.innerHTML = `<span>${d}</span>`;
+    grid.appendChild(el);
+  }
+}
 
 // ══════════════════════════════════════════════════════
 //  INIT

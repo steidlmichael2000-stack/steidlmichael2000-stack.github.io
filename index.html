@@ -176,6 +176,7 @@
   .status-dot.pause  { background: var(--accent2); box-shadow: 0 0 12px rgba(59,130,246,0.5); animation: glowB 2.2s ease-in-out infinite; }
   @keyframes glow  { 0%,100%{box-shadow:0 0 6px rgba(245,158,11,0.35)} 50%{box-shadow:0 0 18px rgba(245,158,11,0.55)} }
   @keyframes glowB { 0%,100%{box-shadow:0 0 6px rgba(59,130,246,0.35)} 50%{box-shadow:0 0 18px rgba(59,130,246,0.55)} }
+  @keyframes glowCustom { 0%,100%{opacity:0.85; filter:brightness(1)} 50%{opacity:1; filter:brightness(1.3)} }
 
   .status-text { flex: 1; min-width: 0; }
   .status-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-weight: 600; }
@@ -210,9 +211,10 @@
   .progress-fill::after {
     content: ''; position: absolute; right: -2px; top: 50%; transform: translateY(-50%);
     width: 7px; height: 7px; border-radius: 50%;
-    background: var(--accent); box-shadow: 0 0 8px rgba(245,158,11,0.5);
+    background: var(--prog-color, var(--accent));
+    box-shadow: 0 0 8px color-mix(in srgb, var(--prog-color, var(--accent)) 60%, transparent);
   }
-  .progress-fill.blue { background: linear-gradient(90deg, var(--accent2), #60a5fa); }
+  .progress-fill.blue { background: linear-gradient(90deg, var(--accent2), #60a5fa); --prog-color: var(--accent2); }
   .progress-fill.blue::after { background: var(--accent2); box-shadow: 0 0 8px rgba(59,130,246,0.5); }
   .progress-pct { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); min-width: 30px; text-align: right; }
   .progress-wrap.hidden { display: none; }
@@ -618,6 +620,52 @@ function buildTable() {
 // ══════════════════════════════════════════════════════
 //  UPDATE LOOP
 // ══════════════════════════════════════════════════════
+
+// Find contiguous block of the same subject around a given row for a given day
+function findSubjectBlock(rowIdx, dayIdx, sch, lun) {
+  const slot = PLAN[rowIdx];
+  if (slot.type !== 'hour') return null;
+  const isLunch = lun[dayIdx] === slot.nr;
+  if (isLunch) return { startRow: rowIdx, endRow: rowIdx, subject: null, isLunch: true };
+
+  const info = sch[dayIdx]?.[slot.nr];
+  if (!info) return null;
+  const subj = info[0];
+
+  // Search backwards for first consecutive slot with same subject
+  let startRow = rowIdx;
+  for (let r = rowIdx - 1; r >= 0; r--) {
+    const s = PLAN[r];
+    if (s.type === 'pause') continue; // skip pauses within block
+    if (s.type !== 'hour') break;
+    if (lun[dayIdx] === s.nr) break;
+    const ri = sch[dayIdx]?.[s.nr];
+    if (!ri || ri[0] !== subj) break;
+    startRow = r;
+  }
+
+  // Search forwards
+  let endRow = rowIdx;
+  for (let r = rowIdx + 1; r < PLAN.length; r++) {
+    const s = PLAN[r];
+    if (s.type === 'pause') continue;
+    if (s.type !== 'hour') break;
+    if (lun[dayIdx] === s.nr) break;
+    const ri = sch[dayIdx]?.[s.nr];
+    if (!ri || ri[0] !== subj) break;
+    endRow = r;
+  }
+
+  return { startRow, endRow, subject: subj, info, isLunch: false };
+}
+
+// Get the actual CSS color value for a subject
+function getSubjColorHex(abbr) {
+  const varName = FACH_COLOR[abbr];
+  if (!varName) return null;
+  return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+}
+
 function update() {
   if (!currentGroup) return;
   const now = new Date(), dayJs = now.getDay(), dayIdx = dayJs - 1;
@@ -643,6 +691,7 @@ function update() {
 
   const sch = getSchedule(currentGroup, wt), lun = getLunch(currentGroup, wt);
 
+  // Find active slot (single hour/pause)
   let activeRow = -1, activeType = 'free', secsLeft = 0, totalSecs = 0;
   PLAN.forEach((slot, rowIdx) => {
     const sM = toMins(slot.start), eM = toMins(slot.end);
@@ -666,10 +715,15 @@ function update() {
   const nextEl = document.getElementById('next-preview');
   const nextSubj = document.getElementById('next-subject');
   const nextInfo = document.getElementById('next-info');
+  const card = document.getElementById('status-card');
 
-  document.getElementById('status-card').className = 'status-card glass';
-  dot.className = 'status-dot'; cpill.className = 'countdown-pill';
-  pWrap.classList.add('hidden'); pFill.className = 'progress-fill';
+  // Reset
+  card.className = 'status-card glass';
+  card.style.cssText = '';
+  dot.className = 'status-dot'; dot.style.cssText = '';
+  cpill.className = 'countdown-pill'; cpill.style.cssText = '';
+  pWrap.classList.add('hidden');
+  pFill.className = 'progress-fill'; pFill.style.cssText = 'width:0%';
   nextEl.classList.add('hidden');
 
   if (activeRow === -1) {
@@ -681,32 +735,84 @@ function update() {
     main.textContent = '☕ Pause';
     sub.textContent = `Bis ${fmt(PLAN[activeRow].end)} Uhr`;
     cpill.classList.add('blue'); cpill.textContent = fmtCD(secsLeft);
-    showProg(secsLeft, totalSecs, true); showNext(activeRow, dayIdx, sch, lun);
+    showProg(secsLeft, totalSecs, 'blue', null);
+    showNext(activeRow, dayIdx, sch, lun);
   } else {
     const slot = PLAN[activeRow];
-    const isLunch = dayIdx >= 0 && lun[dayIdx] === slot.nr;
-    if (isLunch) {
+    const block = findSubjectBlock(activeRow, dayIdx, sch, lun);
+
+    if (block && block.isLunch) {
       dot.classList.add('pause'); label.textContent = 'Jetzt';
       main.textContent = '🍴 Mittagspause';
       sub.textContent = `Bis ${fmt(slot.end)} Uhr`;
       cpill.classList.add('blue'); cpill.textContent = fmtCD(secsLeft);
-      showProg(secsLeft, totalSecs, true); showNext(activeRow, dayIdx, sch, lun);
+      showProg(secsLeft, totalSecs, 'blue', null);
+      showNext(activeRow, dayIdx, sch, lun);
+    } else if (block && block.info) {
+      const info = block.info;
+      const subjColor = getSubjColorHex(info[0]);
+
+      // Calculate block-wide timing
+      const blockStartSlot = PLAN[block.startRow];
+      const blockEndSlot = PLAN[block.endRow];
+      const blockStartS = toMins(blockStartSlot.start) * 60;
+      const blockEndS = toMins(blockEndSlot.end) * 60;
+      const blockTotalSecs = blockEndS - blockStartS;
+      const blockSecsLeft = blockEndS - nowS;
+
+      // Count hours in block
+      let hourCount = 0;
+      for (let r = block.startRow; r <= block.endRow; r++) {
+        if (PLAN[r].type === 'hour') hourCount++;
+      }
+
+      dot.classList.add('active');
+      label.textContent = hourCount > 1 ? `${slot.nr}. Stunde (${hourCount} Std Block)` : `${slot.nr}. Stunde`;
+      main.textContent = FACH_FULL[info[0]] || info[0];
+      sub.textContent = `${info[2]} · ${info[1]} · bis ${fmt(blockEndSlot.end)}`;
+      cpill.textContent = fmtCD(Math.max(0, blockSecsLeft));
+
+      // Apply subject color to status elements
+      if (subjColor) {
+        dot.style.background = subjColor;
+        dot.style.boxShadow = `0 0 12px ${subjColor}80`;
+        dot.style.animation = 'none';
+        // re-trigger animation with custom color
+        requestAnimationFrame(() => {
+          dot.style.animation = `glowCustom 2.2s ease-in-out infinite`;
+        });
+        cpill.style.background = `${subjColor}14`;
+        cpill.style.color = subjColor;
+        cpill.style.borderColor = `${subjColor}30`;
+        card.style.borderColor = `${subjColor}20`;
+      }
+
+      showProg(Math.max(0, blockSecsLeft), blockTotalSecs, 'custom', subjColor);
+      showNext(block.endRow, dayIdx, sch, lun);
     } else {
-      const info = sch[dayIdx]?.[slot.nr];
-      dot.classList.add('active'); label.textContent = `${slot.nr}. Stunde`;
-      if (info) { main.textContent = FACH_FULL[info[0]]||info[0]; sub.textContent = `${info[2]} · ${info[1]}`; }
-      else { main.textContent = 'Freistunde'; sub.textContent = ''; }
+      // Freistunde
+      dot.classList.add('active');
+      label.textContent = `${slot.nr}. Stunde`;
+      main.textContent = 'Freistunde'; sub.textContent = '';
       cpill.textContent = fmtCD(secsLeft);
-      showProg(secsLeft, totalSecs, false); showNext(activeRow, dayIdx, sch, lun);
+      showProg(secsLeft, totalSecs, 'default', null);
+      showNext(activeRow, dayIdx, sch, lun);
     }
   }
 
-  function showProg(left, total, blue) {
+  function showProg(left, total, mode, color) {
     if (total <= 0) return;
     const pct = Math.round(((total - left) / total) * 100);
     pWrap.classList.remove('hidden');
     pFill.style.width = pct + '%';
-    if (blue) pFill.classList.add('blue');
+
+    if (mode === 'blue') {
+      pFill.classList.add('blue');
+    } else if (mode === 'custom' && color) {
+      pFill.style.background = `linear-gradient(90deg, ${color}90, ${color})`;
+      // Style the dot on the progress bar
+      pFill.style.setProperty('--prog-color', color);
+    }
     pPct.textContent = pct + '%';
   }
 

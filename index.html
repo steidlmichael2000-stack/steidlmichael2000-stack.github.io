@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FST 1 Stundenplan</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f1117">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FST 1">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d27;
+    --surface2: #22263a;
+    --border: rgba(255,255,255,0.07);
+    --text: #e8eaf0;
+    --muted: #6b7280;
+    --accent: #f59e0b;
+    --accent2: #3b82f6;
+    --green: #10b981;
+    --active-glow: rgba(245,158,11,0.15);
+    --mono: 'DM Mono', monospace;
+    --sans: 'DM Sans', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    font-family: var(--sans);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 20px 16px 40px;
+    /* subtle grid texture */
+    background-image: radial-gradient(circle at 20% 20%, rgba(59,130,246,0.04) 0%, transparent 50%),
+                      radial-gradient(circle at 80% 80%, rgba(245,158,11,0.04) 0%, transparent 50%);
+  }
+
+  /* ── Header ─────────────────────────────── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+  .header-left h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .header-left h1 span { color: var(--accent); }
+  .header-left p { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+  .clock {
+    font-family: var(--mono);
+    font-size: 1.25rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 8px 14px;
+    border-radius: 10px;
+    color: var(--accent);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+
+  /* ── Status Card ─────────────────────────── */
+  .status-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    transition: border-color 0.4s;
+    position: relative;
+    overflow: hidden;
+  }
+  .status-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--active-glow);
+    opacity: 0;
+    transition: opacity 0.4s;
+    pointer-events: none;
+  }
+  .status-card.has-lesson::before { opacity: 1; }
+  .status-card.has-lesson { border-color: rgba(245,158,11,0.35); }
+  .status-card.has-pause  { border-color: rgba(59,130,246,0.35); }
+  .status-card.has-pause::before { background: rgba(59,130,246,0.08); opacity: 1; }
+
+  .status-dot {
+    width: 10px; height: 10px; border-radius: 50%;
+    background: var(--muted);
+    flex-shrink: 0;
+    box-shadow: 0 0 0 0 var(--muted);
+  }
+  .status-dot.active {
+    background: var(--accent);
+    animation: ripple 1.6s ease-out infinite;
+  }
+  .status-dot.pause { background: var(--accent2); animation: ripple-blue 1.6s ease-out infinite; }
+  @keyframes ripple      { 0%,100%{box-shadow:0 0 0 0 rgba(245,158,11,.5)} 50%{box-shadow:0 0 0 8px rgba(245,158,11,0)} }
+  @keyframes ripple-blue { 0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.5)} 50%{box-shadow:0 0 0 8px rgba(59,130,246,0)} }
+
+  .status-text { flex: 1; }
+  .status-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); }
+  .status-main  { font-size: 1.05rem; font-weight: 600; margin-top: 2px; }
+  .status-sub   { font-size: 0.8rem; color: var(--muted); margin-top: 2px; }
+
+  .countdown-pill {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    background: rgba(245,158,11,0.12);
+    color: var(--accent);
+    border: 1px solid rgba(245,158,11,0.25);
+    padding: 6px 14px;
+    border-radius: 999px;
+    white-space: nowrap;
+    letter-spacing: 0.04em;
+    transition: all 0.3s;
+  }
+  .countdown-pill.blue {
+    background: rgba(59,130,246,0.12);
+    color: var(--accent2);
+    border-color: rgba(59,130,246,0.25);
+  }
+  .countdown-pill.hidden { opacity: 0; pointer-events: none; }
+
+  /* ── Table ───────────────────────────────── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    overflow-x: auto;
+  }
+  table { width: 100%; border-collapse: collapse; min-width: 620px; }
+  col.time-col { width: 88px; }
+
+  thead tr th {
+    background: var(--surface2);
+    padding: 10px 8px;
+    font-size: 0.7rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+  thead tr th.today-head {
+    color: var(--accent);
+    background: rgba(245,158,11,0.06);
+  }
+
+  td {
+    border: 1px solid var(--border);
+    padding: 0;
+    text-align: center;
+    vertical-align: middle;
+    transition: background 0.25s;
+  }
+
+  /* Time cell */
+  .time-cell {
+    background: var(--surface2);
+    font-family: var(--mono);
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text);
+    padding: 6px 8px;
+    line-height: 1.6;
+    text-align: left;
+    border-right: 1px solid var(--border) !important;
+  }
+  .time-cell .hour-nr { 
+    display: block;
+    font-size: 9px;
+    color: rgba(255,255,255,0.18);
+    margin-bottom: 1px;
+  }
+
+  /* Lesson cell */
+  .lesson-cell {
+    height: 56px;
+    padding: 6px 4px;
+    cursor: default;
+  }
+  .lesson-cell .subj { 
+    font-size: 11px; 
+    font-weight: 600; 
+    color: var(--text);
+    display: block;
+    line-height: 1.2;
+  }
+  .lesson-cell .info {
+    font-size: 9.5px;
+    color: var(--muted);
+    margin-top: 3px;
+    display: block;
+    line-height: 1.4;
+  }
+  .lesson-cell.today-col { background: rgba(255,255,255,0.02); }
+  .lesson-cell.active {
+    background: rgba(245,158,11,0.12) !important;
+    border-color: rgba(245,158,11,0.3) !important;
+  }
+  .lesson-cell.active .subj { color: var(--accent); }
+
+  /* Pause row */
+  .pause-cell {
+    height: 8px;
+    padding: 0;
+    font-size: 9px;
+    color: rgba(255,255,255,0.15);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .pause-cell.today-col { background: rgba(255,255,255,0.015); }
+  .pause-cell.active {
+    background: rgba(59,130,246,0.12) !important;
+    border-color: rgba(59,130,246,0.25) !important;
+    color: var(--accent2) !important;
+    font-weight: 600;
+  }
+
+  /* Lunch cell */
+  .lunch-cell {
+    height: 56px;
+    background: rgba(16,185,129,0.06);
+    font-size: 9.5px;
+    font-weight: 600;
+    color: rgba(16,185,129,0.5);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .lunch-cell.today-col { background: rgba(16,185,129,0.08); color: rgba(16,185,129,0.65); }
+  .lunch-cell.active {
+    background: rgba(16,185,129,0.18) !important;
+    color: var(--green) !important;
+    animation: lunchPulse 2s ease-in-out infinite;
+  }
+  @keyframes lunchPulse { 0%,100%{opacity:1} 50%{opacity:0.75} }
+
+  /* Free period */
+  .free-cell { height: 56px; }
+  .free-cell.today-col { background: rgba(255,255,255,0.015); }
+
+  /* Weekend banner */
+  .weekend-banner {
+    text-align: center;
+    padding: 12px;
+    font-size: 0.85rem;
+    color: var(--green);
+    background: rgba(16,185,129,0.07);
+    border: 1px solid rgba(16,185,129,0.15);
+    border-radius: 10px;
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+
+  /* Tooltip */
+  [data-tip] { position: relative; }
+  [data-tip]:hover::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%; transform: translateX(-50%);
+    background: #0a0c12;
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 5px 10px;
+    font-size: 11px;
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+    font-family: var(--sans);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  /* Scrollbar */
+  .table-wrap::-webkit-scrollbar { height: 4px; }
+  .table-wrap::-webkit-scrollbar-track { background: transparent; }
+  .table-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>FST <span>1</span></h1>
+    <p>Josef-Greising-Schule · Stundenplan</p>
+  </div>
+  <div class="clock" id="live-clock">--:--:--</div>
+</div>
+
+<div id="weekend-banner" class="weekend-banner" style="display:none">
+  🎉 Wochenende – genieß die freie Zeit!
+</div>
+
+<div class="status-card" id="status-card">
+  <div class="status-dot" id="status-dot"></div>
+  <div class="status-text">
+    <div class="status-label" id="status-label">Status</div>
+    <div class="status-main" id="status-main">–</div>
+    <div class="status-sub" id="status-sub"></div>
+  </div>
+  <div class="countdown-pill hidden" id="countdown-pill">00:00</div>
+</div>
+
+<div class="table-wrap">
+  <table id="plan-table">
+    <colgroup>
+      <col class="time-col">
+      <col><col><col><col><col>
+    </colgroup>
+    <thead>
+      <tr>
+        <th>Zeit</th>
+        <th id="head-0">Mo</th>
+        <th id="head-1">Di</th>
+        <th id="head-2">Mi</th>
+        <th id="head-3">Do</th>
+        <th id="head-4">Fr</th>
+      </tr>
+    </thead>
+    <tbody id="plan-body"></tbody>
+  </table>
+</div>
+
+<script>
+// ── Data ──────────────────────────────────────────────────────
+const PLAN = [
+  { type:'hour', nr:1,  start:[8,0],  end:[8,45]  },
+  { type:'hour', nr:2,  start:[8,45], end:[9,30]  },
+  { type:'pause',       start:[9,30], end:[9,45]  },
+  { type:'hour', nr:3,  start:[9,45], end:[10,30] },
+  { type:'hour', nr:4,  start:[10,30],end:[11,15] },
+  { type:'pause',       start:[11,15],end:[11,30] },
+  { type:'hour', nr:5,  start:[11,30],end:[12,15] },
+  { type:'hour', nr:6,  start:[12,15],end:[13,0]  },
+  { type:'hour', nr:7,  start:[13,0], end:[13,45] },
+  { type:'hour', nr:8,  start:[13,45],end:[14,30] },
+  { type:'hour', nr:9,  start:[14,30],end:[15,15] },
+  { type:'pause',       start:[15,15],end:[15,30] },
+  { type:'hour', nr:10, start:[15,30],end:[16,15] },
+  { type:'hour', nr:11, start:[16,15],end:[17,0]  },
+];
+
+// lunchSlots: day → lesson nr that is replaced by Mittagspause
+const LUNCH = { 0:8, 1:7, 2:7, 3:5 };
+
+// Subject tooltips (full names)
+const FACH_FULL = {
+  'Baukonstr'  : 'Baukonstruktion',
+  'Bautechno'  : 'Bautechnologie',
+  'Wi_PuG'     : 'Wirtschaft, Politik & Gesellschaft',
+  'Statik'     : 'Statik & Festigkeitslehre',
+  'Bauphysik'  : 'Bauphysik',
+  'Baurecht'   : 'Baurecht',
+  'Betr-psych' : 'Betriebs­psychologie',
+  'CAD/Verm'   : 'CAD & Vermessung',
+  'CAD/Lab'    : 'CAD-Labor',
+  'EDV'        : 'EDV',
+  'EDV/Lab'    : 'EDV-Labor',
+  'Darst.G'    : 'Darstellende Geometrie',
+  'Vermess'    : 'Vermessung',
+  'Mathe'      : 'Mathematik',
+  'Englisch'   : 'Englisch',
+  'Deutsch'    : 'Deutsch',
+};
+
+const FÄCHER = {
+  0: {1:['Baukonstr','E 203','Reißer'],   2:['Baukonstr','E 203','Reißer'],  3:['Bautechno','E 203','Drexler'],
+      4:['Bautechno','E 203','Drexler'],  5:['Bautechno','E 203','Drexler'],  6:['Wi_PuG','E 203','Seiler'],
+      7:['Wi_PuG','E 203','Seiler'],      9:['Deutsch','E 202','Schnabel'],  10:['Deutsch','E 203','Schnabel']},
+  1: {2:['Statik','E 203','Schäfer'],     3:['Statik','E 203','Schäfer'],    4:['Statik','E 203','Schäfer'],
+      5:['Englisch','E 203','Finck'],     6:['Englisch','E 203','Finck'],    8:['Bauphysik','E 203','Küsel'],
+      9:['Bauphysik','E 203','Küsel'],   10:['Bauphysik','E 203','Küsel']},
+  2: {1:['Mathe','E 203','Hinte'],        2:['Mathe','E 203','Hinte'],       3:['Baurecht','E 203','Carl'],
+      4:['Baurecht','E 203','Carl'],      5:['Betr-psych','E 203','Papsdorf'],6:['Betr-psych','E 203','Papsdorf'],
+      8:['CAD/Verm','Mix','Sum/Schw'],    9:['CAD/Verm','Mix','Sum/Schw'],  10:['Vermess','E 203','Schwind'],
+     11:['Vermess','E 203','Schwind']},
+  3: {1:['EDV','E 203','Reith'],          2:['EDV/Lab','Mix','Reith/Wolf'],  3:['CAD/Lab','Mix','Sum/Wolf'],
+      4:['CAD/Lab','Mix','Sum/Wolf'],     6:['Mathe','E 203','Hinte'],       7:['Mathe','E 203','Hinte'],
+      8:['Mathe','E 203','Hinte']},
+  4: {1:['Darst.G','E 203','Schwemmer'], 2:['Darst.G','E 203','Schwemmer'], 3:['Baukonstr','E 203','Reißer'],
+      4:['Baukonstr','E 203','Reißer'],  5:['EDV','E 203','Reith'],         6:['EDV','E 203','Reith']},
+};
+
+// ── Helpers ───────────────────────────────────────────────────
+function toMins([h,m]) { return h*60+m; }
+function pad(n) { return String(n).padStart(2,'0'); }
+function fmtTime([h,m]) { return `${pad(h)}:${pad(m)}`; }
+function fmtCountdown(secsLeft) {
+  const m = Math.floor(secsLeft / 60);
+  const s = secsLeft % 60;
+  return `${pad(m)}:${pad(s)}`;
+}
+
+// ── Build table once ──────────────────────────────────────────
+function buildTable() {
+  const tbody = document.getElementById('plan-body');
+  PLAN.forEach((slot, rowIdx) => {
+    const tr = document.createElement('tr');
+    tr.dataset.row = rowIdx;
+
+    // Time cell
+    const tc = document.createElement('td');
+    tc.className = 'time-cell';
+    if (slot.type === 'hour') {
+      tc.innerHTML = `<span class="hour-nr">${slot.nr}.</span>${fmtTime(slot.start)}<br>${fmtTime(slot.end)}`;
+    } else {
+      tc.innerHTML = `${fmtTime(slot.start)}<br>${fmtTime(slot.end)}`;
+    }
+    tr.appendChild(tc);
+
+    // Day cells
+    for (let d = 0; d < 5; d++) {
+      const td = document.createElement('td');
+      td.dataset.day = d;
+      td.dataset.row = rowIdx;
+
+      if (slot.type === 'pause') {
+        td.className = 'pause-cell';
+        // show dash in time cell area, leave day cells mostly empty
+        td.innerHTML = `<span style="opacity:.3">— —</span>`;
+      } else if (slot.type === 'hour' && LUNCH[d] === slot.nr) {
+        td.className = 'lunch-cell';
+        td.innerHTML = `Mittags-<br>pause`;
+      } else if (slot.type === 'hour') {
+        const info = FÄCHER[d]?.[slot.nr];
+        if (info) {
+          const fullName = FACH_FULL[info[0]] || info[0];
+          td.className = 'lesson-cell';
+          td.setAttribute('data-tip', `${fullName} · ${info[2]}`);
+          td.innerHTML = `<span class="subj">${info[0]}</span><span class="info">${info[2]}<br>${info[1]}</span>`;
+        } else {
+          td.className = 'free-cell';
+        }
+      }
+      tr.appendChild(td);
+    }
+    tbody.appendChild(tr);
+  });
+}
+
+// ── Update loop (no full rebuild, just class toggling) ────────
+let prevActiveCell = null;
+let prevActiveDot  = '';
+
+function update() {
+  const now    = new Date();
+  const dayJs  = now.getDay(); // 0=Sun … 6=Sat
+  const dayIdx = dayJs - 1;   // Mon=0 … Fri=4
+  const nowM   = now.getHours() * 60 + now.getMinutes();
+  const nowS   = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+
+  // Clock
+  document.getElementById('live-clock').textContent =
+    `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+
+  // Today column headers
+  for (let d = 0; d < 5; d++) {
+    const th = document.getElementById(`head-${d}`);
+    th.className = d === dayIdx ? 'today-head' : '';
+  }
+
+  // Weekend
+  const isWeekend = dayJs === 0 || dayJs === 6;
+  document.getElementById('weekend-banner').style.display = isWeekend ? '' : 'none';
+  document.getElementById('status-card').style.display    = isWeekend ? 'none' : '';
+
+  if (isWeekend) {
+    highlightColumn(-1, -1, nowS); return;
+  }
+
+  // Find active slot
+  let activeRow  = -1;
+  let activeType = 'free';
+  let secsLeft   = 0;
+
+  PLAN.forEach((slot, rowIdx) => {
+    const startM = toMins(slot.start);
+    const endM   = toMins(slot.end);
+    const endS   = toMins(slot.end) * 60;
+    if (nowM >= startM && nowM < endM) {
+      activeRow = rowIdx;
+      activeType = slot.type;
+      secsLeft = endS - nowS;
+      if (secsLeft < 0) secsLeft = 0;
+    }
+  });
+
+  // Highlight cells
+  highlightColumn(dayIdx, activeRow, nowS);
+
+  // Status card
+  const card    = document.getElementById('status-card');
+  const dot     = document.getElementById('status-dot');
+  const label   = document.getElementById('status-label');
+  const main    = document.getElementById('status-main');
+  const sub     = document.getElementById('status-sub');
+  const pill    = document.getElementById('countdown-pill');
+
+  card.className = 'status-card';
+  dot.className  = 'status-dot';
+  pill.className = 'countdown-pill';
+
+  if (activeRow === -1) {
+    label.textContent = 'Außerhalb der Schulzeit';
+    main.textContent  = 'Keine aktive Stunde';
+    sub.textContent   = '';
+    pill.classList.add('hidden');
+  } else if (activeType === 'pause') {
+    const slot = PLAN[activeRow];
+    card.classList.add('has-pause');
+    dot.classList.add('pause');
+    label.textContent = 'Jetzt';
+    main.textContent  = '☕ Pause';
+    sub.textContent   = `Bis ${fmtTime(slot.end)} Uhr`;
+    pill.classList.add('blue');
+    pill.textContent  = fmtCountdown(secsLeft);
+  } else {
+    const slot = PLAN[activeRow];
+    const isLunch = dayIdx >= 0 && LUNCH[dayIdx] === slot.nr;
+    if (isLunch) {
+      card.classList.add('has-pause');
+      dot.classList.add('pause');
+      label.textContent = 'Jetzt';
+      main.textContent  = '🍴 Mittagspause';
+      sub.textContent   = `Bis ${fmtTime(slot.end)} Uhr`;
+      pill.classList.add('blue');
+      pill.textContent  = fmtCountdown(secsLeft);
+    } else {
+      const info = FÄCHER[dayIdx]?.[slot.nr];
+      card.classList.add('has-lesson');
+      dot.classList.add('active');
+      label.textContent = `${slot.nr}. Stunde`;
+      if (info) {
+        main.textContent = FACH_FULL[info[0]] || info[0];
+        sub.textContent  = `${info[2]} · ${info[1]}`;
+      } else {
+        main.textContent = 'Freistunde';
+        sub.textContent  = '';
+      }
+      pill.textContent = fmtCountdown(secsLeft);
+    }
+  }
+}
+
+function highlightColumn(dayIdx, activeRow, nowS) {
+  const tbody = document.getElementById('plan-body');
+  const rows  = tbody.querySelectorAll('tr');
+  rows.forEach((tr, rowIdx) => {
+    const cells = tr.querySelectorAll('td');
+    cells.forEach((td, colIdx) => {
+      if (colIdx === 0) return; // time cell – skip
+      const d = colIdx - 1;
+      const isToday  = d === dayIdx;
+      const isActive = isToday && rowIdx === activeRow;
+      const base = td.className.replace(' today-col','').replace(' active','');
+      td.className = base + (isToday ? ' today-col' : '') + (isActive ? ' active' : '');
+    });
+  });
+}
+
+// ── Init ──────────────────────────────────────────────────────
+buildTable();
+update();
+// Drift-resistant tick: sync to next full second
+function tick() {
+  update();
+  const ms = 1000 - (Date.now() % 1000);
+  setTimeout(tick, ms);
+}
+setTimeout(tick, 1000 - (Date.now() % 1000));
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js');
+  }
+</script>
+</body>
+</html>

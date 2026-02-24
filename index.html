@@ -12,476 +12,1046 @@
 <meta name="apple-mobile-web-app-title" content="FST 1">
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --bg: #07080d;
-    --glass: rgba(255,255,255,0.04);
-    --glass-strong: rgba(255,255,255,0.06);
-    --glass-border: rgba(255,255,255,0.07);
-    --border: rgba(255,255,255,0.05);
-    --text: #e8eaf0;
-    --text-dim: rgba(255,255,255,0.45);
-    --muted: #555a6e;
-    --accent: #f59e0b;
-    --accent2: #3b82f6;
-    --green: #10b981;
-    --g1: #a78bfa;
-    --g2: #f472b6;
-    --mono: 'JetBrains Mono', monospace;
-    --sans: 'Outfit', sans-serif;
-    /* Subject colors */
-    --c-bau: #f59e0b; --c-tech: #ef4444; --c-wipug: #8b5cf6;
-    --c-statik: #3b82f6; --c-physik: #06b6d4; --c-recht: #f97316;
-    --c-psych: #ec4899; --c-cad: #10b981; --c-edv: #6366f1;
-    --c-darst: #14b8a6; --c-verm: #22c55e; --c-mathe: #eab308;
-    --c-eng: #a855f7; --c-deu: #f43f5e; --c-labor: #0ea5e9;
-  }
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* ═══════════════════════════════════════════════════
+   DESIGN TOKENS
+   ═══════════════════════════════════════════════════ */
+:root {
+  --bg: #07080d;
+  --surface: rgba(255,255,255,0.04);
+  --surface-strong: rgba(255,255,255,0.06);
+  --surface-border: rgba(255,255,255,0.07);
+  --border: rgba(255,255,255,0.05);
+  --text: #e8eaf0;
+  --text-dim: rgba(255,255,255,0.5);
+  --muted: #6b7089;
+  --accent: #f59e0b;
+  --accent2: #3b82f6;
+  --green: #10b981;
+  --g1: #a78bfa;
+  --g2: #f472b6;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Outfit', sans-serif;
 
-  body {
-    background: var(--bg);
-    font-family: var(--sans);
-    color: var(--text);
-    min-height: 100vh; min-height: 100dvh;
-    padding: 16px 14px 40px;
-    overflow-x: hidden;
-  }
-  /* Animated background mesh */
-  body::before {
-    content: ''; position: fixed; inset: 0; z-index: -1;
-    background:
-      radial-gradient(ellipse 600px 400px at 15% 20%, rgba(167,139,250,0.06) 0%, transparent 70%),
-      radial-gradient(ellipse 500px 500px at 85% 75%, rgba(245,158,11,0.04) 0%, transparent 70%),
-      radial-gradient(ellipse 400px 300px at 50% 50%, rgba(59,130,246,0.03) 0%, transparent 70%);
-    animation: meshFloat 25s ease-in-out infinite alternate;
-  }
-  @keyframes meshFloat { 0%{transform:scale(1) translate(0,0)} 100%{transform:scale(1.06) translate(-12px,18px)} }
-  /* Noise grain */
-  body::after {
-    content: ''; position: fixed; inset: 0; z-index: -1; opacity: 0.018; pointer-events: none;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-    background-size: 128px;
-  }
+  /* Subject colors — differentiated for readability */
+  --c-bau: #f59e0b;
+  --c-tech: #ef4444;
+  --c-wipug: #8b5cf6;
+  --c-statik: #3b82f6;
+  --c-physik: #06b6d4;
+  --c-recht: #f97316;
+  --c-psych: #ec4899;
+  --c-cad: #10b981;
+  --c-edv: #6366f1;
+  --c-darst: #0891b2;    /* differentiated from cad/verm */
+  --c-verm: #84cc16;     /* lime instead of similar green */
+  --c-mathe: #eab308;
+  --c-eng: #a855f7;
+  --c-deu: #f43f5e;
+  --c-labor: #0ea5e9;
 
-  /* ── Glass utility ── */
-  .glass {
-    background: var(--glass);
-    backdrop-filter: blur(20px) saturate(1.3);
-    -webkit-backdrop-filter: blur(20px) saturate(1.3);
-    border: 1px solid var(--glass-border);
-    border-radius: 16px;
-  }
+  /* Spacing scale */
+  --sp-xs: 4px;
+  --sp-sm: 8px;
+  --sp-md: 16px;
+  --sp-lg: 24px;
+  --sp-xl: 32px;
 
-  /* ── Smooth group switch ── */
-  .fade-content { transition: opacity 0.28s ease, transform 0.28s ease; }
-  .fade-content.switching { opacity: 0; transform: translateY(8px) scale(0.985); }
+  /* Radius */
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 18px;
+  --r-full: 999px;
 
-  /* ── Group Overlay ── */
-  #group-overlay {
-    position: fixed; inset: 0; z-index: 999;
-    background: rgba(7,8,13,0.93);
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 24px;
-    backdrop-filter: blur(28px);
-    animation: fadeIn 0.35s ease;
-  }
-  @keyframes fadeIn { from{opacity:0} }
-  #group-overlay h2 {
-    font-size: 1.5rem; font-weight: 800;
-    background: linear-gradient(135deg, var(--g1), var(--g2));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  }
-  #group-overlay p { color: var(--muted); font-size: 0.85rem; text-align: center; max-width: 280px; }
-  .group-btns { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
-  .group-btn {
-    padding: 20px 38px; border-radius: 16px; border: 1.5px solid;
-    font-family: var(--sans); font-size: 1rem; font-weight: 700;
-    cursor: pointer; background: transparent;
-    transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-    position: relative; overflow: hidden;
-  }
-  .group-btn::before { content:''; position:absolute; inset:0; opacity:0; transition:opacity 0.3s; border-radius:inherit; }
-  .group-btn:hover { transform: translateY(-3px); }
-  .group-btn:active { transform: translateY(0) scale(0.96); }
-  .group-btn.g1 { color: var(--g1); border-color: rgba(167,139,250,0.35); }
-  .group-btn.g1::before { background: radial-gradient(circle, rgba(167,139,250,0.12), transparent 70%); }
-  .group-btn.g1:hover::before { opacity:1; }
-  .group-btn.g1:hover { box-shadow: 0 8px 32px rgba(167,139,250,0.15); }
-  .group-btn.g2 { color: var(--g2); border-color: rgba(244,114,182,0.35); }
-  .group-btn.g2::before { background: radial-gradient(circle, rgba(244,114,182,0.12), transparent 70%); }
-  .group-btn.g2:hover::before { opacity:1; }
-  .group-btn.g2:hover { box-shadow: 0 8px 32px rgba(244,114,182,0.15); }
+  /* Transitions */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --t-fast: 0.2s var(--ease);
+  --t-normal: 0.3s var(--ease);
+  --t-slow: 0.4s var(--ease);
+}
 
-  /* ── Header ── */
-  .header {
-    display: flex; align-items: center; justify-content: space-between;
-    flex-wrap: wrap; gap: 12px; margin-bottom: 16px; padding: 0 2px;
-  }
-  .header-left h1 { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.03em; }
-  .header-left h1 span {
-    background: linear-gradient(135deg, var(--accent), #fbbf24);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  }
-  .header-left p { font-size: 0.72rem; color: var(--muted); margin-top: 2px; letter-spacing: 0.02em; }
-  .header-right { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+/* ═══════════════════════════════════════════════════
+   RESET & BASE
+   ═══════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  .clock {
-    font-family: var(--mono); font-size: 1.15rem; font-weight: 500;
-    padding: 8px 14px; border-radius: 12px;
-    color: var(--accent); letter-spacing: 0.05em; white-space: nowrap;
-    text-shadow: 0 0 18px rgba(245,158,11,0.25);
-  }
-  .group-badge {
-    font-size: 0.72rem; font-weight: 700;
-    padding: 6px 14px; border-radius: 999px; border: 1.5px solid;
-    cursor: pointer; transition: all 0.3s cubic-bezier(0.4,0,0.2,1);
-    white-space: nowrap; font-family: var(--sans); background: transparent;
-  }
-  .group-badge:hover { transform: scale(1.05); }
-  .group-badge:active { transform: scale(0.95); }
-  .group-badge.g1 { color: var(--g1); border-color: rgba(167,139,250,0.35); }
-  .group-badge.g1:hover { background: rgba(167,139,250,0.08); box-shadow: 0 0 20px rgba(167,139,250,0.12); }
-  .group-badge.g2 { color: var(--g2); border-color: rgba(244,114,182,0.35); }
-  .group-badge.g2:hover { background: rgba(244,114,182,0.08); box-shadow: 0 0 20px rgba(244,114,182,0.12); }
+body {
+  background: var(--bg);
+  font-family: var(--sans);
+  color: var(--text);
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: var(--sp-md) 14px 40px;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-  .week-pill {
-    font-size: 0.7rem; font-weight: 600;
-    padding: 6px 12px; border-radius: 999px;
-    background: rgba(245,158,11,0.08); color: var(--accent);
-    border: 1px solid rgba(245,158,11,0.18); white-space: nowrap; transition: all 0.3s;
-  }
-  .week-pill.b { background: rgba(59,130,246,0.08); color: var(--accent2); border-color: rgba(59,130,246,0.18); }
+/* Background mesh — GPU-friendly with opacity only */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  will-change: opacity;
+  background:
+    radial-gradient(ellipse 600px 400px at 15% 20%, rgba(167,139,250,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 500px at 85% 75%, rgba(245,158,11,0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 300px at 50% 50%, rgba(59,130,246,0.03) 0%, transparent 70%);
+  animation: meshPulse 20s ease-in-out infinite alternate;
+}
+@keyframes meshPulse {
+  0%   { opacity: 0.85; }
+  100% { opacity: 1; }
+}
 
-  /* ── Banners ── */
-  .ferien-banner, .weekend-banner {
-    border-radius: 14px; padding: 14px 18px; margin-bottom: 14px;
-    font-size: 0.85rem; font-weight: 500; display: none; text-align: center;
-    animation: slideIn 0.4s ease;
-  }
-  @keyframes slideIn { from{opacity:0; transform:translateY(-6px)} }
-  .weekend-banner { color: var(--green); background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.1); }
-  .ferien-banner { color: var(--green); background: rgba(16,185,129,0.05); border: 1px solid rgba(16,185,129,0.1); }
+/* Subtle noise grain */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  opacity: 0.018;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 128px;
+}
 
-  /* ── Status Card ── */
-  .status-card {
-    padding: 16px 20px; margin-bottom: 16px;
-    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
-    transition: all 0.4s cubic-bezier(0.4,0,0.2,1);
-    position: relative; overflow: hidden;
-  }
-  .status-dot {
-    width: 10px; height: 10px; border-radius: 50%;
-    background: var(--muted); flex-shrink: 0; transition: all 0.3s;
-  }
-  .status-dot.active { background: var(--accent); box-shadow: 0 0 12px rgba(245,158,11,0.5); animation: glow 2.2s ease-in-out infinite; }
-  .status-dot.pause  { background: var(--accent2); box-shadow: 0 0 12px rgba(59,130,246,0.5); animation: glowB 2.2s ease-in-out infinite; }
-  @keyframes glow  { 0%,100%{box-shadow:0 0 6px rgba(245,158,11,0.35)} 50%{box-shadow:0 0 18px rgba(245,158,11,0.55)} }
-  @keyframes glowB { 0%,100%{box-shadow:0 0 6px rgba(59,130,246,0.35)} 50%{box-shadow:0 0 18px rgba(59,130,246,0.55)} }
-  @keyframes glowCustom { 0%,100%{opacity:0.85; filter:brightness(1)} 50%{opacity:1; filter:brightness(1.3)} }
+/* ═══════════════════════════════════════════════════
+   GLASS UTILITY
+   ═══════════════════════════════════════════════════ */
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(20px) saturate(1.3);
+  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--r-lg);
+}
 
-  .status-text { flex: 1; min-width: 0; }
-  .status-label { font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--muted); font-weight: 600; }
-  .status-main { font-size: 1.05rem; font-weight: 700; margin-top: 3px; }
-  .status-sub { font-size: 0.75rem; color: var(--text-dim); margin-top: 2px; }
-  .status-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; flex-shrink: 0; }
+/* ═══════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════ */
+@keyframes fadeIn { from { opacity: 0; } }
+@keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } }
+@keyframes tipIn { from { opacity: 0; transform: translateX(-50%) translateY(4px); } }
 
-  .countdown-pill {
-    font-family: var(--mono); font-size: 0.8rem; font-weight: 500;
-    background: rgba(245,158,11,0.08); color: var(--accent);
-    border: 1px solid rgba(245,158,11,0.18);
-    padding: 5px 12px; border-radius: 999px;
-    white-space: nowrap; letter-spacing: 0.04em; transition: all 0.3s;
-  }
-  .countdown-pill.blue { background: rgba(59,130,246,0.08); color: var(--accent2); border-color: rgba(59,130,246,0.18); }
-  .countdown-pill.hidden { opacity: 0; pointer-events: none; }
+@keyframes glow {
+  0%, 100% { box-shadow: 0 0 6px rgba(245,158,11,0.35); }
+  50%      { box-shadow: 0 0 18px rgba(245,158,11,0.55); }
+}
+@keyframes glowB {
+  0%, 100% { box-shadow: 0 0 6px rgba(59,130,246,0.35); }
+  50%      { box-shadow: 0 0 18px rgba(59,130,246,0.55); }
+}
+@keyframes glowPulse {
+  0%, 100% { opacity: 0.85; filter: brightness(1); }
+  50%      { opacity: 1; filter: brightness(1.3); }
+}
 
-  /* Progress bar */
-  .progress-wrap {
-    width: 100%; margin-top: 10px;
-    display: flex; align-items: center; gap: 10px;
-  }
-  .progress-bar {
-    flex: 1; height: 3px; background: rgba(255,255,255,0.05);
-    border-radius: 99px; overflow: hidden; position: relative;
-  }
-  .progress-fill {
-    height: 100%; border-radius: 99px;
-    background: linear-gradient(90deg, var(--accent), #fbbf24);
-    transition: width 1s linear; position: relative;
-  }
-  .progress-fill::after {
-    content: ''; position: absolute; right: -2px; top: 50%; transform: translateY(-50%);
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--prog-color, var(--accent));
-    box-shadow: 0 0 8px color-mix(in srgb, var(--prog-color, var(--accent)) 60%, transparent);
-  }
-  .progress-fill.blue { background: linear-gradient(90deg, var(--accent2), #60a5fa); --prog-color: var(--accent2); }
-  .progress-fill.blue::after { background: var(--accent2); box-shadow: 0 0 8px rgba(59,130,246,0.5); }
-  .progress-pct { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); min-width: 30px; text-align: right; }
-  .progress-wrap.hidden { display: none; }
+/* Smooth view transitions */
+.fade-content {
+  transition: opacity 0.28s ease, transform 0.28s ease;
+}
+.fade-content.switching {
+  opacity: 0;
+  transform: translateY(8px) scale(0.985);
+}
 
-  /* Next lesson preview */
-  .next-preview {
-    width: 100%; margin-top: 8px;
-    padding: 7px 12px; background: rgba(255,255,255,0.025);
-    border-radius: 10px; border: 1px solid rgba(255,255,255,0.035);
-    font-size: 0.7rem; color: var(--text-dim);
-    display: flex; align-items: center; gap: 8px;
-    transition: all 0.3s;
-  }
-  .next-preview.hidden { display: none; }
-  .next-label { color: var(--muted); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.58rem; flex-shrink: 0; }
-  .next-subject { font-weight: 600; color: var(--text); }
+/* ═══════════════════════════════════════════════════
+   GROUP SELECTION OVERLAY
+   ═══════════════════════════════════════════════════ */
+#group-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: rgba(7,8,13,0.93);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: var(--sp-lg);
+  backdrop-filter: blur(28px);
+  animation: fadeIn 0.35s ease;
+}
+#group-overlay h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, var(--g1), var(--g2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+#group-overlay p {
+  color: var(--muted);
+  font-size: 0.85rem;
+  text-align: center;
+  max-width: 280px;
+}
 
-  /* ── Subject color tags ── */
-  .subj-tag {
-    display: inline-block; font-size: 10px; font-weight: 700;
-    padding: 2px 7px; border-radius: 6px; line-height: 1.35;
-    letter-spacing: 0.01em;
-  }
+.group-btns {
+  display: flex;
+  gap: var(--sp-md);
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.group-btn {
+  padding: 20px 38px;
+  border-radius: var(--r-lg);
+  border: 1.5px solid;
+  font-family: var(--sans);
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: transparent;
+  transition: all var(--t-normal);
+  position: relative;
+  overflow: hidden;
+}
+.group-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity var(--t-normal);
+  border-radius: inherit;
+}
+.group-btn:hover { transform: translateY(-3px); }
+.group-btn:active { transform: translateY(0) scale(0.96); }
+.group-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.group-btn.g1 { color: var(--g1); border-color: rgba(167,139,250,0.35); }
+.group-btn.g1::before { background: radial-gradient(circle, rgba(167,139,250,0.12), transparent 70%); }
+.group-btn.g1:hover::before { opacity: 1; }
+.group-btn.g1:hover { box-shadow: 0 8px 32px rgba(167,139,250,0.15); }
+.group-btn.g2 { color: var(--g2); border-color: rgba(244,114,182,0.35); }
+.group-btn.g2::before { background: radial-gradient(circle, rgba(244,114,182,0.12), transparent 70%); }
+.group-btn.g2:hover::before { opacity: 1; }
+.group-btn.g2:hover { box-shadow: 0 8px 32px rgba(244,114,182,0.15); }
 
-  /* ── Table ── */
-  .table-wrap {
-    border-radius: 18px; overflow: hidden; overflow-x: auto;
-    border: 1px solid var(--glass-border);
-    background: var(--glass);
-    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  }
-  table { width: 100%; border-collapse: collapse; min-width: 580px; }
-  col.time-col { width: 82px; }
+/* ═══════════════════════════════════════════════════
+   HEADER
+   ═══════════════════════════════════════════════════ */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--sp-md);
+  margin-bottom: var(--sp-md);
+  padding: 0 2px;
+}
+.header-left h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+.header-left h1 span {
+  background: linear-gradient(135deg, var(--accent), #fbbf24);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.header-left p {
+  font-size: 0.72rem;
+  color: var(--muted);
+  margin-top: 2px;
+  letter-spacing: 0.02em;
+}
+.header-right {
+  display: flex;
+  gap: var(--sp-sm);
+  align-items: center;
+  flex-wrap: wrap;
+}
 
-  thead tr th {
-    background: var(--glass-strong); padding: 10px 6px;
-    font-size: 0.62rem; font-weight: 600;
-    text-transform: uppercase; letter-spacing: 0.14em; color: var(--muted);
-    border-bottom: 1px solid var(--border);
-    position: sticky; top: 0; z-index: 2; transition: all 0.3s;
-  }
-  thead tr th.today-head {
-    color: var(--accent); background: rgba(245,158,11,0.05);
-    text-shadow: 0 0 14px rgba(245,158,11,0.25);
-  }
+.clock {
+  font-family: var(--mono);
+  font-size: 1.15rem;
+  font-weight: 500;
+  padding: 8px 14px;
+  border-radius: var(--r-md);
+  color: var(--accent);
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+  text-shadow: 0 0 18px rgba(245,158,11,0.25);
+}
 
-  td {
-    border: 1px solid rgba(255,255,255,0.025); padding: 0;
-    text-align: center; vertical-align: middle;
-    transition: all 0.35s cubic-bezier(0.4,0,0.2,1);
-  }
+.group-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: var(--r-full);
+  border: 1.5px solid;
+  cursor: pointer;
+  transition: all var(--t-normal);
+  white-space: nowrap;
+  font-family: var(--sans);
+  background: transparent;
+}
+.group-badge:hover { transform: scale(1.05); }
+.group-badge:active { transform: scale(0.95); }
+.group-badge:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.group-badge.g1 { color: var(--g1); border-color: rgba(167,139,250,0.35); }
+.group-badge.g1:hover { background: rgba(167,139,250,0.08); box-shadow: 0 0 20px rgba(167,139,250,0.12); }
+.group-badge.g2 { color: var(--g2); border-color: rgba(244,114,182,0.35); }
+.group-badge.g2:hover { background: rgba(244,114,182,0.08); box-shadow: 0 0 20px rgba(244,114,182,0.12); }
 
-  .time-cell {
-    background: rgba(255,255,255,0.025); font-family: var(--mono);
-    font-size: 11px; font-weight: 500; color: var(--text-dim);
-    padding: 5px 8px; line-height: 1.6; text-align: left;
-    border-right: 1px solid var(--border) !important;
-  }
-  .time-cell .hour-nr { display: block; font-size: 8px; color: rgba(255,255,255,0.13); margin-bottom: 1px; font-weight: 700; }
+.week-pill {
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: var(--r-full);
+  background: rgba(245,158,11,0.08);
+  color: var(--accent);
+  border: 1px solid rgba(245,158,11,0.18);
+  white-space: nowrap;
+  transition: all var(--t-normal);
+}
+.week-pill.b {
+  background: rgba(59,130,246,0.08);
+  color: var(--accent2);
+  border-color: rgba(59,130,246,0.18);
+}
 
-  .lesson-cell { height: 56px; padding: 5px 4px; cursor: default; position: relative; }
-  .lesson-cell .info { font-size: 9px; color: var(--muted); margin-top: 3px; display: block; line-height: 1.4; }
-  .lesson-cell.today-col { background: rgba(255,255,255,0.012); }
-  .lesson-cell.active { background: rgba(245,158,11,0.07) !important; border-color: rgba(245,158,11,0.15) !important; }
-  .lesson-cell.active .subj-tag { filter: brightness(1.15); }
+/* ═══════════════════════════════════════════════════
+   BANNERS
+   ═══════════════════════════════════════════════════ */
+.banner {
+  border-radius: 14px;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: none;
+  text-align: center;
+  animation: slideIn 0.4s ease;
+  color: var(--green);
+  background: rgba(16,185,129,0.05);
+  border: 1px solid rgba(16,185,129,0.1);
+}
 
-  .pause-cell {
-    height: 5px; padding: 0; font-size: 0; color: transparent;
-    background: rgba(255,255,255,0.008); position: relative;
-  }
-  .pause-cell::after {
-    content: ''; position: absolute; left: 8%; right: 8%; top: 50%; height: 1px;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-  }
-  .pause-cell.today-col { background: rgba(255,255,255,0.012); }
-  .pause-cell.active { background: rgba(59,130,246,0.06) !important; }
+/* ═══════════════════════════════════════════════════
+   STATUS CARD
+   ═══════════════════════════════════════════════════ */
+.status-card {
+  padding: var(--sp-md) 20px;
+  margin-bottom: var(--sp-md);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  transition: all var(--t-slow);
+  position: relative;
+  overflow: hidden;
+}
 
-  .lunch-cell {
-    height: 56px; background: rgba(16,185,129,0.03);
-    font-size: 9px; font-weight: 600; color: rgba(16,185,129,0.35);
-    letter-spacing: 0.04em; text-transform: uppercase;
-  }
-  .lunch-cell.today-col { background: rgba(16,185,129,0.05); color: rgba(16,185,129,0.5); }
-  .lunch-cell.active { background: rgba(16,185,129,0.1) !important; color: var(--green) !important; }
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--muted);
+  flex-shrink: 0;
+  transition: all var(--t-normal);
+}
+.status-dot.active {
+  background: var(--accent);
+  box-shadow: 0 0 12px rgba(245,158,11,0.5);
+  animation: glow 2.2s ease-in-out infinite;
+}
+.status-dot.pause {
+  background: var(--accent2);
+  box-shadow: 0 0 12px rgba(59,130,246,0.5);
+  animation: glowB 2.2s ease-in-out infinite;
+}
 
-  .free-cell { height: 56px; }
-  .free-cell.today-col { background: rgba(255,255,255,0.008); }
+.status-text { flex: 1; min-width: 0; }
+.status-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  font-weight: 600;
+}
+.status-main {
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-top: 3px;
+}
+.status-sub {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  margin-top: 2px;
+}
 
-  /* Tooltips */
-  [data-tip] { position: relative; }
-  [data-tip]:hover::after {
-    content: attr(data-tip);
-    position: absolute; bottom: calc(100% + 6px); left: 50%; transform: translateX(-50%);
-    background: rgba(10,12,18,0.95); color: var(--text);
-    border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 10px; padding: 6px 12px; font-size: 11px;
-    white-space: nowrap; z-index: 100; pointer-events: none;
-    font-family: var(--sans); box-shadow: 0 12px 32px rgba(0,0,0,0.45);
-    backdrop-filter: blur(12px); animation: tipIn 0.15s ease;
-  }
-  @keyframes tipIn { from{opacity:0; transform:translateX(-50%) translateY(4px)} }
+.status-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
 
-  .table-wrap::-webkit-scrollbar { height: 3px; }
-  .table-wrap::-webkit-scrollbar-track { background: transparent; }
-  .table-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
+.countdown-pill {
+  font-family: var(--mono);
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: rgba(245,158,11,0.08);
+  color: var(--accent);
+  border: 1px solid rgba(245,158,11,0.18);
+  padding: 5px 12px;
+  border-radius: var(--r-full);
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+  transition: all var(--t-normal);
+}
+.countdown-pill.blue {
+  background: rgba(59,130,246,0.08);
+  color: var(--accent2);
+  border-color: rgba(59,130,246,0.18);
+}
+.countdown-pill.hidden { opacity: 0; pointer-events: none; }
 
-  .loading-hint { font-size: 0.72rem; color: var(--muted); text-align: center; padding: 8px; }
+/* Progress bar */
+.progress-wrap {
+  width: 100%;
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.progress-bar {
+  flex: 1;
+  height: 3px;
+  background: rgba(255,255,255,0.05);
+  border-radius: var(--r-full);
+  overflow: hidden;
+  position: relative;
+}
+.progress-fill {
+  height: 100%;
+  border-radius: var(--r-full);
+  background: linear-gradient(90deg, var(--accent), #fbbf24);
+  transition: width 1s linear;
+  position: relative;
+}
+.progress-fill::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--prog-color, var(--accent));
+  box-shadow: 0 0 8px color-mix(in srgb, var(--prog-color, var(--accent)) 60%, transparent);
+}
+.progress-fill.blue {
+  background: linear-gradient(90deg, var(--accent2), #60a5fa);
+  --prog-color: var(--accent2);
+}
+.progress-fill.blue::after {
+  background: var(--accent2);
+  box-shadow: 0 0 8px rgba(59,130,246,0.5);
+}
+.progress-pct {
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  color: var(--muted);
+  min-width: 30px;
+  text-align: right;
+}
+.progress-wrap.hidden { display: none; }
 
-  /* ── Calendar button ── */
-  .cal-btn {
-    font-size: 1rem; padding: 6px 10px; border-radius: 10px;
-    border: none; cursor: pointer; color: var(--text);
-    transition: all 0.3s; line-height: 1;
-    font-family: var(--sans);
-  }
-  .cal-btn:hover { transform: scale(1.08); background: rgba(255,255,255,0.08); }
-  .cal-btn:active { transform: scale(0.95); }
+/* Next lesson preview */
+.next-preview {
+  width: 100%;
+  margin-top: 8px;
+  padding: 7px 12px;
+  background: rgba(255,255,255,0.025);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.035);
+  font-size: 0.72rem;
+  color: var(--text-dim);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  transition: all var(--t-normal);
+}
+.next-preview.hidden { display: none; }
+.next-label {
+  color: var(--muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.6rem;
+  flex-shrink: 0;
+}
+.next-subject { font-weight: 600; color: var(--text); }
 
-  /* ── Calendar Overlay ── */
-  .cal-overlay {
-    position: fixed; inset: 0; z-index: 998;
-    background: rgba(7,8,13,0.88);
-    backdrop-filter: blur(16px);
-    display: flex; align-items: center; justify-content: center;
-    padding: 16px;
-    animation: fadeIn 0.25s ease;
-  }
-  .cal-modal {
-    width: 100%; max-width: 440px;
-    padding: 20px; border-radius: 20px;
-    max-height: 90vh; overflow-y: auto;
-    animation: calModalIn 0.3s cubic-bezier(0.4,0,0.2,1);
-  }
-  @keyframes calModalIn { from { opacity:0; transform: scale(0.95) translateY(10px); } }
+/* ═══════════════════════════════════════════════════
+   SUBJECT TAGS
+   ═══════════════════════════════════════════════════ */
+.subj-tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+  line-height: 1.35;
+  letter-spacing: 0.01em;
+}
 
-  .cal-header {
-    display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
-  }
-  .cal-title {
-    flex: 1; text-align: center;
-    font-size: 1rem; font-weight: 700; letter-spacing: -0.01em;
-  }
-  .cal-nav {
-    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
-    color: var(--text); width: 34px; height: 34px; border-radius: 10px;
-    font-size: 1.1rem; cursor: pointer; display: flex; align-items: center;
-    justify-content: center; transition: all 0.2s; font-family: var(--sans);
-  }
-  .cal-nav:hover { background: rgba(255,255,255,0.1); }
-  .cal-close {
-    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.08);
-    color: var(--muted); width: 34px; height: 34px; border-radius: 10px;
-    font-size: 0.8rem; cursor: pointer; display: flex; align-items: center;
-    justify-content: center; transition: all 0.2s; font-family: var(--sans);
-    margin-left: 4px;
-  }
-  .cal-close:hover { color: var(--text); background: rgba(255,255,255,0.1); }
+/* ═══════════════════════════════════════════════════
+   TABLE VIEW
+   ═══════════════════════════════════════════════════ */
+.table-wrap {
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  overflow-x: auto;
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 580px;
+}
+col.time-col { width: 82px; }
 
-  .cal-legend {
-    display: flex; gap: 8px; justify-content: center; margin-bottom: 14px;
-    flex-wrap: wrap;
-  }
-  .cal-leg-item {
-    font-size: 0.65rem; font-weight: 600; display: flex;
-    align-items: center; gap: 0; padding: 5px 12px;
-    border-radius: 8px; letter-spacing: 0.01em;
-  }
-  .cal-leg-item.leg-a {
-    background: rgba(245,158,11,0.08); color: var(--accent);
-    border: 1px solid rgba(245,158,11,0.12);
-  }
-  .cal-leg-item.leg-b {
-    background: rgba(59,130,246,0.08); color: var(--accent2);
-    border: 1px solid rgba(59,130,246,0.12);
-  }
-  .cal-leg-item.leg-ferien {
-    background: rgba(16,185,129,0.12); color: var(--green);
-    border: 1px solid rgba(16,185,129,0.15);
-  }
+thead tr th {
+  background: var(--surface-strong);
+  padding: 10px 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  transition: all var(--t-normal);
+}
+thead tr th.today-head {
+  color: var(--accent);
+  background: rgba(245,158,11,0.05);
+  text-shadow: 0 0 14px rgba(245,158,11,0.25);
+}
 
-  .cal-grid {
-    display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px;
-  }
-  .cal-day-head {
-    text-align: center; font-size: 0.58rem; font-weight: 700;
-    color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em;
-    padding: 4px 0 6px;
-  }
-  .cal-day {
-    aspect-ratio: 1; border-radius: 10px;
-    display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    font-size: 0.75rem; font-weight: 600;
-    position: relative; transition: all 0.15s;
-    cursor: default; gap: 2px;
-  }
-  .cal-day.empty { background: transparent; }
-  .cal-day.weekend { color: var(--muted); opacity: 0.4; }
-  .cal-day.ferien {
-    background: rgba(16,185,129,0.12); color: var(--green);
-    border: 1px solid rgba(16,185,129,0.15);
-  }
-  .cal-day.week-a {
-    background: rgba(245,158,11,0.08);
-    border: 1px solid rgba(245,158,11,0.12);
-  }
-  .cal-day.week-b {
-    background: rgba(59,130,246,0.08);
-    border: 1px solid rgba(59,130,246,0.12);
-  }
-  .cal-day.today {
-    box-shadow: inset 0 0 0 2px var(--text);
-  }
-  .cal-week-label {
-    font-size: 7px; font-weight: 800; letter-spacing: 0.06em;
-    text-transform: uppercase; opacity: 0.7;
-  }
-  .cal-day.week-a .cal-week-label { color: var(--accent); }
-  .cal-day.week-b .cal-week-label { color: var(--accent2); }
-  .cal-day.ferien .cal-week-label { color: var(--green); }
+td {
+  border: 1px solid rgba(255,255,255,0.025);
+  padding: 0;
+  text-align: center;
+  vertical-align: middle;
+  transition: background var(--t-normal), border-color var(--t-normal);
+}
 
-  @media (max-width: 640px) {
-    body { padding: 12px 10px 32px; }
-    .header-left h1 { font-size: 1.3rem; }
-    .status-card { padding: 14px 16px; }
-  }
+.time-cell {
+  background: rgba(255,255,255,0.025);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-dim);
+  padding: 5px 8px;
+  line-height: 1.6;
+  text-align: left;
+  border-right: 1px solid var(--border) !important;
+}
+.time-cell .hour-nr {
+  display: block;
+  font-size: 8px;
+  color: rgba(255,255,255,0.15);
+  margin-bottom: 1px;
+  font-weight: 700;
+}
+
+.lesson-cell {
+  height: 56px;
+  padding: 5px 4px;
+  cursor: default;
+  position: relative;
+}
+.lesson-cell .info {
+  font-size: 9px;
+  color: var(--muted);
+  margin-top: 3px;
+  display: block;
+  line-height: 1.4;
+}
+.lesson-cell.today-col { background: rgba(255,255,255,0.012); }
+.lesson-cell.active {
+  background: rgba(245,158,11,0.07) !important;
+  border-color: rgba(245,158,11,0.15) !important;
+}
+.lesson-cell.active .subj-tag { filter: brightness(1.15); }
+
+.pause-cell {
+  height: 5px;
+  padding: 0;
+  font-size: 0;
+  color: transparent;
+  background: rgba(255,255,255,0.008);
+  position: relative;
+}
+.pause-cell::after {
+  content: '';
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+}
+.pause-cell.today-col { background: rgba(255,255,255,0.012); }
+.pause-cell.active { background: rgba(59,130,246,0.06) !important; }
+
+.lunch-cell {
+  height: 56px;
+  background: rgba(16,185,129,0.03);
+  font-size: 9px;
+  font-weight: 600;
+  color: rgba(16,185,129,0.35);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.lunch-cell.today-col { background: rgba(16,185,129,0.05); color: rgba(16,185,129,0.5); }
+.lunch-cell.active { background: rgba(16,185,129,0.1) !important; color: var(--green) !important; }
+
+.free-cell { height: 56px; }
+.free-cell.today-col { background: rgba(255,255,255,0.008); }
+
+/* Tooltips */
+[data-tip] { position: relative; }
+[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(10,12,18,0.95);
+  color: var(--text);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 100;
+  pointer-events: none;
+  font-family: var(--sans);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.45);
+  backdrop-filter: blur(12px);
+  animation: tipIn 0.15s ease;
+}
+
+.table-wrap::-webkit-scrollbar { height: 3px; }
+.table-wrap::-webkit-scrollbar-track { background: transparent; }
+.table-wrap::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
+
+.loading-hint {
+  font-size: 0.72rem;
+  color: var(--muted);
+  text-align: center;
+  padding: var(--sp-sm);
+}
+
+/* ═══════════════════════════════════════════════════
+   VIEW TOGGLE
+   ═══════════════════════════════════════════════════ */
+.view-toggle {
+  display: flex;
+  gap: 4px;
+  margin-bottom: var(--sp-md);
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
+  border-radius: var(--r-md);
+  padding: 3px;
+  width: fit-content;
+}
+.vt-btn {
+  font-family: var(--sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 7px 18px;
+  border-radius: 9px;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.25s var(--ease);
+  letter-spacing: 0.01em;
+}
+.vt-btn:hover { color: var(--text); }
+.vt-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.vt-btn.active {
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+/* ═══════════════════════════════════════════════════
+   DAY VIEW (TIMELINE)
+   ═══════════════════════════════════════════════════ */
+.day-view {
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  padding: var(--sp-md);
+}
+.day-view-header {
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: var(--sp-md);
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+
+.day-timeline {
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+.day-timeline::before {
+  content: '';
+  position: absolute;
+  left: 54px;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 1px;
+}
+
+.dt-slot {
+  display: flex;
+  align-items: stretch;
+  position: relative;
+  min-height: 58px;
+  transition: all var(--t-normal);
+}
+.dt-slot.is-pause { min-height: 20px; }
+
+.dt-time {
+  width: 54px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: flex-start;
+  padding: 8px 12px 8px 0;
+  font-family: var(--mono);
+  font-size: 0.68rem;
+  font-weight: 500;
+  color: var(--muted);
+  line-height: 1.2;
+}
+.dt-time .dt-hour-nr {
+  font-size: 0.55rem;
+  color: rgba(255,255,255,0.15);
+  font-weight: 700;
+  margin-bottom: 1px;
+}
+
+.dt-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+  border: 2px solid rgba(255,255,255,0.1);
+  position: absolute;
+  left: 50px;
+  top: 12px;
+  z-index: 2;
+  transition: all var(--t-normal);
+}
+.dt-slot.is-pause .dt-dot {
+  width: 6px;
+  height: 6px;
+  left: 52px;
+  top: 7px;
+}
+
+.dt-content {
+  flex: 1;
+  margin-left: 20px;
+  padding: 6px 0;
+  position: relative;
+}
+
+.dt-card {
+  border-radius: var(--r-md);
+  padding: 10px 14px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.35s var(--ease);
+}
+.dt-card.lesson {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.05);
+}
+.dt-card.pause-card {
+  background: transparent;
+  padding: 2px 14px;
+  font-size: 0.65rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+.dt-card.lunch {
+  background: rgba(16,185,129,0.04);
+  border: 1px solid rgba(16,185,129,0.08);
+}
+.dt-card.free {
+  background: transparent;
+  padding: 10px 14px;
+  border: 1px dashed rgba(255,255,255,0.04);
+}
+
+.dt-card-top {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  margin-bottom: 3px;
+}
+.dt-card-subj { font-size: 0.82rem; font-weight: 700; }
+.dt-card-time {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  color: var(--muted);
+  margin-left: auto;
+}
+.dt-card-info { font-size: 0.72rem; color: var(--text-dim); }
+
+/* Day view progress */
+.dt-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255,255,255,0.03);
+  border-radius: 0 0 var(--r-md) var(--r-md);
+  overflow: hidden;
+}
+.dt-progress-fill {
+  height: 100%;
+  border-radius: 0 0 0 var(--r-md);
+  transition: width 1s linear;
+  position: relative;
+}
+.dt-progress-fill::after {
+  content: '';
+  position: absolute;
+  right: -1px;
+  top: -3px;
+  width: 5px;
+  height: 9px;
+  border-radius: 3px;
+  background: inherit;
+  box-shadow: 0 0 8px currentColor;
+  filter: brightness(1.3);
+}
+
+/* Active states */
+.dt-slot.is-active .dt-dot {
+  border-color: var(--accent);
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(245,158,11,0.4);
+  animation: glowPulse 2.2s ease-in-out infinite;
+}
+.dt-slot.is-active .dt-card.lesson {
+  background: rgba(255,255,255,0.05);
+  border-color: rgba(255,255,255,0.1);
+}
+.dt-slot.is-pause-active .dt-dot {
+  border-color: var(--accent2);
+  background: var(--accent2);
+  box-shadow: 0 0 10px rgba(59,130,246,0.4);
+}
+.dt-slot.is-lunch-active .dt-dot {
+  border-color: var(--green);
+  background: var(--green);
+  box-shadow: 0 0 10px rgba(16,185,129,0.4);
+}
+.dt-slot.is-lunch-active .dt-card {
+  background: rgba(16,185,129,0.08);
+  border-color: rgba(16,185,129,0.15);
+}
+
+/* Past slots */
+.dt-slot.is-past .dt-dot {
+  background: rgba(255,255,255,0.15);
+  border-color: rgba(255,255,255,0.2);
+}
+.dt-slot.is-past .dt-card { opacity: 0.4; }
+
+.day-view-empty {
+  text-align: center;
+  padding: var(--sp-xl) var(--sp-md);
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+/* ═══════════════════════════════════════════════════
+   MONTH / CALENDAR VIEW
+   ═══════════════════════════════════════════════════ */
+.month-view-inner { padding: 20px; border-radius: var(--r-xl); }
+
+.cal-header {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  margin-bottom: 14px;
+}
+.cal-title {
+  flex: 1;
+  text-align: center;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.cal-nav {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text);
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--t-fast);
+  font-family: var(--sans);
+}
+.cal-nav:hover { background: rgba(255,255,255,0.1); }
+.cal-nav:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.cal-legend {
+  display: flex;
+  gap: var(--sp-sm);
+  justify-content: center;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.cal-leg-item {
+  font-size: 0.65rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  padding: 5px 12px;
+  border-radius: var(--r-sm);
+  letter-spacing: 0.01em;
+}
+.cal-leg-item.leg-a { background: rgba(245,158,11,0.08); color: var(--accent); border: 1px solid rgba(245,158,11,0.12); }
+.cal-leg-item.leg-b { background: rgba(59,130,246,0.08); color: var(--accent2); border: 1px solid rgba(59,130,246,0.12); }
+.cal-leg-item.leg-ferien { background: rgba(16,185,129,0.12); color: var(--green); border: 1px solid rgba(16,185,129,0.15); }
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 3px;
+}
+.cal-day-head {
+  text-align: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  padding: 4px 0 6px;
+}
+.cal-day {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  position: relative;
+  transition: all 0.15s;
+  cursor: default;
+  gap: 2px;
+}
+.cal-day.empty { background: transparent; }
+.cal-day.weekend { color: var(--muted); opacity: 0.4; }
+.cal-day.ferien { background: rgba(16,185,129,0.12); color: var(--green); border: 1px solid rgba(16,185,129,0.15); }
+.cal-day.week-a { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.12); }
+.cal-day.week-b { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.12); }
+.cal-day.today { box-shadow: inset 0 0 0 2px var(--text); }
+
+.cal-week-label {
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.cal-day.week-a .cal-week-label { color: var(--accent); }
+.cal-day.week-b .cal-week-label { color: var(--accent2); }
+.cal-day.ferien .cal-week-label { color: var(--green); }
+
+/* ═══════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════ */
+@media (max-width: 640px) {
+  body { padding: 12px 10px 32px; }
+  .header-left h1 { font-size: 1.3rem; }
+  .status-card { padding: 14px 16px; }
+}
 </style>
 </head>
 <body>
 
-<div id="group-overlay">
+<!-- ═══════════════ GROUP OVERLAY ═══════════════ -->
+<div id="group-overlay" role="dialog" aria-label="Gruppenauswahl" aria-modal="true">
   <h2>Welche Gruppe bist du?</h2>
   <p>Die Auswahl wird gespeichert und kann jederzeit oben geändert werden.</p>
   <div class="group-btns">
-    <button class="group-btn g1" onclick="selectGroup(1)">Gruppe 1</button>
-    <button class="group-btn g2" onclick="selectGroup(2)">Gruppe 2</button>
+    <button class="group-btn g1" onclick="App.selectGroup(1)" aria-label="Gruppe 1 wählen">Gruppe 1</button>
+    <button class="group-btn g2" onclick="App.selectGroup(2)" aria-label="Gruppe 2 wählen">Gruppe 2</button>
   </div>
 </div>
 
-<div class="header">
+<!-- ═══════════════ HEADER ═══════════════ -->
+<div class="header" role="banner">
   <div class="header-left">
     <h1>FST <span>1</span></h1>
     <p>Josef-Greising-Schule · Stundenplan · Sommersemester</p>
   </div>
   <div class="header-right">
-    <span class="week-pill" id="week-pill">Woche A</span>
-    <button class="cal-btn glass" onclick="openCalendar()" title="Kalender">📅</button>
-    <button class="group-badge g1" id="group-badge" onclick="showGroupOverlay()">Gruppe 1</button>
-    <div class="clock glass" id="live-clock">--:--:--</div>
+    <span class="week-pill" id="week-pill" aria-live="polite">Woche A</span>
+    <button class="group-badge g1" id="group-badge" onclick="App.showGroupOverlay()" aria-label="Gruppe wechseln">Gruppe 1</button>
+    <div class="clock glass" id="live-clock" aria-live="off" aria-label="Aktuelle Uhrzeit">--:--:--</div>
   </div>
 </div>
 
-<div id="weekend-banner" class="weekend-banner glass">🎉 Wochenende – genieß die freie Zeit!</div>
-<div id="ferien-banner" class="ferien-banner glass">🏖️ Schulferien – gute Erholung!</div>
-<div id="loading-hint" class="loading-hint">⏳ Lade Feriendaten…</div>
+<!-- ═══════════════ BANNERS ═══════════════ -->
+<div id="weekend-banner" class="banner glass" role="status">🎉 Wochenende – genieß die freie Zeit!</div>
+<div id="ferien-banner" class="banner glass" role="status">🏖️ Schulferien – gute Erholung!</div>
+<div id="loading-hint" class="loading-hint" role="status" aria-live="polite">⏳ Lade Feriendaten…</div>
 
-<div class="status-card glass" id="status-card">
-  <div class="status-dot" id="status-dot"></div>
+<!-- ═══════════════ STATUS CARD ═══════════════ -->
+<div class="status-card glass" id="status-card" role="status" aria-live="polite">
+  <div class="status-dot" id="status-dot" aria-hidden="true"></div>
   <div class="status-text">
     <div class="status-label" id="status-label">Status</div>
     <div class="status-main" id="status-main">–</div>
     <div class="status-sub" id="status-sub"></div>
   </div>
   <div class="status-right">
-    <div class="countdown-pill hidden" id="countdown-pill">00:00</div>
+    <div class="countdown-pill hidden" id="countdown-pill" aria-label="Verbleibende Zeit">00:00</div>
   </div>
-  <div class="progress-wrap hidden" id="progress-wrap">
+  <div class="progress-wrap hidden" id="progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
     <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
     <span class="progress-pct" id="progress-pct">0%</span>
   </div>
@@ -492,532 +1062,669 @@
   </div>
 </div>
 
-<div class="table-wrap fade-content" id="table-wrap">
-  <table id="plan-table">
+<!-- ═══════════════ VIEW TOGGLE ═══════════════ -->
+<div class="view-toggle" id="view-toggle" role="tablist" aria-label="Ansicht wählen">
+  <button class="vt-btn active" id="vt-week" onclick="App.switchView('week')" role="tab" aria-selected="true">Woche</button>
+  <button class="vt-btn" id="vt-day" onclick="App.switchView('day')" role="tab" aria-selected="false">Heute</button>
+  <button class="vt-btn" id="vt-month" onclick="App.switchView('month')" role="tab" aria-selected="false">Monat</button>
+</div>
+
+<!-- ═══════════════ WEEK TABLE ═══════════════ -->
+<div class="table-wrap fade-content" id="table-wrap" role="tabpanel">
+  <table id="plan-table" aria-label="Wochenplan">
     <colgroup><col class="time-col"><col><col><col><col><col></colgroup>
     <thead><tr>
-      <th>Zeit</th>
-      <th id="head-0">Mo</th><th id="head-1">Di</th>
-      <th id="head-2">Mi</th><th id="head-3">Do</th><th id="head-4">Fr</th>
+      <th scope="col">Zeit</th>
+      <th scope="col" id="head-0">Mo</th>
+      <th scope="col" id="head-1">Di</th>
+      <th scope="col" id="head-2">Mi</th>
+      <th scope="col" id="head-3">Do</th>
+      <th scope="col" id="head-4">Fr</th>
     </tr></thead>
     <tbody id="plan-body"></tbody>
   </table>
 </div>
 
-<!-- Calendar Modal -->
-<div id="cal-overlay" class="cal-overlay" style="display:none">
-  <div class="cal-modal glass">
+<!-- ═══════════════ DAY VIEW ═══════════════ -->
+<div class="day-view fade-content" id="day-view" style="display:none" role="tabpanel">
+  <div class="day-view-header" id="day-view-header">Dienstag</div>
+  <div class="day-timeline" id="day-timeline"></div>
+</div>
+
+<!-- ═══════════════ MONTH VIEW ═══════════════ -->
+<div class="month-view fade-content" id="month-view" style="display:none" role="tabpanel">
+  <div class="month-view-inner glass">
     <div class="cal-header">
-      <button class="cal-nav" onclick="calNav(-1)">‹</button>
-      <h3 class="cal-title" id="cal-title">Februar 2026</h3>
-      <button class="cal-nav" onclick="calNav(1)">›</button>
-      <button class="cal-close" onclick="closeCalendar()">✕</button>
+      <button class="cal-nav" onclick="App.calNav(-1)" aria-label="Vorheriger Monat">‹</button>
+      <h3 class="cal-title" id="cal-title" aria-live="polite">Februar 2026</h3>
+      <button class="cal-nav" onclick="App.calNav(1)" aria-label="Nächster Monat">›</button>
     </div>
     <div class="cal-legend">
       <span class="cal-leg-item leg-a">Woche A</span>
       <span class="cal-leg-item leg-b">Woche B</span>
       <span class="cal-leg-item leg-ferien">Ferien</span>
     </div>
-    <div class="cal-grid" id="cal-grid"></div>
+    <div class="cal-grid" id="cal-grid" role="grid" aria-label="Kalender"></div>
   </div>
 </div>
 
 <script>
-// ══════════════════════════════════════════════════════
-//  DATA
-// ══════════════════════════════════════════════════════
-const PLAN = [
-  { type:'hour', nr:1,  start:[8,0],   end:[8,45]  },
-  { type:'hour', nr:2,  start:[8,45],  end:[9,30]  },
-  { type:'pause',       start:[9,30],  end:[9,45]  },
-  { type:'hour', nr:3,  start:[9,45],  end:[10,30] },
-  { type:'hour', nr:4,  start:[10,30], end:[11,15] },
-  { type:'pause',       start:[11,15], end:[11,30] },
-  { type:'hour', nr:5,  start:[11,30], end:[12,15] },
-  { type:'hour', nr:6,  start:[12,15], end:[13,0]  },
-  { type:'hour', nr:7,  start:[13,0],  end:[13,45] },
-  { type:'hour', nr:8,  start:[13,45], end:[14,30] },
-  { type:'hour', nr:9,  start:[14,30], end:[15,15] },
-  { type:'pause',       start:[15,15], end:[15,30] },
-  { type:'hour', nr:10, start:[15,30], end:[16,15] },
-  { type:'hour', nr:11, start:[16,15], end:[17,0]  },
-];
+// ═══════════════════════════════════════════════════
+//  MAIN APP MODULE — encapsulates all state & logic
+// ═══════════════════════════════════════════════════
+const App = (() => {
+  'use strict';
 
-const LUNCH = { 0:8, 1:7, 2:7, 3:5 };
+  // ─── DATA ──────────────────────────────────────
+  const PLAN = [
+    { type:'hour',  nr:1,  start:[8,0],   end:[8,45]  },
+    { type:'hour',  nr:2,  start:[8,45],  end:[9,30]  },
+    { type:'pause',        start:[9,30],  end:[9,45]  },
+    { type:'hour',  nr:3,  start:[9,45],  end:[10,30] },
+    { type:'hour',  nr:4,  start:[10,30], end:[11,15] },
+    { type:'pause',        start:[11,15], end:[11,30] },
+    { type:'hour',  nr:5,  start:[11,30], end:[12,15] },
+    { type:'hour',  nr:6,  start:[12,15], end:[13,0]  },
+    { type:'hour',  nr:7,  start:[13,0],  end:[13,45] },
+    { type:'hour',  nr:8,  start:[13,45], end:[14,30] },
+    { type:'hour',  nr:9,  start:[14,30], end:[15,15] },
+    { type:'pause',        start:[15,15], end:[15,30] },
+    { type:'hour',  nr:10, start:[15,30], end:[16,15] },
+    { type:'hour',  nr:11, start:[16,15], end:[17,0]  },
+  ];
 
-const FACH_FULL = {
-  'Baukonstr':'Baukonstruktion','Baust. tech.':'Baustofftechnologie',
-  'Wi_PuG':'Wirtschaft, Politik & Gesellschaft','Statik':'Statik & Festigkeitslehre',
-  'Bauphysik':'Bauphysik','Baurecht':'Baurecht','Betr-psych':'Betriebspsychologie',
-  'CAD/Verm':'CAD & Vermessung','CAD/Lab':'CAD-Labor','EDV':'EDV','EDV/Lab':'EDV-Labor',
-  'Darst.G':'Darstellende Geometrie','Vermess':'Vermessung',
-  'Mathe':'Mathematik','Englisch':'Englisch','Deutsch':'Deutsch',
-  'CAD':'CAD','Labor':'Labor','CAD-Labor':'CAD-Labor',
-};
+  const LUNCH = { 0:8, 1:7, 2:7, 3:5 };
 
-const FACH_COLOR = {
-  'Baukonstr':'--c-bau','Baust. tech.':'--c-tech','Wi_PuG':'--c-wipug',
-  'Statik':'--c-statik','Bauphysik':'--c-physik','Baurecht':'--c-recht',
-  'Betr-psych':'--c-psych','CAD':'--c-cad','CAD/Verm':'--c-cad',
-  'CAD/Lab':'--c-cad','CAD-Labor':'--c-cad','EDV':'--c-edv','EDV/Lab':'--c-edv',
-  'Darst.G':'--c-darst','Vermess':'--c-verm','Mathe':'--c-mathe',
-  'Englisch':'--c-eng','Deutsch':'--c-deu','Labor':'--c-labor',
-};
+  const FACH_FULL = {
+    'Baukonstr':'Baukonstruktion','Baust. tech.':'Baustofftechnologie',
+    'Wi_PuG':'Wirtschaft, Politik & Gesellschaft','Statik':'Statik & Festigkeitslehre',
+    'Bauphysik':'Bauphysik','Baurecht':'Baurecht','Betr-psych':'Betriebspsychologie',
+    'CAD/Verm':'CAD & Vermessung','CAD/Lab':'CAD-Labor','EDV':'EDV','EDV/Lab':'EDV-Labor',
+    'Darst.G':'Darstellende Geometrie','Vermess':'Vermessung',
+    'Mathe':'Mathematik','Englisch':'Englisch','Deutsch':'Deutsch',
+    'CAD':'CAD','Labor':'Labor','CAD-Labor':'CAD-Labor',
+  };
 
-const COMMON = {
-  0: {1:['Baukonstr','E 203','Reißer'],  2:['Baukonstr','E 203','Reißer'],
-      3:['Baust. tech.','E 203','Drexler'], 4:['Baust. tech.','E 203','Drexler'],
-      5:['Baust. tech.','E 203','Drexler'], 6:['Wi_PuG','E 203','Seiler'],
-      7:['Wi_PuG','E 203','Seiler'],     9:['Deutsch','E 203','Schnabel'],
-     10:['Deutsch','E 203','Schnabel']},
-  1: {2:['Statik','E 203','Schäfer'],    3:['Statik','E 203','Schäfer'],
-      4:['Statik','E 203','Schäfer'],    5:['Englisch','E 203','Finck'],
-      6:['Englisch','E 203','Finck'],    8:['Bauphysik','E 203','Küsel'],
-      9:['Bauphysik','E 203','Küsel'],  10:['Bauphysik','E 203','Küsel']},
-  2: {1:['Mathe','E 203','Hinte'],       2:['Mathe','E 203','Hinte'],
-      3:['Baurecht','E 203','Carl'],     4:['Baurecht','E 203','Carl'],
-      5:['Betr-psych','E 203','Papsdorf'],6:['Betr-psych','E 203','Papsdorf']},
-  3: {6:['Mathe','E 203','Hinte'],       7:['Mathe','E 203','Hinte'],
-      8:['Mathe','E 203','Hinte']},
-  4: {1:['Darst.G','E 203','Schwemmer'],2:['Darst.G','E 203','Schwemmer'],
-      3:['Baukonstr','E 203','Reißer'], 4:['Baukonstr','E 203','Reißer']},
-};
+  const FACH_COLOR = {
+    'Baukonstr':'--c-bau','Baust. tech.':'--c-tech','Wi_PuG':'--c-wipug',
+    'Statik':'--c-statik','Bauphysik':'--c-physik','Baurecht':'--c-recht',
+    'Betr-psych':'--c-psych','CAD':'--c-cad','CAD/Verm':'--c-cad',
+    'CAD/Lab':'--c-cad','CAD-Labor':'--c-cad','EDV':'--c-edv','EDV/Lab':'--c-edv',
+    'Darst.G':'--c-darst','Vermess':'--c-verm','Mathe':'--c-mathe',
+    'Englisch':'--c-eng','Deutsch':'--c-deu','Labor':'--c-labor',
+  };
 
-function getSchedule(group, weekType) {
-  const s = JSON.parse(JSON.stringify(COMMON));
-  const miCAD = (group === 1 && weekType === 'A') || (group === 2 && weekType === 'B');
-  if (miCAD) {
-    s[2][8] = ['CAD','E 103','Sumereder'];
-    s[2][9] = ['CAD','E 103','Sumereder'];
-  } else {
-    s[2][8]  = ['Vermess','E 203','Schwind'];
-    s[2][9]  = ['Vermess','E 203','Schwind'];
-    s[2][10] = ['Vermess','E 203','Schwind'];
-    s[2][11] = ['Vermess','E 203','Schwind'];
-  }
-  const doLab = (group === 1 && weekType === 'A') || (group === 2 && weekType === 'B');
-  if (doLab) {
-    s[3][2] = ['Labor','E 103','Wolf'];
-    s[3][3] = ['Labor','E 103','Wolf'];
-    s[3][4] = ['Labor','E 103','Wolf'];
-  } else {
-    s[3][1] = ['EDV','E 203','Reith'];
-    s[3][2] = ['EDV','E 203','Reith'];
-    s[3][3] = ['CAD','E 203','Sumereder'];
-    s[3][4] = ['CAD','E 203','Sumereder'];
-  }
-  const frEDV = (group === 1 && weekType === 'A') || (group === 2 && weekType === 'B');
-  if (frEDV) {
-    s[4][5] = ['EDV','E 203','Reith'];
-    s[4][6] = ['EDV','E 203','Reith'];
-  }
-  return s;
-}
+  // Base schedule shared by both groups
+  const COMMON = {
+    0: {1:['Baukonstr','E 203','Reißer'],  2:['Baukonstr','E 203','Reißer'],
+        3:['Baust. tech.','E 203','Drexler'], 4:['Baust. tech.','E 203','Drexler'],
+        5:['Baust. tech.','E 203','Drexler'], 6:['Wi_PuG','E 203','Seiler'],
+        7:['Wi_PuG','E 203','Seiler'],     9:['Deutsch','E 203','Schnabel'],
+       10:['Deutsch','E 203','Schnabel']},
+    1: {2:['Statik','E 203','Schäfer'],    3:['Statik','E 203','Schäfer'],
+        4:['Statik','E 203','Schäfer'],    5:['Englisch','E 203','Finck'],
+        6:['Englisch','E 203','Finck'],    8:['Bauphysik','E 203','Küsel'],
+        9:['Bauphysik','E 203','Küsel'],  10:['Bauphysik','E 203','Küsel']},
+    2: {1:['Mathe','E 203','Hinte'],       2:['Mathe','E 203','Hinte'],
+        3:['Baurecht','E 203','Carl'],     4:['Baurecht','E 203','Carl'],
+        5:['Betr-psych','E 203','Papsdorf'],6:['Betr-psych','E 203','Papsdorf']},
+    3: {6:['Mathe','E 203','Hinte'],       7:['Mathe','E 203','Hinte'],
+        8:['Mathe','E 203','Hinte']},
+    4: {1:['Darst.G','E 203','Schwemmer'],2:['Darst.G','E 203','Schwemmer'],
+        3:['Baukonstr','E 203','Reißer'], 4:['Baukonstr','E 203','Reißer']},
+  };
 
-function getLunch(group, weekType) {
-  return Object.assign({}, LUNCH);
-}
+  // ─── FERIEN ────────────────────────────────────
+  const FERIEN_FALLBACK = [
+    ['2025-12-22','2026-01-05'], ['2026-02-16','2026-02-20'],
+    ['2026-03-30','2026-04-10'], ['2026-05-26','2026-06-05'],
+    ['2026-08-03','2026-09-14'], ['2026-11-02','2026-11-06'],
+    ['2026-11-18','2026-11-18'], ['2026-12-24','2027-01-08'],
+    ['2027-02-08','2027-02-12'], ['2027-03-22','2027-04-02'],
+    ['2027-05-18','2027-05-28'], ['2027-08-02','2027-09-13'],
+  ];
 
-// ══════════════════════════════════════════════════════
-//  FERIEN
-// ══════════════════════════════════════════════════════
-let ferienRanges = [], ferienLoaded = false;
+  // Ferien stored as a Set of "YYYY-MM-DD" strings → O(1) lookup
+  let ferienSet = new Set();
+  let ferienLoaded = false;
 
-// Hardcoded Bayern Ferien as fallback (API may fail due to CORS/offline)
-const FERIEN_FALLBACK = [
-  // Weihnachten 2025/26
-  ['2025-12-22','2026-01-05'],
-  // Frühjahr 2026
-  ['2026-02-16','2026-02-20'],
-  // Ostern 2026
-  ['2026-03-30','2026-04-10'],
-  // Pfingsten 2026
-  ['2026-05-26','2026-06-05'],
-  // Sommer 2026
-  ['2026-08-03','2026-09-14'],
-  // Herbst (Allerheiligen) 2026
-  ['2026-11-02','2026-11-06'],
-  // Buß- und Bettag 2026
-  ['2026-11-18','2026-11-18'],
-  // Weihnachten 2026/27
-  ['2026-12-24','2027-01-08'],
-  // Frühjahr 2027
-  ['2027-02-08','2027-02-12'],
-  // Ostern 2027
-  ['2027-03-22','2027-04-02'],
-  // Pfingsten 2027
-  ['2027-05-18','2027-05-28'],
-  // Sommer 2027
-  ['2027-08-02','2027-09-13'],
-];
-
-function parseFallback() {
-  return FERIEN_FALLBACK.map(([s,e]) => ({
-    start: new Date(s + 'T00:00:00'),
-    end: new Date(e + 'T00:00:00')
-  }));
-}
-
-async function loadFerien() {
-  // Try API first
-  const years = [new Date().getFullYear(), new Date().getFullYear() + 1];
-  const all = [];
-  for (const y of years) {
-    try {
-      const r = await fetch(`https://ferien-api.de/api/v1/holidays/BY/${y}`);
-      if (!r.ok) continue;
-      const data = await r.json();
-      data.forEach(f => {
-        if (f.start && f.end) {
-          all.push({ start: new Date(f.start), end: new Date(f.end) });
-        }
-      });
-    } catch(e) {}
+  function dateToKey(d) {
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
   }
 
-  if (all.length > 0) {
-    ferienRanges = all;
-  } else {
-    // Fallback to hardcoded data
-    ferienRanges = parseFallback();
+  function expandRange(startStr, endStr) {
+    const keys = [];
+    const cur = new Date(startStr + 'T00:00:00');
+    const end = new Date(endStr + 'T00:00:00');
+    while (cur <= end) {
+      keys.push(dateToKey(cur));
+      cur.setDate(cur.getDate() + 1);
+    }
+    return keys;
   }
-  ferienLoaded = true;
-  document.getElementById('loading-hint').style.display = 'none';
-}
 
-function isFerien(date) {
-  const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  return ferienRanges.some(f => {
-    const s = new Date(f.start.getFullYear(), f.start.getMonth(), f.start.getDate());
-    const e = new Date(f.end.getFullYear(), f.end.getMonth(), f.end.getDate());
-    return d >= s && d <= e;
-  });
-}
+  async function loadFerien() {
+    const years = [new Date().getFullYear(), new Date().getFullYear() + 1];
+    let apiData = [];
 
-// ══════════════════════════════════════════════════════
-//  WEEK TYPE
-// ══════════════════════════════════════════════════════
-const ANCHOR_DATE = new Date(2026, 1, 23);
+    for (const y of years) {
+      try {
+        const r = await fetch(`https://ferien-api.de/api/v1/holidays/BY/${y}`);
+        if (!r.ok) continue;
+        const data = await r.json();
+        data.forEach(f => {
+          if (f.start && f.end) {
+            const s = f.start.slice(0, 10);
+            const e = f.end.slice(0, 10);
+            apiData.push(...expandRange(s, e));
+          }
+        });
+      } catch (e) { /* silent — fallback below */ }
+    }
 
-function getMondayOf(date) {
-  const d = new Date(date); const day = d.getDay();
-  d.setDate(d.getDate() + ((day === 0) ? -6 : 1 - day));
-  d.setHours(0,0,0,0); return d;
-}
+    if (apiData.length > 0) {
+      ferienSet = new Set(apiData);
+    } else {
+      // Use hardcoded fallback
+      const keys = [];
+      FERIEN_FALLBACK.forEach(([s, e]) => keys.push(...expandRange(s, e)));
+      ferienSet = new Set(keys);
+    }
 
-function countSchoolWeeksBetween(a, b) {
-  let count = 0; const step = a <= b ? 1 : -1; let cur = new Date(a);
-  while (cur.getTime() !== b.getTime()) {
-    cur.setDate(cur.getDate() + 7 * step);
-    if (!isFerien(cur)) count++;
+    ferienLoaded = true;
+    document.getElementById('loading-hint').style.display = 'none';
   }
-  return count * step;
-}
 
-function getWeekType(group, date) {
-  const anchorMon = getMondayOf(ANCHOR_DATE), targetMon = getMondayOf(date);
-  let weeks;
-  if (ferienLoaded) { weeks = countSchoolWeeksBetween(anchorMon, targetMon); }
-  else { weeks = Math.round((targetMon - anchorMon) / (7*24*60*60*1000)); }
-  return (((weeks % 2) + 2) % 2) === 0 ? 'A' : 'B';
-}
+  function isFerien(date) {
+    return ferienLoaded && ferienSet.has(dateToKey(date));
+  }
 
-// ══════════════════════════════════════════════════════
-//  GROUP STATE
-// ══════════════════════════════════════════════════════
-let currentGroup = parseInt(localStorage.getItem('fst1_group') || '0');
+  // ─── WEEK TYPE ─────────────────────────────────
+  const ANCHOR_DATE = new Date(2026, 1, 23); // Mon 23 Feb 2026
 
-function selectGroup(g) {
-  const was = currentGroup; currentGroup = g;
-  localStorage.setItem('fst1_group', g);
-  document.getElementById('group-overlay').style.display = 'none';
-  updateGroupBadge();
-  if (was && was !== g) { animateGroupSwitch(); } else { buildTable(); update(); }
-}
+  function getMondayOf(date) {
+    const d = new Date(date);
+    const day = d.getDay();
+    d.setDate(d.getDate() + ((day === 0) ? -6 : 1 - day));
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }
 
-function animateGroupSwitch() {
-  const wrap = document.getElementById('table-wrap');
-  wrap.classList.add('switching');
-  setTimeout(() => { buildTable(); update(); wrap.classList.remove('switching'); }, 280);
-}
+  // Cache for school week counts
+  const weekTypeCache = new Map();
 
-function showGroupOverlay() { document.getElementById('group-overlay').style.display = 'flex'; }
+  function countSchoolWeeksBetween(a, b) {
+    const key = `${a.getTime()}-${b.getTime()}`;
+    if (weekTypeCache.has(key)) return weekTypeCache.get(key);
 
-function updateGroupBadge() {
-  const b = document.getElementById('group-badge');
-  b.textContent = `Gruppe ${currentGroup}`;
-  b.className = `group-badge g${currentGroup}`;
-}
+    let count = 0;
+    const step = a <= b ? 1 : -1;
+    const cur = new Date(a);
+    while (cur.getTime() !== b.getTime()) {
+      cur.setDate(cur.getDate() + 7 * step);
+      if (!isFerien(cur)) count++;
+    }
+    const result = count * step;
+    weekTypeCache.set(key, result);
+    return result;
+  }
 
-// ══════════════════════════════════════════════════════
-//  SUBJECT TAG
-// ══════════════════════════════════════════════════════
-function subjTag(abbr) {
-  const v = FACH_COLOR[abbr] || '--muted';
-  const c = `var(${v})`;
-  return `<span class="subj-tag" style="color:${c};background:color-mix(in srgb,${c} 14%,transparent)">${abbr}</span>`;
-}
+  function getWeekType(group, date) {
+    const anchorMon = getMondayOf(ANCHOR_DATE);
+    const targetMon = getMondayOf(date);
+    let weeks;
+    if (ferienLoaded) {
+      weeks = countSchoolWeeksBetween(anchorMon, targetMon);
+    } else {
+      weeks = Math.round((targetMon - anchorMon) / (7 * 24 * 60 * 60 * 1000));
+    }
+    return (((weeks % 2) + 2) % 2) === 0 ? 'A' : 'B';
+  }
 
-// ══════════════════════════════════════════════════════
-//  TABLE BUILD
-// ══════════════════════════════════════════════════════
-function buildTable() {
-  const tbody = document.getElementById('plan-body'); tbody.innerHTML = '';
-  const now = new Date(), wt = getWeekType(currentGroup, now);
-  const sch = getSchedule(currentGroup, wt), lun = getLunch(currentGroup, wt);
+  // ─── SCHEDULE BUILDER ──────────────────────────
+  // Cached schedule — only rebuilt when group or week type changes
+  let cachedSchedule = null;
+  let cachedLunch = null;
+  let cacheKey = '';
 
-  PLAN.forEach((slot, rowIdx) => {
-    const tr = document.createElement('tr'); tr.dataset.row = rowIdx;
-    const tc = document.createElement('td'); tc.className = 'time-cell';
-    tc.innerHTML = slot.type === 'hour'
-      ? `<span class="hour-nr">${slot.nr}.</span>${fmt(slot.start)}<br>${fmt(slot.end)}`
-      : `${fmt(slot.start)}<br>${fmt(slot.end)}`;
-    tr.appendChild(tc);
+  function buildScheduleFor(group, weekType) {
+    const key = `${group}-${weekType}`;
+    if (key === cacheKey && cachedSchedule) return { sch: cachedSchedule, lun: cachedLunch };
 
-    for (let d = 0; d < 5; d++) {
-      const td = document.createElement('td');
-      td.dataset.day = d; td.dataset.row = rowIdx;
-      if (slot.type === 'pause') {
-        td.className = 'pause-cell';
-      } else if (slot.type === 'hour' && lun[d] === slot.nr) {
-        td.className = 'lunch-cell'; td.innerHTML = `Mittags-<br>pause`;
-      } else if (slot.type === 'hour') {
-        const info = sch[d]?.[slot.nr];
-        if (info) {
-          const full = FACH_FULL[info[0]] || info[0];
-          td.className = 'lesson-cell';
-          td.setAttribute('data-tip', `${full} · ${info[2]}`);
-          td.innerHTML = `${subjTag(info[0])}<span class="info">${info[2]}<br>${info[1]}</span>`;
-        } else { td.className = 'free-cell'; }
+    const s = JSON.parse(JSON.stringify(COMMON));
+
+    const miCAD = (group === 1 && weekType === 'A') || (group === 2 && weekType === 'B');
+    if (miCAD) {
+      s[2][8] = ['CAD','E 103','Sumereder'];
+      s[2][9] = ['CAD','E 103','Sumereder'];
+    } else {
+      s[2][8]  = ['Vermess','E 203','Schwind'];
+      s[2][9]  = ['Vermess','E 203','Schwind'];
+      s[2][10] = ['Vermess','E 203','Schwind'];
+      s[2][11] = ['Vermess','E 203','Schwind'];
+    }
+
+    const doLab = (group === 1 && weekType === 'A') || (group === 2 && weekType === 'B');
+    if (doLab) {
+      s[3][2] = ['Labor','E 103','Wolf'];
+      s[3][3] = ['Labor','E 103','Wolf'];
+      s[3][4] = ['Labor','E 103','Wolf'];
+    } else {
+      s[3][1] = ['EDV','E 203','Reith'];
+      s[3][2] = ['EDV','E 203','Reith'];
+      s[3][3] = ['CAD','E 203','Sumereder'];
+      s[3][4] = ['CAD','E 203','Sumereder'];
+    }
+
+    const frEDV = (group === 1 && weekType === 'A') || (group === 2 && weekType === 'B');
+    if (frEDV) {
+      s[4][5] = ['EDV','E 203','Reith'];
+      s[4][6] = ['EDV','E 203','Reith'];
+    }
+
+    cachedSchedule = s;
+    cachedLunch = { ...LUNCH };
+    cacheKey = key;
+    return { sch: s, lun: cachedLunch };
+  }
+
+  // ─── STATE ─────────────────────────────────────
+  let currentGroup = parseInt(localStorage.getItem('fst1_group') || '0');
+  let currentView = 'week';
+  let prevActiveDay = -1;
+  let prevActiveRow = -1;
+  let calYear, calMonth;
+
+  // ─── DOM REFS (cached once) ────────────────────
+  const $ = id => document.getElementById(id);
+  let dom = {};
+
+  function cacheDom() {
+    dom = {
+      clock: $('live-clock'),
+      weekPill: $('week-pill'),
+      weekendBanner: $('weekend-banner'),
+      ferienBanner: $('ferien-banner'),
+      statusCard: $('status-card'),
+      statusDot: $('status-dot'),
+      statusLabel: $('status-label'),
+      statusMain: $('status-main'),
+      statusSub: $('status-sub'),
+      countdownPill: $('countdown-pill'),
+      progressWrap: $('progress-wrap'),
+      progressFill: $('progress-fill'),
+      progressPct: $('progress-pct'),
+      nextPreview: $('next-preview'),
+      nextSubject: $('next-subject'),
+      nextInfo: $('next-info'),
+      groupBadge: $('group-badge'),
+      groupOverlay: $('group-overlay'),
+      tableWrap: $('table-wrap'),
+      planBody: $('plan-body'),
+      dayView: $('day-view'),
+      dayViewHeader: $('day-view-header'),
+      dayTimeline: $('day-timeline'),
+      monthView: $('month-view'),
+      calTitle: $('cal-title'),
+      calGrid: $('cal-grid'),
+    };
+  }
+
+  // ─── HELPERS ───────────────────────────────────
+  function pad(n) { return String(n).padStart(2, '0'); }
+  function fmt([h, m]) { return `${pad(h)}:${pad(m)}`; }
+  function toMins([h, m]) { return h * 60 + m; }
+  function fmtCD(s) {
+    const h = Math.floor(s / 3600);
+    const m = Math.floor((s % 3600) / 60);
+    const sec = s % 60;
+    return h > 0 ? `${h}:${pad(m)}:${pad(sec)}` : `${pad(m)}:${pad(sec)}`;
+  }
+
+  // Subject tag HTML
+  function subjTag(abbr) {
+    const v = FACH_COLOR[abbr] || '--muted';
+    const c = `var(${v})`;
+    return `<span class="subj-tag" style="color:${c};background:color-mix(in srgb,${c} 14%,transparent)">${abbr}</span>`;
+  }
+
+  // Get computed CSS color for subject
+  const colorCache = {};
+  function getSubjColor(abbr) {
+    if (colorCache[abbr]) return colorCache[abbr];
+    const varName = FACH_COLOR[abbr];
+    if (!varName) return null;
+    const val = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+    colorCache[abbr] = val;
+    return val;
+  }
+
+  // ─── SUBJECT BLOCK DETECTION ───────────────────
+  function findSubjectBlock(rowIdx, dayIdx, sch, lun) {
+    const slot = PLAN[rowIdx];
+    if (slot.type !== 'hour') return null;
+    if (lun[dayIdx] === slot.nr) return { startRow: rowIdx, endRow: rowIdx, subject: null, isLunch: true };
+
+    const info = sch[dayIdx]?.[slot.nr];
+    if (!info) return null;
+    const subj = info[0];
+
+    let startRow = rowIdx;
+    for (let r = rowIdx - 1; r >= 0; r--) {
+      const s = PLAN[r];
+      if (s.type === 'pause') continue;
+      if (s.type !== 'hour') break;
+      if (lun[dayIdx] === s.nr) break;
+      const ri = sch[dayIdx]?.[s.nr];
+      if (!ri || ri[0] !== subj) break;
+      startRow = r;
+    }
+
+    let endRow = rowIdx;
+    for (let r = rowIdx + 1; r < PLAN.length; r++) {
+      const s = PLAN[r];
+      if (s.type === 'pause') continue;
+      if (s.type !== 'hour') break;
+      if (lun[dayIdx] === s.nr) break;
+      const ri = sch[dayIdx]?.[s.nr];
+      if (!ri || ri[0] !== subj) break;
+      endRow = r;
+    }
+
+    return { startRow, endRow, subject: subj, info, isLunch: false };
+  }
+
+  // ─── FIND NEXT SCHOOL START ────────────────────
+  function findNextSchoolStart(todayIdx, nowM, lastEndM, sch, lun, wt) {
+    const DAY_NAMES = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
+
+    function firstLessonStart(dIdx, schedule) {
+      for (let i = 0; i < PLAN.length; i++) {
+        const slot = PLAN[i];
+        if (slot.type !== 'hour') continue;
+        if (schedule[dIdx]?.[slot.nr]) return fmt(slot.start);
       }
-      tr.appendChild(td);
+      return null;
     }
-    tbody.appendChild(tr);
-  });
-}
 
-// ══════════════════════════════════════════════════════
-//  UPDATE LOOP
-// ══════════════════════════════════════════════════════
-
-// Find contiguous block of the same subject around a given row for a given day
-function findSubjectBlock(rowIdx, dayIdx, sch, lun) {
-  const slot = PLAN[rowIdx];
-  if (slot.type !== 'hour') return null;
-  const isLunch = lun[dayIdx] === slot.nr;
-  if (isLunch) return { startRow: rowIdx, endRow: rowIdx, subject: null, isLunch: true };
-
-  const info = sch[dayIdx]?.[slot.nr];
-  if (!info) return null;
-  const subj = info[0];
-
-  // Search backwards for first consecutive slot with same subject
-  let startRow = rowIdx;
-  for (let r = rowIdx - 1; r >= 0; r--) {
-    const s = PLAN[r];
-    if (s.type === 'pause') continue; // skip pauses within block
-    if (s.type !== 'hour') break;
-    if (lun[dayIdx] === s.nr) break;
-    const ri = sch[dayIdx]?.[s.nr];
-    if (!ri || ri[0] !== subj) break;
-    startRow = r;
-  }
-
-  // Search forwards
-  let endRow = rowIdx;
-  for (let r = rowIdx + 1; r < PLAN.length; r++) {
-    const s = PLAN[r];
-    if (s.type === 'pause') continue;
-    if (s.type !== 'hour') break;
-    if (lun[dayIdx] === s.nr) break;
-    const ri = sch[dayIdx]?.[s.nr];
-    if (!ri || ri[0] !== subj) break;
-    endRow = r;
-  }
-
-  return { startRow, endRow, subject: subj, info, isLunch: false };
-}
-
-// Get the actual CSS color value for a subject
-function getSubjColorHex(abbr) {
-  const varName = FACH_COLOR[abbr];
-  if (!varName) return null;
-  return getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
-}
-
-// Find the next school day's first lesson start time and return a descriptive string
-function findNextSchoolStart(todayIdx, nowM, todayLastEndM, sch, lun, wt) {
-  const DAY_NAMES = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
-
-  // Helper: find first lesson start on a given day index using a schedule
-  function firstLessonStart(dIdx, schedule) {
-    for (let i = 0; i < PLAN.length; i++) {
-      const slot = PLAN[i];
-      if (slot.type !== 'hour') continue;
-      const info = schedule[dIdx]?.[slot.nr];
-      if (info) return fmt(slot.start);
+    // Today before school?
+    if (todayIdx >= 0 && todayIdx < 5 && (lastEndM === 0 || nowM < toMins(PLAN[0].start))) {
+      const startTime = firstLessonStart(todayIdx, sch);
+      if (startTime) return `Unterricht beginnt heute um ${startTime} Uhr`;
     }
-    return null;
-  }
 
-  // Check if today still has lessons ahead (before school started)
-  if (todayIdx >= 0 && todayIdx < 5 && (todayLastEndM === 0 || nowM < toMins(PLAN[0].start))) {
-    const startTime = firstLessonStart(todayIdx, sch);
-    if (startTime) return `Unterricht beginnt heute um ${startTime} Uhr`;
-  }
-
-  // Look ahead through the next days
-  for (let offset = 1; offset <= 7; offset++) {
-    const nextDayIdx = (todayIdx + offset) % 7; // 0-6 (Mo-So mapped)
-    // Skip weekends (Sat=5, Sun=6 in our 0-based Mo-Fr system)
-    if (nextDayIdx < 0 || nextDayIdx >= 5) continue;
-
-    // We need the schedule for that day – it might be next week with a different week type
-    let futureWt = wt;
-    const daysFromToday = offset;
-    // If we cross into next week (past Friday), flip week type
-    const todayDayJs = new Date().getDay(); // 0=Sun, 1=Mon...
-    const futureDayJs = ((todayDayJs - 1 + offset) % 7); // 0-based from Monday
-    // Check if we crossed a weekend boundary into a new school week
-    if (todayDayJs + offset > 5 + (todayDayJs === 0 ? -1 : 0)) {
-      // Simple: recalculate for the actual future date
+    // Look ahead through next days
+    for (let offset = 1; offset <= 7; offset++) {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + offset);
-      futureWt = getWeekType(currentGroup, futureDate);
-    }
 
-    const futureSch = getSchedule(currentGroup, futureWt);
-    const startTime = firstLessonStart(nextDayIdx, futureSch);
-    if (startTime) {
-      if (offset === 1 && todayIdx >= 0 && todayIdx < 4) {
-        return `Unterricht beginnt morgen um ${startTime} Uhr`;
-      } else {
-        return `Unterricht beginnt ${DAY_NAMES[nextDayIdx]} um ${startTime} Uhr`;
+      const futureDayJs = futureDate.getDay();
+      if (futureDayJs === 0 || futureDayJs === 6) continue; // Skip weekends
+      if (isFerien(futureDate)) continue; // Skip holidays
+
+      const futureIdx = futureDayJs - 1;
+      const futureWt = getWeekType(currentGroup, futureDate);
+      const { sch: futureSch } = buildScheduleFor(currentGroup, futureWt);
+      const startTime = firstLessonStart(futureIdx, futureSch);
+
+      if (startTime) {
+        if (offset === 1) return `Unterricht beginnt morgen um ${startTime} Uhr`;
+        return `Unterricht beginnt ${DAY_NAMES[futureIdx]} um ${startTime} Uhr`;
       }
     }
+    return '';
   }
-  return '';
-}
 
-function update() {
-  if (!currentGroup) return;
-  const now = new Date(), dayJs = now.getDay(), dayIdx = dayJs - 1;
-  const nowM = now.getHours()*60+now.getMinutes();
-  const nowS = now.getHours()*3600+now.getMinutes()*60+now.getSeconds();
+  // ─── GROUP MANAGEMENT ──────────────────────────
+  function selectGroup(g) {
+    const was = currentGroup;
+    currentGroup = g;
+    localStorage.setItem('fst1_group', g);
+    dom.groupOverlay.style.display = 'none';
+    updateGroupBadge();
 
-  document.getElementById('live-clock').textContent = `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+    // Invalidate cache
+    cacheKey = '';
 
-  const wt = getWeekType(currentGroup, now);
-  const displayWt = currentGroup === 1 ? wt : (wt === 'A' ? 'B' : 'A');
-  const pill = document.getElementById('week-pill');
-  pill.textContent = `Woche ${displayWt}`;
-  pill.className = displayWt === 'A' ? 'week-pill' : 'week-pill b';
-
-  for (let d = 0; d < 5; d++) document.getElementById(`head-${d}`).className = d === dayIdx ? 'today-head' : '';
-
-  const isWeekend = dayJs === 0 || dayJs === 6;
-  const inFerien = ferienLoaded && isFerien(now);
-  document.getElementById('weekend-banner').style.display = isWeekend ? '' : 'none';
-  document.getElementById('ferien-banner').style.display = !isWeekend && inFerien ? '' : 'none';
-  document.getElementById('status-card').style.display = (isWeekend || inFerien) ? 'none' : '';
-  if (isWeekend || inFerien) { highlightColumn(-1, -1); return; }
-
-  const sch = getSchedule(currentGroup, wt), lun = getLunch(currentGroup, wt);
-
-  // Find active slot (single hour/pause)
-  let activeRow = -1, activeType = 'free', secsLeft = 0, totalSecs = 0;
-  PLAN.forEach((slot, rowIdx) => {
-    const sM = toMins(slot.start), eM = toMins(slot.end);
-    if (nowM >= sM && nowM < eM) {
-      activeRow = rowIdx; activeType = slot.type;
-      secsLeft = eM*60 - nowS; totalSecs = (eM - sM)*60;
-      if (secsLeft < 0) secsLeft = 0;
+    if (was && was !== g) {
+      dom.tableWrap.classList.add('switching');
+      setTimeout(() => {
+        buildTable();
+        update();
+        dom.tableWrap.classList.remove('switching');
+      }, 280);
+    } else {
+      buildTable();
+      update();
     }
-  });
+  }
 
-  highlightColumn(dayIdx, activeRow);
+  function showGroupOverlay() {
+    dom.groupOverlay.style.display = 'flex';
+    // Focus first button for keyboard nav
+    dom.groupOverlay.querySelector('.group-btn')?.focus();
+  }
 
-  const dot = document.getElementById('status-dot');
-  const label = document.getElementById('status-label');
-  const main = document.getElementById('status-main');
-  const sub = document.getElementById('status-sub');
-  const cpill = document.getElementById('countdown-pill');
-  const pWrap = document.getElementById('progress-wrap');
-  const pFill = document.getElementById('progress-fill');
-  const pPct = document.getElementById('progress-pct');
-  const nextEl = document.getElementById('next-preview');
-  const nextSubj = document.getElementById('next-subject');
-  const nextInfo = document.getElementById('next-info');
-  const card = document.getElementById('status-card');
+  function updateGroupBadge() {
+    dom.groupBadge.textContent = `Gruppe ${currentGroup}`;
+    dom.groupBadge.className = `group-badge g${currentGroup}`;
+  }
 
-  // Reset
-  card.className = 'status-card glass';
-  card.style.cssText = '';
-  dot.className = 'status-dot'; dot.style.cssText = '';
-  cpill.className = 'countdown-pill'; cpill.style.cssText = '';
-  pWrap.classList.add('hidden');
-  pFill.className = 'progress-fill'; pFill.style.cssText = 'width:0%';
-  nextEl.classList.add('hidden');
+  // ─── TABLE BUILD ───────────────────────────────
+  function buildTable() {
+    const tbody = dom.planBody;
+    tbody.innerHTML = '';
+    const now = new Date();
+    const wt = getWeekType(currentGroup, now);
+    const { sch, lun } = buildScheduleFor(currentGroup, wt);
 
-  if (activeRow === -1) {
-    // Find last lesson end time of today
-    let lastEndM = 0;
-    if (dayIdx >= 0 && dayIdx < 5) {
-      PLAN.forEach((slot) => {
-        if (slot.type !== 'hour') return;
-        const info = sch[dayIdx]?.[slot.nr];
-        const isLunchSlot = lun[dayIdx] === slot.nr;
-        if (info || isLunchSlot) {
-          const eM = toMins(slot.end);
-          if (eM > lastEndM) lastEndM = eM;
+    PLAN.forEach((slot, rowIdx) => {
+      const tr = document.createElement('tr');
+      tr.dataset.row = rowIdx;
+
+      const tc = document.createElement('td');
+      tc.className = 'time-cell';
+      tc.innerHTML = slot.type === 'hour'
+        ? `<span class="hour-nr">${slot.nr}.</span>${fmt(slot.start)}<br>${fmt(slot.end)}`
+        : `${fmt(slot.start)}<br>${fmt(slot.end)}`;
+      tr.appendChild(tc);
+
+      for (let d = 0; d < 5; d++) {
+        const td = document.createElement('td');
+        td.dataset.day = d;
+        td.dataset.row = rowIdx;
+
+        if (slot.type === 'pause') {
+          td.className = 'pause-cell';
+        } else if (slot.type === 'hour' && lun[d] === slot.nr) {
+          td.className = 'lunch-cell';
+          td.innerHTML = `Mittags-<br>pause`;
+        } else if (slot.type === 'hour') {
+          const info = sch[d]?.[slot.nr];
+          if (info) {
+            const full = FACH_FULL[info[0]] || info[0];
+            td.className = 'lesson-cell';
+            td.setAttribute('data-tip', `${full} · ${info[2]}`);
+            td.innerHTML = `${subjTag(info[0])}<span class="info">${info[2]}<br>${info[1]}</span>`;
+          } else {
+            td.className = 'free-cell';
+          }
         }
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    });
+  }
+
+  // ─── COLUMN HIGHLIGHTING (optimized) ───────────
+  function highlightColumn(dayIdx, activeRow) {
+    // Only update if something changed
+    if (dayIdx === prevActiveDay && activeRow === prevActiveRow) return;
+
+    // Remove old highlights
+    if (prevActiveDay >= 0) {
+      dom.planBody.querySelectorAll(`td[data-day="${prevActiveDay}"]`).forEach(td => {
+        td.classList.remove('today-col', 'active');
       });
     }
-
-    // Find next school day's first lesson start
-    const nextStart = findNextSchoolStart(dayIdx, nowM, lastEndM, sch, lun, wt);
-
-    if (dayIdx >= 0 && dayIdx < 5 && nowM >= lastEndM && lastEndM > 0) {
-      label.textContent = 'Feierabend';
-      main.textContent = '🎉 Schulschluss';
-      sub.textContent = nextStart;
-    } else {
-      label.textContent = 'Außerhalb der Schulzeit';
-      main.textContent = 'Kein Unterricht';
-      sub.textContent = nextStart;
+    if (prevActiveRow >= 0 && prevActiveDay >= 0) {
+      const oldActive = dom.planBody.querySelector(`td[data-day="${prevActiveDay}"][data-row="${prevActiveRow}"]`);
+      if (oldActive) oldActive.classList.remove('active');
     }
-    cpill.classList.add('hidden');
-  } else if (activeType === 'pause') {
-    dot.classList.add('pause'); label.textContent = 'Jetzt';
-    main.textContent = '☕ Pause';
-    sub.textContent = `Bis ${fmt(PLAN[activeRow].end)} Uhr`;
-    cpill.classList.add('blue'); cpill.textContent = fmtCD(secsLeft);
-    showProg(secsLeft, totalSecs, 'blue', null);
-    showNext(activeRow, dayIdx, sch, lun);
-  } else {
+
+    // Add new highlights
+    if (dayIdx >= 0 && dayIdx < 5) {
+      dom.planBody.querySelectorAll(`td[data-day="${dayIdx}"]`).forEach(td => {
+        td.classList.add('today-col');
+      });
+      if (activeRow >= 0) {
+        const cell = dom.planBody.querySelector(`td[data-day="${dayIdx}"][data-row="${activeRow}"]`);
+        if (cell) cell.classList.add('active');
+      }
+      for (let d = 0; d < 5; d++) {
+        document.getElementById(`head-${d}`).className = d === dayIdx ? 'today-head' : '';
+      }
+    }
+
+    prevActiveDay = dayIdx;
+    prevActiveRow = activeRow;
+  }
+
+  // ─── UPDATE LOOP ───────────────────────────────
+  function update() {
+    if (!currentGroup) return;
+
+    const now = new Date();
+    const dayJs = now.getDay();
+    const dayIdx = dayJs - 1;
+    const h = now.getHours(), m = now.getMinutes(), s = now.getSeconds();
+    const nowM = h * 60 + m;
+    const nowS = h * 3600 + m * 60 + s;
+
+    // Clock
+    dom.clock.textContent = `${pad(h)}:${pad(m)}:${pad(s)}`;
+
+    // Week type
+    const wt = getWeekType(currentGroup, now);
+    const displayWt = currentGroup === 1 ? wt : (wt === 'A' ? 'B' : 'A');
+    dom.weekPill.textContent = `Woche ${displayWt}`;
+    dom.weekPill.className = displayWt === 'A' ? 'week-pill' : 'week-pill b';
+
+    // Banners
+    const isWeekend = dayJs === 0 || dayJs === 6;
+    const inFerien = isFerien(now);
+    dom.weekendBanner.style.display = isWeekend ? '' : 'none';
+    dom.ferienBanner.style.display = (!isWeekend && inFerien) ? '' : 'none';
+    dom.statusCard.style.display = (isWeekend || inFerien) ? 'none' : '';
+
+    if (isWeekend || inFerien) {
+      highlightColumn(-1, -1);
+      if (currentView === 'day') buildDayView();
+      return;
+    }
+
+    const { sch, lun } = buildScheduleFor(currentGroup, wt);
+
+    // Find active slot
+    let activeRow = -1, activeType = 'free', secsLeft = 0, totalSecs = 0;
+    for (let i = 0; i < PLAN.length; i++) {
+      const slot = PLAN[i];
+      const sM = toMins(slot.start), eM = toMins(slot.end);
+      if (nowM >= sM && nowM < eM) {
+        activeRow = i;
+        activeType = slot.type;
+        secsLeft = eM * 60 - nowS;
+        totalSecs = (eM - sM) * 60;
+        if (secsLeft < 0) secsLeft = 0;
+        break;
+      }
+    }
+
+    highlightColumn(dayIdx, activeRow);
+    updateStatusCard(activeRow, activeType, secsLeft, totalSecs, dayIdx, nowM, nowS, sch, lun, wt);
+
+    if (currentView === 'day') buildDayView();
+  }
+
+  // ─── STATUS CARD UPDATE ────────────────────────
+  function updateStatusCard(activeRow, activeType, secsLeft, totalSecs, dayIdx, nowM, nowS, sch, lun, wt) {
+    const { statusCard: card, statusDot: dot, statusLabel: label,
+            statusMain: main, statusSub: sub, countdownPill: cpill,
+            progressWrap: pWrap, progressFill: pFill, progressPct: pPct,
+            nextPreview: nextEl, nextSubject: nextSubj, nextInfo } = dom;
+
+    // Reset
+    card.className = 'status-card glass';
+    card.style.cssText = '';
+    dot.className = 'status-dot';
+    dot.style.cssText = '';
+    cpill.className = 'countdown-pill';
+    cpill.style.cssText = '';
+    pWrap.classList.add('hidden');
+    pFill.className = 'progress-fill';
+    pFill.style.cssText = 'width:0%';
+    nextEl.classList.add('hidden');
+
+    if (activeRow === -1) {
+      // Outside school hours
+      let lastEndM = 0;
+      if (dayIdx >= 0 && dayIdx < 5) {
+        PLAN.forEach(slot => {
+          if (slot.type !== 'hour') return;
+          if (sch[dayIdx]?.[slot.nr] || lun[dayIdx] === slot.nr) {
+            const eM = toMins(slot.end);
+            if (eM > lastEndM) lastEndM = eM;
+          }
+        });
+      }
+
+      const nextStart = findNextSchoolStart(dayIdx, nowM, lastEndM, sch, lun, wt);
+      if (dayIdx >= 0 && dayIdx < 5 && nowM >= lastEndM && lastEndM > 0) {
+        label.textContent = 'Feierabend';
+        main.textContent = '🎉 Schulschluss';
+      } else {
+        label.textContent = 'Außerhalb der Schulzeit';
+        main.textContent = 'Kein Unterricht';
+      }
+      sub.textContent = nextStart;
+      cpill.classList.add('hidden');
+      return;
+    }
+
+    if (activeType === 'pause') {
+      dot.classList.add('pause');
+      label.textContent = 'Jetzt';
+      main.textContent = '☕ Pause';
+      sub.textContent = `Bis ${fmt(PLAN[activeRow].end)} Uhr`;
+      cpill.classList.add('blue');
+      cpill.textContent = fmtCD(secsLeft);
+      showProgress(secsLeft, totalSecs, 'blue', null);
+      showNext(activeRow, dayIdx, sch, lun);
+      return;
+    }
+
+    // Hour slot
     const slot = PLAN[activeRow];
     const block = findSubjectBlock(activeRow, dayIdx, sch, lun);
 
-    if (block && block.isLunch) {
-      dot.classList.add('pause'); label.textContent = 'Jetzt';
+    if (block?.isLunch) {
+      dot.classList.add('pause');
+      label.textContent = 'Jetzt';
       main.textContent = '🍴 Mittagspause';
       sub.textContent = `Bis ${fmt(slot.end)} Uhr`;
-      cpill.classList.add('blue'); cpill.textContent = fmtCD(secsLeft);
-      showProg(secsLeft, totalSecs, 'blue', null);
+      cpill.classList.add('blue');
+      cpill.textContent = fmtCD(secsLeft);
+      showProgress(secsLeft, totalSecs, 'blue', null);
       showNext(activeRow, dayIdx, sch, lun);
-    } else if (block && block.info) {
+    } else if (block?.info) {
       const info = block.info;
-      const subjColor = getSubjColorHex(info[0]);
+      const subjColor = getSubjColor(info[0]);
 
-      // Calculate block-wide timing
-      const blockStartSlot = PLAN[block.startRow];
-      const blockEndSlot = PLAN[block.endRow];
-      const blockStartS = toMins(blockStartSlot.start) * 60;
-      const blockEndS = toMins(blockEndSlot.end) * 60;
+      const blockStartS = toMins(PLAN[block.startRow].start) * 60;
+      const blockEndS = toMins(PLAN[block.endRow].end) * 60;
       const blockTotalSecs = blockEndS - blockStartS;
-      const blockSecsLeft = blockEndS - nowS;
+      const blockSecsLeft = Math.max(0, blockEndS - nowS);
 
-      // Count hours in block
       let hourCount = 0;
       for (let r = block.startRow; r <= block.endRow; r++) {
         if (PLAN[r].type === 'hour') hourCount++;
@@ -1026,232 +1733,398 @@ function update() {
       dot.classList.add('active');
       label.textContent = hourCount > 1 ? `${slot.nr}. Stunde (${hourCount} Std Block)` : `${slot.nr}. Stunde`;
       main.textContent = FACH_FULL[info[0]] || info[0];
-      sub.textContent = `${info[2]} · ${info[1]} · bis ${fmt(blockEndSlot.end)}`;
-      cpill.textContent = fmtCD(Math.max(0, blockSecsLeft));
+      sub.textContent = `${info[2]} · ${info[1]} · bis ${fmt(PLAN[block.endRow].end)}`;
+      cpill.textContent = fmtCD(blockSecsLeft);
 
-      // Apply subject color to status elements
       if (subjColor) {
         dot.style.background = subjColor;
         dot.style.boxShadow = `0 0 12px ${subjColor}80`;
-        dot.style.animation = 'none';
-        // re-trigger animation with custom color
-        requestAnimationFrame(() => {
-          dot.style.animation = `glowCustom 2.2s ease-in-out infinite`;
-        });
+        dot.style.animation = 'glowPulse 2.2s ease-in-out infinite';
         cpill.style.background = `${subjColor}14`;
         cpill.style.color = subjColor;
         cpill.style.borderColor = `${subjColor}30`;
         card.style.borderColor = `${subjColor}20`;
       }
 
-      showProg(Math.max(0, blockSecsLeft), blockTotalSecs, 'custom', subjColor);
+      showProgress(blockSecsLeft, blockTotalSecs, 'custom', subjColor);
       showNext(block.endRow, dayIdx, sch, lun);
     } else {
-      // Check if there are any more lessons after this slot today
+      // Free hour or end of day
       let hasMoreLessons = false;
       for (let r = activeRow + 1; r < PLAN.length; r++) {
         const s = PLAN[r];
         if (s.type !== 'hour') continue;
-        if (lun[dayIdx] === s.nr) { hasMoreLessons = true; break; }
-        if (sch[dayIdx]?.[s.nr]) { hasMoreLessons = true; break; }
+        if (lun[dayIdx] === s.nr || sch[dayIdx]?.[s.nr]) { hasMoreLessons = true; break; }
       }
 
       if (!hasMoreLessons) {
-        // No more lessons → Schulschluss
         let lastEndM = 0;
-        PLAN.forEach((sl) => {
+        PLAN.forEach(sl => {
           if (sl.type !== 'hour') return;
           if (sch[dayIdx]?.[sl.nr] || lun[dayIdx] === sl.nr) {
             const eM = toMins(sl.end);
             if (eM > lastEndM) lastEndM = eM;
           }
         });
-        const nextStart = findNextSchoolStart(dayIdx, nowM, lastEndM, sch, lun, wt);
         label.textContent = 'Feierabend';
         main.textContent = '🎉 Schulschluss';
-        sub.textContent = nextStart;
+        sub.textContent = findNextSchoolStart(dayIdx, nowM, lastEndM, sch, lun, wt);
         cpill.classList.add('hidden');
       } else {
-        // Real Freistunde (lessons still coming)
         dot.classList.add('active');
         label.textContent = `${slot.nr}. Stunde`;
-        main.textContent = 'Freistunde'; sub.textContent = '';
+        main.textContent = 'Freistunde';
+        sub.textContent = '';
         cpill.textContent = fmtCD(secsLeft);
-        showProg(secsLeft, totalSecs, 'default', null);
+        showProgress(secsLeft, totalSecs, 'default', null);
         showNext(activeRow, dayIdx, sch, lun);
       }
     }
   }
 
-  function showProg(left, total, mode, color) {
+  function showProgress(left, total, mode, color) {
     if (total <= 0) return;
     const pct = Math.round(((total - left) / total) * 100);
-    pWrap.classList.remove('hidden');
-    pFill.style.width = pct + '%';
+    dom.progressWrap.classList.remove('hidden');
+    dom.progressWrap.setAttribute('aria-valuenow', pct);
+    dom.progressFill.style.width = pct + '%';
 
     if (mode === 'blue') {
-      pFill.classList.add('blue');
+      dom.progressFill.classList.add('blue');
     } else if (mode === 'custom' && color) {
-      pFill.style.background = `linear-gradient(90deg, ${color}90, ${color})`;
-      // Style the dot on the progress bar
-      pFill.style.setProperty('--prog-color', color);
+      dom.progressFill.style.background = `linear-gradient(90deg, ${color}90, ${color})`;
+      dom.progressFill.style.setProperty('--prog-color', color);
     }
-    pPct.textContent = pct + '%';
+    dom.progressPct.textContent = pct + '%';
   }
 
   function showNext(curRow, dIdx, schedule, lunch) {
     for (let r = curRow + 1; r < PLAN.length; r++) {
-      const s = PLAN[r]; if (s.type !== 'hour') continue;
+      const s = PLAN[r];
+      if (s.type !== 'hour') continue;
       if (lunch[dIdx] === s.nr) {
-        nextEl.classList.remove('hidden');
-        nextSubj.textContent = '🍴 Mittagspause'; nextInfo.textContent = fmt(s.start); return;
+        dom.nextPreview.classList.remove('hidden');
+        dom.nextSubject.textContent = '🍴 Mittagspause';
+        dom.nextInfo.textContent = fmt(s.start);
+        return;
       }
       const info = schedule[dIdx]?.[s.nr];
       if (info) {
-        nextEl.classList.remove('hidden');
-        nextSubj.textContent = FACH_FULL[info[0]]||info[0];
-        nextInfo.textContent = `· ${fmt(s.start)} · ${info[2]}`; return;
+        dom.nextPreview.classList.remove('hidden');
+        dom.nextSubject.textContent = FACH_FULL[info[0]] || info[0];
+        dom.nextInfo.textContent = `· ${fmt(s.start)} · ${info[2]}`;
+        return;
       }
     }
   }
-}
 
-function highlightColumn(dayIdx, activeRow) {
-  document.querySelectorAll('#plan-body td[data-day]').forEach(td => {
-    const d = +td.dataset.day, r = +td.dataset.row;
-    const base = td.className.replace(/ today-col| active/g, '');
-    td.className = base + (d===dayIdx?' today-col':'') + (d===dayIdx&&r===activeRow?' active':'');
-  });
-}
+  // ─── VIEW SWITCHING ────────────────────────────
+  function switchView(view) {
+    if (view === currentView) return;
+    const prev = currentView;
+    currentView = view;
 
-// ══════════════════════════════════════════════════════
-//  HELPERS
-// ══════════════════════════════════════════════════════
-function pad(n) { return String(n).padStart(2,'0'); }
-function fmt([h,m]) { return `${pad(h)}:${pad(m)}`; }
-function toMins([h,m]) { return h*60+m; }
-function fmtCD(s) {
-  const h = Math.floor(s / 3600);
-  const m = Math.floor((s % 3600) / 60);
-  const sec = s % 60;
-  if (h > 0) return `${h}:${pad(m)}:${pad(sec)}`;
-  return `${pad(m)}:${pad(sec)}`;
-}
+    ['week', 'day', 'month'].forEach(v => {
+      const btn = $(`vt-${v}`);
+      btn.classList.toggle('active', v === view);
+      btn.setAttribute('aria-selected', v === view);
+    });
 
-// ══════════════════════════════════════════════════════
-//  CALENDAR
-// ══════════════════════════════════════════════════════
-let calYear, calMonth; // 0-indexed month
+    const views = {
+      week: dom.tableWrap,
+      day: dom.dayView,
+      month: dom.monthView,
+    };
 
-const MONTH_NAMES = ['Januar','Februar','März','April','Mai','Juni',
-  'Juli','August','September','Oktober','November','Dezember'];
-const CAL_DAY_NAMES = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+    const outEl = views[prev];
+    outEl.classList.add('switching');
 
-function openCalendar() {
-  const now = new Date();
-  calYear = now.getFullYear();
-  calMonth = now.getMonth();
-  renderCalendar();
-  document.getElementById('cal-overlay').style.display = 'flex';
-}
+    setTimeout(() => {
+      Object.values(views).forEach(v => {
+        v.style.display = 'none';
+        v.classList.remove('switching');
+      });
 
-function closeCalendar() {
-  document.getElementById('cal-overlay').style.display = 'none';
-}
+      const inEl = views[view];
+      inEl.style.display = '';
+      inEl.classList.add('switching');
 
-// Close on backdrop click
-document.addEventListener('click', e => {
-  if (e.target.id === 'cal-overlay') closeCalendar();
-});
+      if (view === 'day') buildDayView();
+      if (view === 'month') {
+        const now = new Date();
+        calYear = now.getFullYear();
+        calMonth = now.getMonth();
+        renderCalendar();
+      }
 
-function calNav(dir) {
-  calMonth += dir;
-  if (calMonth > 11) { calMonth = 0; calYear++; }
-  if (calMonth < 0) { calMonth = 11; calYear--; }
-  renderCalendar();
-}
-
-function renderCalendar() {
-  document.getElementById('cal-title').textContent = `${MONTH_NAMES[calMonth]} ${calYear}`;
-  const grid = document.getElementById('cal-grid');
-  grid.innerHTML = '';
-
-  // Day headers
-  CAL_DAY_NAMES.forEach(d => {
-    const el = document.createElement('div');
-    el.className = 'cal-day-head';
-    el.textContent = d;
-    grid.appendChild(el);
-  });
-
-  const firstDay = new Date(calYear, calMonth, 1);
-  // getDay: 0=Sun → we need Mon=0
-  let startOffset = firstDay.getDay() - 1;
-  if (startOffset < 0) startOffset = 6;
-
-  const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
-  const today = new Date();
-  const todayStr = `${today.getFullYear()}-${today.getMonth()}-${today.getDate()}`;
-
-  // Empty cells before first day
-  for (let i = 0; i < startOffset; i++) {
-    const el = document.createElement('div');
-    el.className = 'cal-day empty';
-    grid.appendChild(el);
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => inEl.classList.remove('switching'));
+      });
+    }, 260);
   }
 
-  for (let d = 1; d <= daysInMonth; d++) {
-    const date = new Date(calYear, calMonth, d);
-    const el = document.createElement('div');
-    const dayOfWeek = date.getDay(); // 0=Sun, 6=Sat
-    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-    const isFerienDay = ferienLoaded && isFerien(date);
-    const isToday = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}` === todayStr;
+  // ─── DAY VIEW ──────────────────────────────────
+  const DAY_NAMES_FULL = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
 
-    let cls = 'cal-day';
-    let weekLabel = '';
+  function buildDayView() {
+    if (!currentGroup) return;
 
-    if (isWeekend) {
-      cls += ' weekend';
-    } else if (isFerienDay) {
-      cls += ' ferien';
-      weekLabel = 'Ferien';
-    } else if (currentGroup) {
-      const wt = getWeekType(currentGroup, date);
-      // Display week type from group perspective
-      const displayWt = currentGroup === 1 ? wt : (wt === 'A' ? 'B' : 'A');
-      if (displayWt === 'A') {
-        cls += ' week-a';
-        weekLabel = 'A';
-      } else {
-        cls += ' week-b';
-        weekLabel = 'B';
-      }
+    const now = new Date();
+    const dayJs = now.getDay();
+    const dayIdx = dayJs - 1;
+    const nowM = now.getHours() * 60 + now.getMinutes();
+    const nowS = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+
+    const timeline = dom.dayTimeline;
+    timeline.innerHTML = '';
+
+    const isWeekend = dayJs === 0 || dayJs === 6;
+    const inFerien = isFerien(now);
+
+    if (isWeekend || inFerien) {
+      dom.dayViewHeader.textContent = isWeekend ? 'Wochenende' : 'Schulferien';
+      timeline.innerHTML = `<div class="day-view-empty">${isWeekend ? '🎉 Genieß die freie Zeit!' : '🏖️ Gute Erholung!'}</div>`;
+      return;
     }
 
-    if (isToday) cls += ' today';
+    dom.dayViewHeader.textContent = dayIdx >= 0 && dayIdx < 5 ? DAY_NAMES_FULL[dayIdx] : '';
 
-    el.className = cls;
-    el.innerHTML = `<span>${d}</span>`;
-    grid.appendChild(el);
-  }
-}
+    const wt = getWeekType(currentGroup, now);
+    const { sch, lun } = buildScheduleFor(currentGroup, wt);
 
-// ══════════════════════════════════════════════════════
-//  INIT
-// ══════════════════════════════════════════════════════
-(async () => {
-  await loadFerien();
-  if (currentGroup) {
-    document.getElementById('group-overlay').style.display = 'none';
-    updateGroupBadge(); buildTable();
+    // Find last lesson row
+    let lastRow = 0;
+    PLAN.forEach((slot, rowIdx) => {
+      if (slot.type !== 'hour') return;
+      if (sch[dayIdx]?.[slot.nr] || lun[dayIdx] === slot.nr) lastRow = rowIdx;
+    });
+
+    // Build using DocumentFragment for fewer reflows
+    const frag = document.createDocumentFragment();
+
+    PLAN.forEach((slot, rowIdx) => {
+      if (rowIdx > lastRow) return;
+
+      const sM = toMins(slot.start), eM = toMins(slot.end);
+      const sS = sM * 60, eS = eM * 60;
+      const totalSlotSecs = eS - sS;
+      const isNow = nowM >= sM && nowM < eM;
+      const isPast = nowM >= eM;
+
+      const el = document.createElement('div');
+      el.className = 'dt-slot';
+
+      // Pause
+      if (slot.type === 'pause') {
+        el.classList.add('is-pause');
+        if (isNow) el.classList.add('is-pause-active');
+        if (isPast) el.classList.add('is-past');
+        el.innerHTML = `
+          <div class="dt-time"></div>
+          <div class="dt-dot"></div>
+          <div class="dt-content">
+            <div class="dt-card pause-card">${isNow ? '☕ Pause' : 'Pause'}</div>
+          </div>`;
+        frag.appendChild(el);
+        return;
+      }
+
+      const isLunch = lun[dayIdx] === slot.nr;
+      const info = sch[dayIdx]?.[slot.nr];
+
+      // Free slot
+      if (!info && !isLunch) {
+        let hasMore = false;
+        for (let r = rowIdx + 1; r <= lastRow; r++) {
+          const s = PLAN[r];
+          if (s.type === 'hour' && (sch[dayIdx]?.[s.nr] || lun[dayIdx] === s.nr)) { hasMore = true; break; }
+        }
+        if (!hasMore) return;
+
+        if (isPast) el.classList.add('is-past');
+        el.innerHTML = `
+          <div class="dt-time">
+            <span class="dt-hour-nr">${slot.nr}.</span>
+            <span>${fmt(slot.start)}</span>
+          </div>
+          <div class="dt-dot"></div>
+          <div class="dt-content">
+            <div class="dt-card free"><span style="color:var(--muted);font-size:0.72rem">Freistunde</span></div>
+          </div>`;
+        frag.appendChild(el);
+        return;
+      }
+
+      // Lunch
+      if (isLunch) {
+        if (isNow) el.classList.add('is-lunch-active');
+        if (isPast) el.classList.add('is-past');
+        const pct = isNow ? Math.round(((nowS - sS) / totalSlotSecs) * 100) : (isPast ? 100 : 0);
+
+        el.innerHTML = `
+          <div class="dt-time"><span>${fmt(slot.start)}</span></div>
+          <div class="dt-dot"></div>
+          <div class="dt-content">
+            <div class="dt-card lunch" style="position:relative;overflow:hidden">
+              <div class="dt-card-top">
+                <span style="font-size:0.78rem;font-weight:700;color:var(--green)">🍴 Mittagspause</span>
+                <span class="dt-card-time">${fmt(slot.start)} – ${fmt(slot.end)}</span>
+              </div>
+              ${isNow ? `<div class="dt-progress"><div class="dt-progress-fill" style="width:${pct}%;background:var(--green);color:var(--green)"></div></div>` : ''}
+            </div>
+          </div>`;
+        frag.appendChild(el);
+        return;
+      }
+
+      // Regular lesson
+      const subjColor = getSubjColor(info[0]) || '#f59e0b';
+      const block = findSubjectBlock(rowIdx, dayIdx, sch, lun);
+
+      let blockPct = 0, isBlockActive = false, showBlockProgress = false;
+      if (block && !block.isLunch) {
+        const bStartS = toMins(PLAN[block.startRow].start) * 60;
+        const bEndS = toMins(PLAN[block.endRow].end) * 60;
+        isBlockActive = nowS >= bStartS && nowS < bEndS;
+        if (isBlockActive && rowIdx === block.startRow) {
+          blockPct = Math.round(((nowS - bStartS) / (bEndS - bStartS)) * 100);
+          showBlockProgress = true;
+        }
+      }
+
+      const slotActive = isNow || (isBlockActive && block && rowIdx >= block.startRow && rowIdx <= block.endRow);
+      if (slotActive) el.classList.add('is-active');
+      if (isPast && !slotActive) el.classList.add('is-past');
+
+      const dotStyle = slotActive ? `style="background:${subjColor};border-color:${subjColor};box-shadow:0 0 10px ${subjColor}80"` : '';
+
+      el.innerHTML = `
+        <div class="dt-time">
+          <span class="dt-hour-nr">${slot.nr}.</span>
+          <span>${fmt(slot.start)}</span>
+        </div>
+        <div class="dt-dot" ${dotStyle}></div>
+        <div class="dt-content">
+          <div class="dt-card lesson" ${slotActive ? `style="border-color:${subjColor}20;background:${subjColor}0a"` : ''}>
+            <div class="dt-card-top">
+              ${subjTag(info[0])}
+              <span class="dt-card-subj">${FACH_FULL[info[0]] || info[0]}</span>
+              <span class="dt-card-time">${fmt(slot.start)} – ${fmt(slot.end)}</span>
+            </div>
+            <div class="dt-card-info">${info[2]} · ${info[1]}</div>
+            ${showBlockProgress ? `<div class="dt-progress"><div class="dt-progress-fill" style="width:${blockPct}%;background:linear-gradient(90deg,${subjColor}90,${subjColor});color:${subjColor}"></div></div>` : ''}
+          </div>
+        </div>`;
+
+      frag.appendChild(el);
+    });
+
+    timeline.appendChild(frag);
   }
-  update();
-  function tick() { update(); setTimeout(tick, 1000 - (Date.now() % 1000)); }
-  setTimeout(tick, 1000 - (Date.now() % 1000));
+
+  // ─── CALENDAR ──────────────────────────────────
+  const MONTH_NAMES = ['Januar','Februar','März','April','Mai','Juni',
+    'Juli','August','September','Oktober','November','Dezember'];
+  const CAL_DAY_NAMES = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+
+  function calNav(dir) {
+    calMonth += dir;
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    if (calMonth < 0)  { calMonth = 11; calYear--; }
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    dom.calTitle.textContent = `${MONTH_NAMES[calMonth]} ${calYear}`;
+    const grid = dom.calGrid;
+    grid.innerHTML = '';
+
+    const frag = document.createDocumentFragment();
+
+    // Day headers
+    CAL_DAY_NAMES.forEach(d => {
+      const el = document.createElement('div');
+      el.className = 'cal-day-head';
+      el.textContent = d;
+      frag.appendChild(el);
+    });
+
+    const firstDay = new Date(calYear, calMonth, 1);
+    let startOffset = firstDay.getDay() - 1;
+    if (startOffset < 0) startOffset = 6;
+
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const today = new Date();
+    const todayStr = dateToKey(today);
+
+    for (let i = 0; i < startOffset; i++) {
+      const el = document.createElement('div');
+      el.className = 'cal-day empty';
+      frag.appendChild(el);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const date = new Date(calYear, calMonth, d);
+      const el = document.createElement('div');
+      const dayOfWeek = date.getDay();
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+      const isFerienDay = isFerien(date);
+      const isToday = dateToKey(date) === todayStr;
+
+      let cls = 'cal-day';
+
+      if (isWeekend) {
+        cls += ' weekend';
+      } else if (isFerienDay) {
+        cls += ' ferien';
+      } else if (currentGroup) {
+        const wt = getWeekType(currentGroup, date);
+        const displayWt = currentGroup === 1 ? wt : (wt === 'A' ? 'B' : 'A');
+        cls += displayWt === 'A' ? ' week-a' : ' week-b';
+      }
+
+      if (isToday) cls += ' today';
+      el.className = cls;
+      el.innerHTML = `<span>${d}</span>`;
+      frag.appendChild(el);
+    }
+
+    grid.appendChild(frag);
+  }
+
+  // ─── INIT ──────────────────────────────────────
+  async function init() {
+    cacheDom();
+
+    await loadFerien();
+
+    if (currentGroup) {
+      dom.groupOverlay.style.display = 'none';
+      updateGroupBadge();
+      buildTable();
+    }
+
+    update();
+
+    // Precise 1s tick aligned to wall clock
+    function tick() {
+      update();
+      setTimeout(tick, 1000 - (Date.now() % 1000));
+    }
+    setTimeout(tick, 1000 - (Date.now() % 1000));
+  }
+
+  // Start
+  init();
+
+  // Register service worker
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  }
+
+  // Public API (for onclick handlers)
+  return { selectGroup, showGroupOverlay, switchView, calNav };
 })();
-
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 </script>
 </body>
 </html>

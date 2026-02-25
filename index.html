@@ -2486,15 +2486,6 @@ const App = (() => {
       return null;
     }
 
-    function isInsideCalendar(el) {
-      let node = el;
-      while (node && node !== document.body) {
-        if (node.classList?.contains('month-view-inner')) return true;
-        node = node.parentElement;
-      }
-      return false;
-    }
-
     document.addEventListener('touchstart', e => {
       const scrollable = getScrollableParent(e.target);
       if (scrollable) {
@@ -2531,13 +2522,6 @@ const App = (() => {
         // Also skip if the table actually scrolled during this touch
         const scrollDelta = Math.abs(scrollable.scrollLeft - tableScrollStart);
         if (scrollDelta > 5) return;
-      }
-
-      // In month view: only navigate months if swiping inside the calendar
-      if (currentView === 'month' && isInsideCalendar(startEl)) {
-        if (dx < 0) calNav(1);
-        else calNav(-1);
-        return;
       }
 
       // Swipe switches views

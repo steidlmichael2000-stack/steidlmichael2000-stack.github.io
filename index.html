@@ -148,13 +148,29 @@ body::after {
   50%      { opacity: 1; filter: brightness(1.3); }
 }
 
-/* Smooth view transitions */
+/* Slide view transitions */
 .fade-content {
   transition: opacity 0.28s ease, transform 0.28s ease;
 }
 .fade-content.switching {
   opacity: 0;
   transform: translateY(8px) scale(0.985);
+}
+.fade-content.slide-out-left {
+  opacity: 0;
+  transform: translateX(-30px) scale(0.98);
+}
+.fade-content.slide-out-right {
+  opacity: 0;
+  transform: translateX(30px) scale(0.98);
+}
+.fade-content.slide-in-left {
+  opacity: 0;
+  transform: translateX(30px) scale(0.98);
+}
+.fade-content.slide-in-right {
+  opacity: 0;
+  transform: translateX(-30px) scale(0.98);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -993,6 +1009,8 @@ td {
 .cal-day.week-a { background: rgba(245,158,11,0.08); border: 1px solid rgba(245,158,11,0.12); }
 .cal-day.week-b { background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.12); }
 .cal-day.today { box-shadow: inset 0 0 0 2px var(--text); }
+.cal-day:not(.empty):not(.weekend) { cursor: pointer; }
+.cal-day:not(.empty):not(.weekend):hover { filter: brightness(1.15); transform: scale(1.08); }
 
 .cal-week-label {
   font-size: 7px;
@@ -1019,24 +1037,73 @@ td {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1rem;
   transition: all var(--t-normal);
   flex-shrink: 0;
+  padding: 0;
 }
-.theme-toggle:hover {
-  background: var(--surface-strong);
-  color: var(--text);
-}
-.theme-toggle:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
+.theme-toggle:hover { background: var(--surface-strong); color: var(--text); }
+.theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.theme-toggle svg { width: 18px; height: 18px; fill: currentColor; }
 .theme-toggle .icon-sun,
 .theme-toggle .icon-moon { display: none; }
 [data-theme="dark"] .theme-toggle .icon-sun { display: block; }
-[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
-[data-theme="light"] .theme-toggle .icon-sun { display: none; }
 [data-theme="light"] .theme-toggle .icon-moon { display: block; }
+
+/* ═══════════════════════════════════════════════════
+   FERIEN COUNTDOWN
+   ═══════════════════════════════════════════════════ */
+.ferien-cd {
+  font-size: 0.78rem;
+  color: var(--green);
+  background: rgba(16,185,129,0.04) !important;
+  border-color: rgba(16,185,129,0.08) !important;
+}
+.ferien-cd .cd-value { font-weight: 700; }
+
+/* ═══════════════════════════════════════════════════
+   DAY VIEW WEEKDAY TABS
+   ═══════════════════════════════════════════════════ */
+.day-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: var(--sp-sm);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.day-tabs::-webkit-scrollbar { display: none; }
+.day-tab {
+  font-family: var(--sans);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.25s var(--ease);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.day-tab:hover { color: var(--text); }
+.day-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.day-tab.active {
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+.day-tab.is-today { border-color: rgba(245,158,11,0.25); }
+.day-tab.is-today.active {
+  border-color: rgba(245,158,11,0.4);
+  background: rgba(245,158,11,0.08);
+  color: var(--accent);
+}
+[data-theme="light"] .day-tab.active {
+  background: rgba(255,255,255,0.8);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+[data-theme="light"] .day-tab.is-today.active { background: rgba(217,119,6,0.08); }
 
 /* ═══════════════════════════════════════════════════
    LIGHT MODE
@@ -1247,13 +1314,13 @@ body, .glass, .status-card, .table-wrap, .day-view, .month-view-inner,
 <div class="header" role="banner">
   <div class="header-left">
     <h1>FST <span>1</span></h1>
-    <p>Josef-Greising-Schule · Stundenplan · Sommersemester</p>
+    <p>Josef-Greising-Schule · Stundenplan · <span id="semester-label"></span></p>
   </div>
   <div class="header-right">
     <span class="week-pill" id="week-pill" aria-live="polite">Woche A</span>
     <button class="theme-toggle" id="theme-toggle" onclick="App.toggleTheme()" aria-label="Farbmodus wechseln">
-      <span class="icon-sun">☀️</span>
-      <span class="icon-moon">🌙</span>
+      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
     <button class="group-badge g1" id="group-badge" onclick="App.showGroupOverlay()" aria-label="Gruppe wechseln">Gruppe 1</button>
     <div class="clock glass" id="live-clock" aria-live="off" aria-label="Aktuelle Uhrzeit">--:--:--</div>
@@ -1263,6 +1330,7 @@ body, .glass, .status-card, .table-wrap, .day-view, .month-view-inner,
 <!-- ═══════════════ BANNERS ═══════════════ -->
 <div id="weekend-banner" class="banner glass" role="status">🎉 Wochenende – genieß die freie Zeit!</div>
 <div id="ferien-banner" class="banner glass" role="status">🏖️ Schulferien – gute Erholung!</div>
+<div id="ferien-countdown" class="banner glass ferien-cd" role="status" style="display:none"></div>
 <div id="loading-hint" class="loading-hint" role="status" aria-live="polite">⏳ Lade Feriendaten…</div>
 
 <!-- ═══════════════ STATUS CARD ═══════════════ -->
@@ -1290,7 +1358,7 @@ body, .glass, .status-card, .table-wrap, .day-view, .month-view-inner,
 <!-- ═══════════════ VIEW TOGGLE ═══════════════ -->
 <div class="view-toggle" id="view-toggle" role="tablist" aria-label="Ansicht wählen">
   <button class="vt-btn active" id="vt-week" onclick="App.switchView('week')" role="tab" aria-selected="true">Woche</button>
-  <button class="vt-btn" id="vt-day" onclick="App.switchView('day')" role="tab" aria-selected="false">Heute</button>
+  <button class="vt-btn" id="vt-day" onclick="App.switchView('day')" role="tab" aria-selected="false">Tag</button>
   <button class="vt-btn" id="vt-month" onclick="App.switchView('month')" role="tab" aria-selected="false">Monat</button>
 </div>
 
@@ -1312,7 +1380,8 @@ body, .glass, .status-card, .table-wrap, .day-view, .month-view-inner,
 
 <!-- ═══════════════ DAY VIEW ═══════════════ -->
 <div class="day-view fade-content" id="day-view" style="display:none" role="tabpanel">
-  <div class="day-view-header" id="day-view-header">Dienstag</div>
+  <div class="day-tabs" id="day-tabs" role="tablist" aria-label="Wochentag wählen"></div>
+  <div class="day-view-header" id="day-view-header"></div>
   <div class="day-timeline" id="day-timeline"></div>
 </div>
 
@@ -1559,6 +1628,8 @@ const App = (() => {
   let prevActiveDay = -1;
   let prevActiveRow = -1;
   let calYear, calMonth;
+  let dayViewIdx = -1; // which weekday the day view shows (0=Mo..4=Fr, -1=today)
+  let dayViewExplicit = false; // set when calendar tap navigates to specific day
 
   // ─── DOM REFS (cached once) ────────────────────
   const $ = id => document.getElementById(id);
@@ -1568,8 +1639,10 @@ const App = (() => {
     dom = {
       clock: $('live-clock'),
       weekPill: $('week-pill'),
+      semesterLabel: $('semester-label'),
       weekendBanner: $('weekend-banner'),
       ferienBanner: $('ferien-banner'),
+      ferienCountdown: $('ferien-countdown'),
       statusCard: $('status-card'),
       statusDot: $('status-dot'),
       statusLabel: $('status-label'),
@@ -1587,6 +1660,7 @@ const App = (() => {
       tableWrap: $('table-wrap'),
       planBody: $('plan-body'),
       dayView: $('day-view'),
+      dayTabs: $('day-tabs'),
       dayViewHeader: $('day-view-header'),
       dayTimeline: $('day-timeline'),
       monthView: $('month-view'),
@@ -1842,9 +1916,15 @@ const App = (() => {
     dom.ferienBanner.style.display = (!isWeekend && inFerien) ? '' : 'none';
     dom.statusCard.style.display = (isWeekend || inFerien) ? 'none' : '';
 
+    // Update ferien countdown once per minute
+    if (s === 0) updateFerienCountdown();
+
     if (isWeekend || inFerien) {
       highlightColumn(-1, -1);
-      if (currentView === 'day') buildDayView();
+      if (currentView === 'day' && lastDayViewMinute !== -999) {
+        buildDayView();
+        lastDayViewMinute = -999; // sentinel: built for non-school day, don't rebuild
+      }
       return;
     }
 
@@ -1868,8 +1948,18 @@ const App = (() => {
     highlightColumn(dayIdx, activeRow);
     updateStatusCard(activeRow, activeType, secsLeft, totalSecs, dayIdx, nowM, nowS, sch, lun, wt);
 
-    if (currentView === 'day') buildDayView();
+    if (currentView === 'day') {
+      // Full DOM rebuild only on minute change; just update marker position on seconds
+      if (nowM !== lastDayViewMinute) {
+        buildDayView();
+        lastDayViewMinute = nowM;
+      } else {
+        updateDayViewMarker();
+      }
+    }
   }
+
+  let lastDayViewMinute = -1;
 
   // ─── STATUS CARD UPDATE ────────────────────────
   function updateStatusCard(activeRow, activeType, secsLeft, totalSecs, dayIdx, nowM, nowS, sch, lun, wt) {
@@ -2047,6 +2137,9 @@ const App = (() => {
   function switchView(view) {
     if (view === currentView) return;
     const prev = currentView;
+    const prevIdx = VIEW_ORDER.indexOf(prev);
+    const nextIdx = VIEW_ORDER.indexOf(view);
+    const goingRight = nextIdx > prevIdx; // sliding to higher index = left swipe = content goes left
     currentView = view;
 
     ['week', 'day', 'month'].forEach(v => {
@@ -2062,19 +2155,28 @@ const App = (() => {
     };
 
     const outEl = views[prev];
-    outEl.classList.add('switching');
+    outEl.classList.add(goingRight ? 'slide-out-left' : 'slide-out-right');
 
     setTimeout(() => {
       Object.values(views).forEach(v => {
         v.style.display = 'none';
-        v.classList.remove('switching');
+        v.classList.remove('slide-out-left', 'slide-out-right', 'slide-in-left', 'slide-in-right', 'switching');
       });
 
       const inEl = views[view];
       inEl.style.display = '';
-      inEl.classList.add('switching');
+      inEl.classList.add(goingRight ? 'slide-in-left' : 'slide-in-right');
 
-      if (view === 'day') buildDayView();
+      if (view === 'day') {
+        // Only reset to today if not explicitly set (e.g. from calendar tap)
+        if (!dayViewExplicit) {
+          dayViewIdx = new Date().getDay() - 1;
+        }
+        dayViewExplicit = false;
+        lastDayViewMinute = -1;
+        buildDayTabs();
+        buildDayView();
+      }
       if (view === 'month') {
         const now = new Date();
         calYear = now.getFullYear();
@@ -2083,28 +2185,67 @@ const App = (() => {
       }
 
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => inEl.classList.remove('switching'));
+        requestAnimationFrame(() => inEl.classList.remove('slide-in-left', 'slide-in-right'));
       });
     }, 260);
   }
 
   // ─── DAY VIEW ──────────────────────────────────
   const DAY_NAMES_FULL = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag','Sonntag'];
+  const DAY_NAMES_SHORT = ['Mo','Di','Mi','Do','Fr'];
+
+  function buildDayTabs() {
+    const tabs = dom.dayTabs;
+    tabs.innerHTML = '';
+    const now = new Date();
+    const todayIdx = now.getDay() - 1; // 0=Mo..4=Fr, <0 or >4 = weekend
+
+    DAY_NAMES_SHORT.forEach((name, i) => {
+      const btn = document.createElement('button');
+      btn.className = 'day-tab';
+      btn.textContent = name;
+      btn.setAttribute('role', 'tab');
+      if (i === todayIdx) btn.classList.add('is-today');
+      if (i === dayViewIdx) btn.classList.add('active');
+      btn.onclick = () => selectDayTab(i);
+      tabs.appendChild(btn);
+    });
+  }
+
+  function selectDayTab(idx) {
+    dayViewIdx = idx;
+    lastDayViewMinute = -1;
+    dom.dayTabs.querySelectorAll('.day-tab').forEach((btn, i) => {
+      btn.classList.toggle('active', i === idx);
+    });
+    buildDayView();
+  }
 
   function buildDayView() {
     if (!currentGroup) return;
 
     const now = new Date();
-    const dayJs = now.getDay();
-    const dayIdx = dayJs - 1;
-    const nowM = now.getHours() * 60 + now.getMinutes();
-    const nowS = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+    const todayDayJs = now.getDay();
+    const todayIdx = todayDayJs - 1;
+    const showIdx = dayViewIdx >= 0 && dayViewIdx < 5 ? dayViewIdx : todayIdx;
+
+    // Calculate the actual date for the shown day
+    const shownDate = new Date(now);
+    if (showIdx !== todayIdx && showIdx >= 0 && showIdx < 5) {
+      // Get the monday of current week
+      const diff = todayIdx >= 0 ? todayIdx : (todayDayJs === 0 ? 6 : todayDayJs - 1);
+      shownDate.setDate(shownDate.getDate() - diff + showIdx);
+    }
+
+    const isToday = showIdx === todayIdx && todayIdx >= 0 && todayIdx < 5;
+    const nowM = isToday ? now.getHours() * 60 + now.getMinutes() : -1;
+    const nowS = isToday ? now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds() : -1;
 
     const timeline = dom.dayTimeline;
     timeline.innerHTML = '';
 
-    const isWeekend = dayJs === 0 || dayJs === 6;
-    const inFerien = isFerien(now);
+    const isWeekend = showIdx < 0 || showIdx >= 5;
+    const inFerien = isFerien(shownDate);
 
     if (isWeekend || inFerien) {
       dom.dayViewHeader.textContent = isWeekend ? 'Wochenende' : 'Schulferien';
@@ -2113,37 +2254,46 @@ const App = (() => {
       return;
     }
 
-    dom.dayViewHeader.textContent = dayIdx >= 0 && dayIdx < 5 ? DAY_NAMES_FULL[dayIdx] : '';
+    dom.dayViewHeader.textContent = isToday ? `${DAY_NAMES_FULL[showIdx]} (Heute)` : DAY_NAMES_FULL[showIdx];
 
-    const wt = getWeekType(currentGroup, now);
+    const wt = getWeekType(currentGroup, shownDate);
     const { sch, lun } = buildScheduleFor(currentGroup, wt);
 
     // Find first and last lesson rows
     let firstRow = PLAN.length;
     PLAN.forEach((slot, rowIdx) => {
       if (slot.type !== 'hour') return;
-      if ((sch[dayIdx]?.[slot.nr] || lun[dayIdx] === slot.nr) && rowIdx < firstRow) firstRow = rowIdx;
+      if ((sch[showIdx]?.[slot.nr] || lun[showIdx] === slot.nr) && rowIdx < firstRow) firstRow = rowIdx;
     });
 
     let lastRow = 0;
     PLAN.forEach((slot, rowIdx) => {
       if (slot.type !== 'hour') return;
-      if (sch[dayIdx]?.[slot.nr] || lun[dayIdx] === slot.nr) lastRow = rowIdx;
+      if (sch[showIdx]?.[slot.nr] || lun[showIdx] === slot.nr) lastRow = rowIdx;
     });
 
-    // Determine current active subject color for the timeline
+    if (firstRow > lastRow) {
+      dom.dayViewHeader.textContent = DAY_NAMES_FULL[showIdx];
+      timeline.innerHTML = `<div class="day-view-empty">Kein Unterricht an diesem Tag</div>`;
+      timeline.style.setProperty('--tl-progress', '0%');
+      return;
+    }
+
+    // Determine current active subject color for the timeline (only if today)
     let activeColor = 'var(--accent)';
-    for (let i = 0; i < PLAN.length; i++) {
-      const s = PLAN[i];
-      const sM = toMins(s.start), eM = toMins(s.end);
-      if (nowM >= sM && nowM < eM) {
-        if (s.type === 'pause') { activeColor = 'var(--accent2)'; break; }
-        if (s.type === 'hour') {
-          if (lun[dayIdx] === s.nr) { activeColor = 'var(--green)'; break; }
-          const info = sch[dayIdx]?.[s.nr];
-          if (info) { activeColor = getSubjColor(info[0]) || 'var(--accent)'; break; }
+    if (isToday) {
+      for (let i = 0; i < PLAN.length; i++) {
+        const s = PLAN[i];
+        const sM = toMins(s.start), eM = toMins(s.end);
+        if (nowM >= sM && nowM < eM) {
+          if (s.type === 'pause') { activeColor = 'var(--accent2)'; break; }
+          if (s.type === 'hour') {
+            if (lun[showIdx] === s.nr) { activeColor = 'var(--green)'; break; }
+            const info = sch[showIdx]?.[s.nr];
+            if (info) { activeColor = getSubjColor(info[0]) || 'var(--accent)'; break; }
+          }
+          break;
         }
-        break;
       }
     }
     timeline.style.setProperty('--tl-color', activeColor);
@@ -2156,10 +2306,8 @@ const App = (() => {
       if (rowIdx > lastRow) return;
 
       const sM = toMins(slot.start), eM = toMins(slot.end);
-      const sS = sM * 60, eS = eM * 60;
-      const totalSlotSecs = eS - sS;
-      const isNow = nowM >= sM && nowM < eM;
-      const isPast = nowM >= eM;
+      const isNow = isToday && nowM >= sM && nowM < eM;
+      const isPast = isToday && nowM >= eM;
 
       const el = document.createElement('div');
       el.className = 'dt-slot';
@@ -2179,15 +2327,15 @@ const App = (() => {
         return;
       }
 
-      const isLunch = lun[dayIdx] === slot.nr;
-      const info = sch[dayIdx]?.[slot.nr];
+      const isLunch = lun[showIdx] === slot.nr;
+      const info = sch[showIdx]?.[slot.nr];
 
       // Free slot
       if (!info && !isLunch) {
         let hasMore = false;
         for (let r = rowIdx + 1; r <= lastRow; r++) {
           const s = PLAN[r];
-          if (s.type === 'hour' && (sch[dayIdx]?.[s.nr] || lun[dayIdx] === s.nr)) { hasMore = true; break; }
+          if (s.type === 'hour' && (sch[showIdx]?.[s.nr] || lun[showIdx] === s.nr)) { hasMore = true; break; }
         }
         if (!hasMore) return;
 
@@ -2227,10 +2375,10 @@ const App = (() => {
 
       // Regular lesson
       const subjColor = getSubjColor(info[0]) || '#f59e0b';
-      const block = findSubjectBlock(rowIdx, dayIdx, sch, lun);
+      const block = findSubjectBlock(rowIdx, showIdx, sch, lun);
 
       let isBlockActive = false;
-      if (block && !block.isLunch) {
+      if (isToday && block && !block.isLunch) {
         const bStartS = toMins(PLAN[block.startRow].start) * 60;
         const bEndS = toMins(PLAN[block.endRow].end) * 60;
         isBlockActive = nowS >= bStartS && nowS < bEndS;
@@ -2266,8 +2414,14 @@ const App = (() => {
 
     timeline.appendChild(frag);
 
-    // ── Calculate timeline progress position ──
-    // After DOM is built, measure actual positions to place the marker
+    // ── Timeline progress (only for today) ──
+    if (!isToday) {
+      timeline.style.setProperty('--tl-progress', '0%');
+      const oldMarker = timeline.querySelector('.tl-marker');
+      if (oldMarker) oldMarker.remove();
+      return;
+    }
+
     requestAnimationFrame(() => {
       const tlRect = timeline.getBoundingClientRect();
       if (tlRect.height === 0) return;
@@ -2275,37 +2429,26 @@ const App = (() => {
       const slots = timeline.querySelectorAll('.dt-slot');
       if (!slots.length) { timeline.style.setProperty('--tl-progress', '0%'); return; }
 
-      // Find the overall time range rendered
       const dayStartM = toMins(PLAN[firstRow].start);
       const dayEndM = toMins(PLAN[lastRow].end);
 
       if (nowM <= dayStartM) {
-        // Before school
         timeline.style.setProperty('--tl-progress', '0%');
-        // Remove old marker
-        const oldMarker = timeline.querySelector('.tl-marker');
-        if (oldMarker) oldMarker.remove();
+        const old = timeline.querySelector('.tl-marker'); if (old) old.remove();
         return;
       }
-
       if (nowM >= dayEndM) {
-        // After school — line fully filled
         timeline.style.setProperty('--tl-progress', '100%');
-        const oldMarker = timeline.querySelector('.tl-marker');
-        if (oldMarker) oldMarker.remove();
+        const old = timeline.querySelector('.tl-marker'); if (old) old.remove();
         return;
       }
 
-      // Calculate pixel position based on slot positions
       let markerTop = 0;
       for (const slotEl of slots) {
         const rect = slotEl.getBoundingClientRect();
-        const rowIdx = parseInt(slotEl.querySelector('.dt-time .dt-hour-nr')?.textContent) || -1;
-
-        // Find the PLAN entry for this slot by matching time
         let slotStartM = -1, slotEndM = -1;
-        const timeText = slotEl.querySelector('.dt-time span:last-child')?.textContent;
         const cardTimeText = slotEl.querySelector('.dt-card-time')?.textContent;
+        const timeText = slotEl.querySelector('.dt-time span:last-child')?.textContent;
 
         if (cardTimeText) {
           const parts = cardTimeText.split('–').map(s => s.trim());
@@ -2318,29 +2461,22 @@ const App = (() => {
         } else if (timeText) {
           const [h, m] = timeText.split(':').map(Number);
           slotStartM = h * 60 + m;
-          // For pauses, estimate end
           slotEndM = slotStartM + 15;
         }
 
         if (slotStartM >= 0 && nowM >= slotStartM && nowM < slotEndM) {
-          // Current slot — interpolate within
           const pct = (nowM - slotStartM) / (slotEndM - slotStartM);
           const slotTop = rect.top - tlRect.top;
-          // Dot is at top: ~12px, content area extends down
-          const progressInSlot = 12 + (rect.height - 12) * pct;
-          markerTop = slotTop + progressInSlot;
+          markerTop = slotTop + 12 + (rect.height - 12) * pct;
           break;
         } else if (slotStartM >= 0 && nowM >= slotEndM) {
-          // Past this slot — marker is at least at the bottom
           markerTop = (rect.top - tlRect.top) + rect.height;
         }
       }
 
-      // Set progress line height and marker position
       const progressPct = Math.min(100, (markerTop / tlRect.height) * 100);
       timeline.style.setProperty('--tl-progress', progressPct + '%');
 
-      // Add/update floating marker
       let marker = timeline.querySelector('.tl-marker');
       if (!marker) {
         marker = document.createElement('div');
@@ -2349,6 +2485,61 @@ const App = (() => {
       }
       marker.style.top = markerTop + 'px';
     });
+  }
+
+  // ─── DAY VIEW MARKER UPDATE (per-second, no DOM rebuild) ──
+  function updateDayViewMarker() {
+    const timeline = dom.dayTimeline;
+    if (!timeline || !timeline.children.length) return;
+
+    const now = new Date();
+    const todayIdx = now.getDay() - 1;
+    // Only update marker if showing today
+    if (dayViewIdx !== todayIdx) return;
+
+    const nowM = now.getHours() * 60 + now.getMinutes();
+    const tlRect = timeline.getBoundingClientRect();
+    if (tlRect.height === 0) return;
+
+    const slots = timeline.querySelectorAll('.dt-slot');
+    if (!slots.length) return;
+
+    let markerTop = 0;
+    for (const slotEl of slots) {
+      const rect = slotEl.getBoundingClientRect();
+      let slotStartM = -1, slotEndM = -1;
+      const cardTimeText = slotEl.querySelector('.dt-card-time')?.textContent;
+      const timeText = slotEl.querySelector('.dt-time span:last-child')?.textContent;
+
+      if (cardTimeText) {
+        const parts = cardTimeText.split('–').map(s => s.trim());
+        if (parts.length === 2) {
+          const [sh, sm] = parts[0].split(':').map(Number);
+          const [eh, em] = parts[1].split(':').map(Number);
+          slotStartM = sh * 60 + sm;
+          slotEndM = eh * 60 + em;
+        }
+      } else if (timeText) {
+        const [h, m] = timeText.split(':').map(Number);
+        slotStartM = h * 60 + m;
+        slotEndM = slotStartM + 15;
+      }
+
+      if (slotStartM >= 0 && nowM >= slotStartM && nowM < slotEndM) {
+        const pct = (nowM - slotStartM) / (slotEndM - slotStartM);
+        const slotTop = rect.top - tlRect.top;
+        markerTop = slotTop + 12 + (rect.height - 12) * pct;
+        break;
+      } else if (slotStartM >= 0 && nowM >= slotEndM) {
+        markerTop = (rect.top - tlRect.top) + rect.height;
+      }
+    }
+
+    const progressPct = Math.min(100, (markerTop / tlRect.height) * 100);
+    timeline.style.setProperty('--tl-progress', progressPct + '%');
+
+    let marker = timeline.querySelector('.tl-marker');
+    if (marker) marker.style.top = markerTop + 'px';
   }
 
   // ─── CALENDAR ──────────────────────────────────
@@ -2449,6 +2640,18 @@ const App = (() => {
       if (isToday) cls += ' today';
       el.className = cls;
       el.innerHTML = `<span>${d}</span>`;
+
+      // Click weekday to switch to day view for that day
+      if (!isWeekend) {
+        el.style.cursor = 'pointer';
+        el.addEventListener('click', () => {
+          dayViewIdx = dayOfWeek - 1;
+          dayViewExplicit = true;
+          lastDayViewMinute = -1;
+          switchView('day');
+        });
+      }
+
       frag.appendChild(el);
 
       gridCol++;
@@ -2534,6 +2737,48 @@ const App = (() => {
     }, { passive: true });
   }
 
+  // ─── FERIEN COUNTDOWN ───────────────────────────
+  function updateFerienCountdown() {
+    if (!ferienLoaded || !dom.ferienCountdown) return;
+    const now = new Date();
+    if (isFerien(now)) { dom.ferienCountdown.style.display = 'none'; return; }
+
+    // Count school days until next ferien
+    let schoolDays = 0;
+    const cur = new Date(now);
+    cur.setDate(cur.getDate() + 1);
+    let found = false;
+    let ferienName = '';
+
+    for (let i = 0; i < 200; i++) {
+      const dayOfWeek = cur.getDay();
+      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+        if (isFerien(cur)) {
+          found = true;
+          break;
+        }
+        schoolDays++;
+      }
+      cur.setDate(cur.getDate() + 1);
+    }
+
+    if (found && schoolDays > 0 && schoolDays <= 30) {
+      dom.ferienCountdown.style.display = '';
+      const tag = schoolDays === 1 ? 'Schultag' : 'Schultage';
+      dom.ferienCountdown.innerHTML = `🏖️ Noch <span class="cd-value">${schoolDays} ${tag}</span> bis zu den nächsten Ferien`;
+    } else {
+      dom.ferienCountdown.style.display = 'none';
+    }
+  }
+
+  // ─── SEMESTER LABEL ────────────────────────────
+  function updateSemesterLabel() {
+    if (!dom.semesterLabel) return;
+    const m = new Date().getMonth(); // 0-11
+    // Sep-Feb = Wintersemester, Mar-Aug = Sommersemester (roughly)
+    dom.semesterLabel.textContent = (m >= 2 && m <= 7) ? 'Sommersemester' : 'Wintersemester';
+  }
+
   // ─── THEME TOGGLE ───────────────────────────────
   function initTheme() {
     const saved = localStorage.getItem('fst1_theme');
@@ -2562,13 +2807,23 @@ const App = (() => {
     initTheme();
     cacheDom();
     initSwipe();
+    updateSemesterLabel();
 
     await loadFerien();
+    updateFerienCountdown();
 
     if (currentGroup) {
       dom.groupOverlay.style.display = 'none';
       updateGroupBadge();
       buildTable();
+    }
+
+    // Initialize day view index to today
+    dayViewIdx = new Date().getDay() - 1;
+
+    // Default to day view on mobile (narrower than table min-width)
+    if (window.innerWidth < 640) {
+      switchView('day');
     }
 
     update();
@@ -2590,7 +2845,7 @@ const App = (() => {
   }
 
   // Public API (for onclick handlers)
-  return { selectGroup, showGroupOverlay, switchView, calNav, toggleTheme };
+  return { selectGroup, showGroupOverlay, switchView, calNav, toggleTheme, selectDayTab };
 })();
 </script>
 </body>

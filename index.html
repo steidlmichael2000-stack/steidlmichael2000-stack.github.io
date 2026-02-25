@@ -2252,7 +2252,7 @@ const App = (() => {
   const VIEW_ORDER = ['week', 'day', 'month'];
 
   function initSwipe() {
-    let startX = 0, startY = 0, tracking = false;
+    let startX = 0, startY = 0, startEl = null, tracking = false;
     const THRESHOLD = 60;
     const RESTRAINT = 80;
 
@@ -2265,10 +2265,20 @@ const App = (() => {
       return false;
     }
 
+    function isInsideCalendar(el) {
+      let node = el;
+      while (node && node !== document.body) {
+        if (node.classList?.contains('month-view-inner')) return true;
+        node = node.parentElement;
+      }
+      return false;
+    }
+
     document.addEventListener('touchstart', e => {
       if (isScrollableTarget(e.target)) { tracking = false; return; }
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
+      startEl = e.target;
       tracking = true;
     }, { passive: true });
 
@@ -2280,10 +2290,10 @@ const App = (() => {
 
       if (Math.abs(dx) < THRESHOLD || Math.abs(dy) > RESTRAINT) return;
 
-      // In month view: swipe navigates months
-      if (currentView === 'month') {
-        if (dx < 0) calNav(1);   // swipe left → next month
-        else calNav(-1);          // swipe right → prev month
+      // In month view: only navigate months if swiping inside the calendar
+      if (currentView === 'month' && isInsideCalendar(startEl)) {
+        if (dx < 0) calNav(1);
+        else calNav(-1);
         return;
       }
 

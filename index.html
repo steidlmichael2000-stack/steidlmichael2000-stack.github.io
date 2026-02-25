@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="de">
+<html lang="de" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -1006,6 +1006,222 @@ td {
 .cal-day.ferien .cal-week-label { color: var(--green); }
 
 /* ═══════════════════════════════════════════════════
+   THEME TOGGLE BUTTON
+   ═══════════════════════════════════════════════════ */
+.theme-toggle {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--surface-border);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: all var(--t-normal);
+  flex-shrink: 0;
+}
+.theme-toggle:hover {
+  background: var(--surface-strong);
+  color: var(--text);
+}
+.theme-toggle:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.theme-toggle .icon-sun,
+.theme-toggle .icon-moon { display: none; }
+[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
+[data-theme="dark"] .theme-toggle .icon-moon { display: none; }
+[data-theme="light"] .theme-toggle .icon-sun { display: none; }
+[data-theme="light"] .theme-toggle .icon-moon { display: block; }
+
+/* ═══════════════════════════════════════════════════
+   LIGHT MODE
+   ═══════════════════════════════════════════════════ */
+[data-theme="light"] {
+  --bg: #f4f5f7;
+  --surface: rgba(0,0,0,0.03);
+  --surface-strong: rgba(0,0,0,0.05);
+  --surface-border: rgba(0,0,0,0.08);
+  --border: rgba(0,0,0,0.06);
+  --text: #1a1d26;
+  --text-dim: rgba(0,0,0,0.55);
+  --muted: #7c8091;
+  --accent: #d97706;
+  --accent2: #2563eb;
+  --green: #059669;
+  --g1: #7c3aed;
+  --g2: #db2777;
+
+  /* Subject colors — slightly deeper for light bg */
+  --c-bau: #d97706;
+  --c-tech: #dc2626;
+  --c-wipug: #7c3aed;
+  --c-statik: #2563eb;
+  --c-physik: #0891b2;
+  --c-recht: #ea580c;
+  --c-psych: #db2777;
+  --c-cad: #059669;
+  --c-edv: #4f46e5;
+  --c-darst: #0e7490;
+  --c-verm: #65a30d;
+  --c-mathe: #ca8a04;
+  --c-eng: #9333ea;
+  --c-deu: #e11d48;
+  --c-labor: #0284c7;
+}
+
+/* Light mode overrides for glass/alpha-based styles */
+[data-theme="light"] body::before {
+  background:
+    radial-gradient(ellipse 600px 400px at 15% 20%, rgba(124,58,237,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 500px 500px at 85% 75%, rgba(217,119,6,0.05) 0%, transparent 70%),
+    radial-gradient(ellipse 400px 300px at 50% 50%, rgba(37,99,235,0.04) 0%, transparent 70%);
+}
+[data-theme="light"] body::after { opacity: 0.025; }
+
+[data-theme="light"] .glass {
+  background: rgba(255,255,255,0.6);
+  border-color: rgba(0,0,0,0.08);
+  backdrop-filter: blur(20px) saturate(1.4);
+  -webkit-backdrop-filter: blur(20px) saturate(1.4);
+}
+
+[data-theme="light"] #group-overlay {
+  background: rgba(244,245,247,0.92);
+}
+
+[data-theme="light"] .group-btn.g1 { border-color: rgba(124,58,237,0.35); color: var(--g1); }
+[data-theme="light"] .group-btn.g1:hover { box-shadow: 0 8px 32px rgba(124,58,237,0.15); }
+[data-theme="light"] .group-btn.g2 { border-color: rgba(219,39,119,0.35); color: var(--g2); }
+[data-theme="light"] .group-btn.g2:hover { box-shadow: 0 8px 32px rgba(219,39,119,0.15); }
+
+[data-theme="light"] .clock {
+  text-shadow: 0 0 18px rgba(217,119,6,0.2);
+}
+
+[data-theme="light"] .week-pill {
+  background: rgba(217,119,6,0.1);
+  border-color: rgba(217,119,6,0.2);
+}
+[data-theme="light"] .week-pill.b {
+  background: rgba(37,99,235,0.1);
+  border-color: rgba(37,99,235,0.2);
+}
+
+[data-theme="light"] .countdown-pill {
+  background: rgba(217,119,6,0.1);
+  border-color: rgba(217,119,6,0.2);
+}
+[data-theme="light"] .countdown-pill.blue {
+  background: rgba(37,99,235,0.1);
+  border-color: rgba(37,99,235,0.2);
+}
+
+[data-theme="light"] .banner {
+  background: rgba(5,150,105,0.08);
+  border-color: rgba(5,150,105,0.15);
+}
+
+[data-theme="light"] .progress-bar { background: rgba(0,0,0,0.06); }
+[data-theme="light"] .next-preview {
+  background: rgba(0,0,0,0.03);
+  border-color: rgba(0,0,0,0.06);
+}
+
+/* Table */
+[data-theme="light"] .table-wrap {
+  background: rgba(255,255,255,0.7);
+  border-color: rgba(0,0,0,0.08);
+}
+[data-theme="light"] thead tr th {
+  background: rgba(0,0,0,0.03);
+  border-bottom-color: rgba(0,0,0,0.08);
+}
+[data-theme="light"] thead tr th.today-head {
+  background: rgba(217,119,6,0.06);
+}
+[data-theme="light"] td { border-color: rgba(0,0,0,0.04); }
+[data-theme="light"] .time-cell {
+  background: rgba(0,0,0,0.02);
+  border-right-color: rgba(0,0,0,0.06) !important;
+}
+[data-theme="light"] .time-cell .hour-nr { color: rgba(0,0,0,0.2); }
+[data-theme="light"] .lesson-cell.today-col { background: rgba(217,119,6,0.03); }
+[data-theme="light"] .lesson-cell.active {
+  background: rgba(217,119,6,0.08) !important;
+  border-color: rgba(217,119,6,0.18) !important;
+}
+[data-theme="light"] .pause-cell { background: rgba(0,0,0,0.01); }
+[data-theme="light"] .pause-cell::after { background: linear-gradient(90deg, transparent, rgba(0,0,0,0.06), transparent); }
+[data-theme="light"] .pause-cell.today-col { background: rgba(0,0,0,0.015); }
+[data-theme="light"] .lunch-cell { background: rgba(5,150,105,0.05); color: rgba(5,150,105,0.5); }
+[data-theme="light"] .lunch-cell.today-col { background: rgba(5,150,105,0.07); }
+[data-theme="light"] .lunch-cell.active { background: rgba(5,150,105,0.12) !important; }
+[data-theme="light"] .free-cell.today-col { background: rgba(0,0,0,0.01); }
+
+/* Tooltip */
+[data-theme="light"] [data-tip]:hover::after {
+  background: rgba(255,255,255,0.95);
+  border-color: rgba(0,0,0,0.1);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.12);
+  color: var(--text);
+}
+
+/* Day view */
+[data-theme="light"] .day-view {
+  background: rgba(255,255,255,0.7);
+  border-color: rgba(0,0,0,0.08);
+}
+[data-theme="light"] .day-timeline::before { background: rgba(0,0,0,0.07); }
+[data-theme="light"] .day-timeline::after { opacity: 0.9; }
+[data-theme="light"] .dt-dot { background: rgba(0,0,0,0.08); border-color: rgba(0,0,0,0.12); }
+[data-theme="light"] .dt-card.lesson { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.06); }
+[data-theme="light"] .dt-card.lunch { background: rgba(5,150,105,0.06); border-color: rgba(5,150,105,0.1); }
+[data-theme="light"] .dt-card.free { border-color: rgba(0,0,0,0.06); }
+[data-theme="light"] .dt-slot.is-active .dt-card.lesson { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.1); }
+[data-theme="light"] .dt-slot.is-past .dt-card { opacity: 0.45; }
+
+/* Month / calendar */
+[data-theme="light"] .month-view-inner { background: rgba(255,255,255,0.7); }
+[data-theme="light"] .cal-nav { background: rgba(0,0,0,0.05); border-color: rgba(0,0,0,0.08); }
+[data-theme="light"] .cal-nav:hover { background: rgba(0,0,0,0.08); }
+[data-theme="light"] .cal-day.weekend { opacity: 0.35; }
+[data-theme="light"] .cal-day.ferien { background: rgba(5,150,105,0.1); border-color: rgba(5,150,105,0.18); }
+[data-theme="light"] .cal-day.week-a { background: rgba(217,119,6,0.08); border-color: rgba(217,119,6,0.15); }
+[data-theme="light"] .cal-day.week-b { background: rgba(37,99,235,0.08); border-color: rgba(37,99,235,0.15); }
+[data-theme="light"] .cal-day.today { box-shadow: inset 0 0 0 2px var(--text); }
+[data-theme="light"] .cal-kw { color: rgba(0,0,0,0.25); }
+[data-theme="light"] .cal-leg-item.leg-a { background: rgba(217,119,6,0.1); border-color: rgba(217,119,6,0.15); }
+[data-theme="light"] .cal-leg-item.leg-b { background: rgba(37,99,235,0.1); border-color: rgba(37,99,235,0.15); }
+[data-theme="light"] .cal-leg-item.leg-ferien { background: rgba(5,150,105,0.1); border-color: rgba(5,150,105,0.18); }
+
+/* View toggle */
+[data-theme="light"] .view-toggle { background: rgba(0,0,0,0.04); border-color: rgba(0,0,0,0.08); }
+[data-theme="light"] .vt-btn.active { background: rgba(255,255,255,0.8); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+/* Group badges */
+[data-theme="light"] .group-badge.g1 { border-color: rgba(124,58,237,0.35); }
+[data-theme="light"] .group-badge.g1:hover { background: rgba(124,58,237,0.08); }
+[data-theme="light"] .group-badge.g2 { border-color: rgba(219,39,119,0.35); }
+[data-theme="light"] .group-badge.g2:hover { background: rgba(219,39,119,0.08); }
+
+/* Status dot glows in light mode */
+[data-theme="light"] .status-dot.active { box-shadow: 0 0 10px rgba(217,119,6,0.4); }
+[data-theme="light"] .status-dot.pause { box-shadow: 0 0 10px rgba(37,99,235,0.4); }
+
+/* Smooth theme transition */
+body, .glass, .status-card, .table-wrap, .day-view, .month-view-inner,
+.view-toggle, .vt-btn, thead tr th, td, .clock, .week-pill,
+.countdown-pill, .banner, .group-btn, .group-badge, .theme-toggle,
+.dt-card, .cal-day, .cal-nav, .cal-leg-item, .next-preview, .progress-bar {
+  transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
+}
+
+/* ═══════════════════════════════════════════════════
    RESPONSIVE
    ═══════════════════════════════════════════════════ */
 @media (max-width: 640px) {
@@ -1035,6 +1251,10 @@ td {
   </div>
   <div class="header-right">
     <span class="week-pill" id="week-pill" aria-live="polite">Woche A</span>
+    <button class="theme-toggle" id="theme-toggle" onclick="App.toggleTheme()" aria-label="Farbmodus wechseln">
+      <span class="icon-sun">☀️</span>
+      <span class="icon-moon">🌙</span>
+    </button>
     <button class="group-badge g1" id="group-badge" onclick="App.showGroupOverlay()" aria-label="Gruppe wechseln">Gruppe 1</button>
     <div class="clock glass" id="live-clock" aria-live="off" aria-label="Aktuelle Uhrzeit">--:--:--</div>
   </div>
@@ -2253,16 +2473,17 @@ const App = (() => {
 
   function initSwipe() {
     let startX = 0, startY = 0, startEl = null, tracking = false;
+    let tableScrollStart = 0;
     const THRESHOLD = 60;
     const RESTRAINT = 80;
 
-    function isScrollableTarget(el) {
+    function getScrollableParent(el) {
       let node = el;
       while (node && node !== document.body) {
-        if (node.scrollWidth > node.clientWidth + 2) return true;
+        if (node.scrollWidth > node.clientWidth + 2) return node;
         node = node.parentElement;
       }
-      return false;
+      return null;
     }
 
     function isInsideCalendar(el) {
@@ -2275,7 +2496,11 @@ const App = (() => {
     }
 
     document.addEventListener('touchstart', e => {
-      if (isScrollableTarget(e.target)) { tracking = false; return; }
+      const scrollable = getScrollableParent(e.target);
+      if (scrollable) {
+        // Track table scroll position at start
+        tableScrollStart = scrollable.scrollLeft;
+      }
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
       startEl = e.target;
@@ -2290,6 +2515,24 @@ const App = (() => {
 
       if (Math.abs(dx) < THRESHOLD || Math.abs(dy) > RESTRAINT) return;
 
+      // Check if swipe started inside a scrollable container (table)
+      const scrollable = getScrollableParent(startEl);
+      if (scrollable) {
+        const maxScroll = scrollable.scrollWidth - scrollable.clientWidth;
+        const atRightEdge = tableScrollStart >= maxScroll - 2;
+        const atLeftEdge = tableScrollStart <= 2;
+
+        // Only allow view switch if swiping away from the edge
+        // Swipe left (dx < 0) at right edge → switch to next view
+        // Swipe right (dx > 0) at left edge → switch to prev view
+        if (dx < 0 && !atRightEdge) return; // still has room to scroll right
+        if (dx > 0 && !atLeftEdge) return;   // still has room to scroll left
+
+        // Also skip if the table actually scrolled during this touch
+        const scrollDelta = Math.abs(scrollable.scrollLeft - tableScrollStart);
+        if (scrollDelta > 5) return;
+      }
+
       // In month view: only navigate months if swiping inside the calendar
       if (currentView === 'month' && isInsideCalendar(startEl)) {
         if (dx < 0) calNav(1);
@@ -2297,7 +2540,7 @@ const App = (() => {
         return;
       }
 
-      // Otherwise: swipe switches views
+      // Swipe switches views
       const idx = VIEW_ORDER.indexOf(currentView);
       if (dx < 0 && idx < VIEW_ORDER.length - 1) {
         switchView(VIEW_ORDER[idx + 1]);
@@ -2307,8 +2550,32 @@ const App = (() => {
     }, { passive: true });
   }
 
+  // ─── THEME TOGGLE ───────────────────────────────
+  function initTheme() {
+    const saved = localStorage.getItem('fst1_theme');
+    const theme = saved || 'dark';
+    document.documentElement.setAttribute('data-theme', theme);
+    // Update meta theme-color
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = theme === 'light' ? '#f4f5f7' : '#07080d';
+    // Clear subject color cache since CSS vars changed
+    Object.keys(colorCache).forEach(k => delete colorCache[k]);
+  }
+
+  function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme') || 'dark';
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('fst1_theme', next);
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.content = next === 'light' ? '#f4f5f7' : '#07080d';
+    // Flush color cache so getSubjColor picks up new CSS values
+    Object.keys(colorCache).forEach(k => delete colorCache[k]);
+  }
+
   // ─── INIT ──────────────────────────────────────
   async function init() {
+    initTheme();
     cacheDom();
     initSwipe();
 
@@ -2339,7 +2606,7 @@ const App = (() => {
   }
 
   // Public API (for onclick handlers)
-  return { selectGroup, showGroupOverlay, switchView, calNav };
+  return { selectGroup, showGroupOverlay, switchView, calNav, toggleTheme };
 })();
 </script>
 </body>

@@ -718,6 +718,7 @@ td {
   flex-direction: column;
   position: relative;
 }
+/* Static background line */
 .day-timeline::before {
   content: '';
   position: absolute;
@@ -727,6 +728,34 @@ td {
   width: 2px;
   background: rgba(255,255,255,0.04);
   border-radius: 1px;
+}
+/* Colored progress line — fills down to current position */
+.day-timeline::after {
+  content: '';
+  position: absolute;
+  left: 54px;
+  top: 0;
+  width: 2px;
+  height: var(--tl-progress, 0%);
+  background: var(--tl-color, var(--accent));
+  border-radius: 1px;
+  transition: height 1s linear;
+  z-index: 1;
+}
+/* Position marker — glowing dot at current progress point */
+.tl-marker {
+  position: absolute;
+  left: 49px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--tl-color, var(--accent));
+  box-shadow: 0 0 10px color-mix(in srgb, var(--tl-color, var(--accent)) 60%, transparent),
+              0 0 20px color-mix(in srgb, var(--tl-color, var(--accent)) 25%, transparent);
+  z-index: 3;
+  transition: top 1s linear;
+  animation: glowPulse 2.2s ease-in-out infinite;
+  pointer-events: none;
 }
 
 .dt-slot {
@@ -828,43 +857,7 @@ td {
 }
 .dt-card-info { font-size: 0.72rem; color: var(--text-dim); }
 
-/* Day view progress */
-.dt-progress {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: rgba(255,255,255,0.03);
-  border-radius: 0 0 var(--r-md) var(--r-md);
-  overflow: hidden;
-}
-.dt-progress-fill {
-  height: 100%;
-  border-radius: 0 0 0 var(--r-md);
-  transition: width 1s linear;
-  position: relative;
-}
-.dt-progress-fill::after {
-  content: '';
-  position: absolute;
-  right: -1px;
-  top: -3px;
-  width: 5px;
-  height: 9px;
-  border-radius: 3px;
-  background: inherit;
-  box-shadow: 0 0 8px currentColor;
-  filter: brightness(1.3);
-}
-
 /* Active states */
-.dt-slot.is-active .dt-dot {
-  border-color: var(--accent);
-  background: var(--accent);
-  box-shadow: 0 0 10px rgba(245,158,11,0.4);
-  animation: glowPulse 2.2s ease-in-out infinite;
-}
 .dt-slot.is-active .dt-card.lesson {
   background: rgba(255,255,255,0.05);
   border-color: rgba(255,255,255,0.1);
@@ -884,10 +877,11 @@ td {
   border-color: rgba(16,185,129,0.15);
 }
 
-/* Past slots */
+/* Past slots — dots filled, cards faded */
 .dt-slot.is-past .dt-dot {
-  background: rgba(255,255,255,0.15);
-  border-color: rgba(255,255,255,0.2);
+  background: var(--tl-color, rgba(255,255,255,0.25));
+  border-color: var(--tl-color, rgba(255,255,255,0.3));
+  opacity: 0.5;
 }
 .dt-slot.is-past .dt-card { opacity: 0.4; }
 
@@ -956,8 +950,19 @@ td {
 
 .cal-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: 24px repeat(7, 1fr);
   gap: 3px;
+}
+.cal-kw {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 0.5rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.2);
+  letter-spacing: 0.02em;
+  user-select: none;
 }
 .cal-day-head {
   text-align: center;
@@ -1884,6 +1889,7 @@ const App = (() => {
     if (isWeekend || inFerien) {
       dom.dayViewHeader.textContent = isWeekend ? 'Wochenende' : 'Schulferien';
       timeline.innerHTML = `<div class="day-view-empty">${isWeekend ? '🎉 Genieß die freie Zeit!' : '🏖️ Gute Erholung!'}</div>`;
+      timeline.style.setProperty('--tl-progress', '0%');
       return;
     }
 
@@ -1892,17 +1898,41 @@ const App = (() => {
     const wt = getWeekType(currentGroup, now);
     const { sch, lun } = buildScheduleFor(currentGroup, wt);
 
-    // Find last lesson row
+    // Find first and last lesson rows
+    let firstRow = PLAN.length;
+    PLAN.forEach((slot, rowIdx) => {
+      if (slot.type !== 'hour') return;
+      if ((sch[dayIdx]?.[slot.nr] || lun[dayIdx] === slot.nr) && rowIdx < firstRow) firstRow = rowIdx;
+    });
+
     let lastRow = 0;
     PLAN.forEach((slot, rowIdx) => {
       if (slot.type !== 'hour') return;
       if (sch[dayIdx]?.[slot.nr] || lun[dayIdx] === slot.nr) lastRow = rowIdx;
     });
 
-    // Build using DocumentFragment for fewer reflows
+    // Determine current active subject color for the timeline
+    let activeColor = 'var(--accent)';
+    for (let i = 0; i < PLAN.length; i++) {
+      const s = PLAN[i];
+      const sM = toMins(s.start), eM = toMins(s.end);
+      if (nowM >= sM && nowM < eM) {
+        if (s.type === 'pause') { activeColor = 'var(--accent2)'; break; }
+        if (s.type === 'hour') {
+          if (lun[dayIdx] === s.nr) { activeColor = 'var(--green)'; break; }
+          const info = sch[dayIdx]?.[s.nr];
+          if (info) { activeColor = getSubjColor(info[0]) || 'var(--accent)'; break; }
+        }
+        break;
+      }
+    }
+    timeline.style.setProperty('--tl-color', activeColor);
+
+    // Build using DocumentFragment
     const frag = document.createDocumentFragment();
 
     PLAN.forEach((slot, rowIdx) => {
+      if (rowIdx < firstRow) return;
       if (rowIdx > lastRow) return;
 
       const sM = toMins(slot.start), eM = toMins(slot.end);
@@ -1959,18 +1989,16 @@ const App = (() => {
       if (isLunch) {
         if (isNow) el.classList.add('is-lunch-active');
         if (isPast) el.classList.add('is-past');
-        const pct = isNow ? Math.round(((nowS - sS) / totalSlotSecs) * 100) : (isPast ? 100 : 0);
 
         el.innerHTML = `
           <div class="dt-time"><span>${fmt(slot.start)}</span></div>
           <div class="dt-dot"></div>
           <div class="dt-content">
-            <div class="dt-card lunch" style="position:relative;overflow:hidden">
+            <div class="dt-card lunch">
               <div class="dt-card-top">
                 <span style="font-size:0.78rem;font-weight:700;color:var(--green)">🍴 Mittagspause</span>
                 <span class="dt-card-time">${fmt(slot.start)} – ${fmt(slot.end)}</span>
               </div>
-              ${isNow ? `<div class="dt-progress"><div class="dt-progress-fill" style="width:${pct}%;background:var(--green);color:var(--green)"></div></div>` : ''}
             </div>
           </div>`;
         frag.appendChild(el);
@@ -1981,22 +2009,20 @@ const App = (() => {
       const subjColor = getSubjColor(info[0]) || '#f59e0b';
       const block = findSubjectBlock(rowIdx, dayIdx, sch, lun);
 
-      let blockPct = 0, isBlockActive = false, showBlockProgress = false;
+      let isBlockActive = false;
       if (block && !block.isLunch) {
         const bStartS = toMins(PLAN[block.startRow].start) * 60;
         const bEndS = toMins(PLAN[block.endRow].end) * 60;
         isBlockActive = nowS >= bStartS && nowS < bEndS;
-        if (isBlockActive && rowIdx === block.startRow) {
-          blockPct = Math.round(((nowS - bStartS) / (bEndS - bStartS)) * 100);
-          showBlockProgress = true;
-        }
       }
 
       const slotActive = isNow || (isBlockActive && block && rowIdx >= block.startRow && rowIdx <= block.endRow);
       if (slotActive) el.classList.add('is-active');
       if (isPast && !slotActive) el.classList.add('is-past');
 
-      const dotStyle = slotActive ? `style="background:${subjColor};border-color:${subjColor};box-shadow:0 0 10px ${subjColor}80"` : '';
+      const dotStyle = slotActive
+        ? `style="background:${subjColor};border-color:${subjColor};box-shadow:0 0 10px ${subjColor}80"`
+        : (isPast ? `style="background:${subjColor};border-color:${subjColor}"` : '');
 
       el.innerHTML = `
         <div class="dt-time">
@@ -2008,11 +2034,10 @@ const App = (() => {
           <div class="dt-card lesson" ${slotActive ? `style="border-color:${subjColor}20;background:${subjColor}0a"` : ''}>
             <div class="dt-card-top">
               ${subjTag(info[0])}
-              <span class="dt-card-subj">${FACH_FULL[info[0]] || info[0]}</span>
+              <span class="dt-card-subj">${info[0]}</span>
               <span class="dt-card-time">${fmt(slot.start)} – ${fmt(slot.end)}</span>
             </div>
             <div class="dt-card-info">${info[2]} · ${info[1]}</div>
-            ${showBlockProgress ? `<div class="dt-progress"><div class="dt-progress-fill" style="width:${blockPct}%;background:linear-gradient(90deg,${subjColor}90,${subjColor});color:${subjColor}"></div></div>` : ''}
           </div>
         </div>`;
 
@@ -2020,6 +2045,90 @@ const App = (() => {
     });
 
     timeline.appendChild(frag);
+
+    // ── Calculate timeline progress position ──
+    // After DOM is built, measure actual positions to place the marker
+    requestAnimationFrame(() => {
+      const tlRect = timeline.getBoundingClientRect();
+      if (tlRect.height === 0) return;
+
+      const slots = timeline.querySelectorAll('.dt-slot');
+      if (!slots.length) { timeline.style.setProperty('--tl-progress', '0%'); return; }
+
+      // Find the overall time range rendered
+      const dayStartM = toMins(PLAN[firstRow].start);
+      const dayEndM = toMins(PLAN[lastRow].end);
+
+      if (nowM <= dayStartM) {
+        // Before school
+        timeline.style.setProperty('--tl-progress', '0%');
+        // Remove old marker
+        const oldMarker = timeline.querySelector('.tl-marker');
+        if (oldMarker) oldMarker.remove();
+        return;
+      }
+
+      if (nowM >= dayEndM) {
+        // After school — line fully filled
+        timeline.style.setProperty('--tl-progress', '100%');
+        const oldMarker = timeline.querySelector('.tl-marker');
+        if (oldMarker) oldMarker.remove();
+        return;
+      }
+
+      // Calculate pixel position based on slot positions
+      let markerTop = 0;
+      for (const slotEl of slots) {
+        const rect = slotEl.getBoundingClientRect();
+        const rowIdx = parseInt(slotEl.querySelector('.dt-time .dt-hour-nr')?.textContent) || -1;
+
+        // Find the PLAN entry for this slot by matching time
+        let slotStartM = -1, slotEndM = -1;
+        const timeText = slotEl.querySelector('.dt-time span:last-child')?.textContent;
+        const cardTimeText = slotEl.querySelector('.dt-card-time')?.textContent;
+
+        if (cardTimeText) {
+          const parts = cardTimeText.split('–').map(s => s.trim());
+          if (parts.length === 2) {
+            const [sh, sm] = parts[0].split(':').map(Number);
+            const [eh, em] = parts[1].split(':').map(Number);
+            slotStartM = sh * 60 + sm;
+            slotEndM = eh * 60 + em;
+          }
+        } else if (timeText) {
+          const [h, m] = timeText.split(':').map(Number);
+          slotStartM = h * 60 + m;
+          // For pauses, estimate end
+          slotEndM = slotStartM + 15;
+        }
+
+        if (slotStartM >= 0 && nowM >= slotStartM && nowM < slotEndM) {
+          // Current slot — interpolate within
+          const pct = (nowM - slotStartM) / (slotEndM - slotStartM);
+          const slotTop = rect.top - tlRect.top;
+          // Dot is at top: ~12px, content area extends down
+          const progressInSlot = 12 + (rect.height - 12) * pct;
+          markerTop = slotTop + progressInSlot;
+          break;
+        } else if (slotStartM >= 0 && nowM >= slotEndM) {
+          // Past this slot — marker is at least at the bottom
+          markerTop = (rect.top - tlRect.top) + rect.height;
+        }
+      }
+
+      // Set progress line height and marker position
+      const progressPct = Math.min(100, (markerTop / tlRect.height) * 100);
+      timeline.style.setProperty('--tl-progress', progressPct + '%');
+
+      // Add/update floating marker
+      let marker = timeline.querySelector('.tl-marker');
+      if (!marker) {
+        marker = document.createElement('div');
+        marker.className = 'tl-marker';
+        timeline.appendChild(marker);
+      }
+      marker.style.top = markerTop + 'px';
+    });
   }
 
   // ─── CALENDAR ──────────────────────────────────
@@ -2041,6 +2150,12 @@ const App = (() => {
 
     const frag = document.createDocumentFragment();
 
+    // KW header (empty corner)
+    const kwHead = document.createElement('div');
+    kwHead.className = 'cal-kw';
+    kwHead.textContent = '';
+    frag.appendChild(kwHead);
+
     // Day headers
     CAL_DAY_NAMES.forEach(d => {
       const el = document.createElement('div');
@@ -2057,13 +2172,41 @@ const App = (() => {
     const today = new Date();
     const todayStr = dateToKey(today);
 
+    // Helper: ISO week number
+    function getISOWeek(date) {
+      const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+      const dayNum = d.getUTCDay() || 7;
+      d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+      const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+      return Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+    }
+
+    // KW for the first row
+    const firstWeekDate = new Date(calYear, calMonth, 1);
+    const kwEl = document.createElement('div');
+    kwEl.className = 'cal-kw';
+    kwEl.textContent = getISOWeek(firstWeekDate);
+    frag.appendChild(kwEl);
+
+    // Track position in grid row (0-6, Mon=0)
+    let gridCol = 0;
+
     for (let i = 0; i < startOffset; i++) {
       const el = document.createElement('div');
       el.className = 'cal-day empty';
       frag.appendChild(el);
+      gridCol++;
     }
 
     for (let d = 1; d <= daysInMonth; d++) {
+      // If we're at the start of a new row (Monday), insert KW label
+      if (gridCol === 0 && d > 1) {
+        const kwCell = document.createElement('div');
+        kwCell.className = 'cal-kw';
+        kwCell.textContent = getISOWeek(new Date(calYear, calMonth, d));
+        frag.appendChild(kwCell);
+      }
+
       const date = new Date(calYear, calMonth, d);
       const el = document.createElement('div');
       const dayOfWeek = date.getDay();
@@ -2087,14 +2230,77 @@ const App = (() => {
       el.className = cls;
       el.innerHTML = `<span>${d}</span>`;
       frag.appendChild(el);
+
+      gridCol++;
+      if (gridCol >= 7) gridCol = 0;
+    }
+
+    // Fill trailing empty cells in last row
+    if (gridCol > 0) {
+      while (gridCol < 7) {
+        const el = document.createElement('div');
+        el.className = 'cal-day empty';
+        frag.appendChild(el);
+        gridCol++;
+      }
     }
 
     grid.appendChild(frag);
   }
 
+  // ─── SWIPE GESTURE HANDLER ──────────────────────
+  const VIEW_ORDER = ['week', 'day', 'month'];
+
+  function initSwipe() {
+    let startX = 0, startY = 0, tracking = false;
+    const THRESHOLD = 60;
+    const RESTRAINT = 80;
+
+    function isScrollableTarget(el) {
+      let node = el;
+      while (node && node !== document.body) {
+        if (node.scrollWidth > node.clientWidth + 2) return true;
+        node = node.parentElement;
+      }
+      return false;
+    }
+
+    document.addEventListener('touchstart', e => {
+      if (isScrollableTarget(e.target)) { tracking = false; return; }
+      startX = e.touches[0].clientX;
+      startY = e.touches[0].clientY;
+      tracking = true;
+    }, { passive: true });
+
+    document.addEventListener('touchend', e => {
+      if (!tracking) return;
+      tracking = false;
+      const dx = e.changedTouches[0].clientX - startX;
+      const dy = e.changedTouches[0].clientY - startY;
+
+      if (Math.abs(dx) < THRESHOLD || Math.abs(dy) > RESTRAINT) return;
+
+      // In month view: swipe navigates months
+      if (currentView === 'month') {
+        if (dx < 0) calNav(1);   // swipe left → next month
+        else calNav(-1);          // swipe right → prev month
+        return;
+      }
+
+      // Otherwise: swipe switches views
+      const idx = VIEW_ORDER.indexOf(currentView);
+      if (dx < 0 && idx < VIEW_ORDER.length - 1) {
+        switchView(VIEW_ORDER[idx + 1]);
+      } else if (dx > 0 && idx > 0) {
+        switchView(VIEW_ORDER[idx - 1]);
+      }
+    }, { passive: true });
+  }
+
   // ─── INIT ──────────────────────────────────────
   async function init() {
     cacheDom();
+    initSwipe();
 
     await loadFerien();
 

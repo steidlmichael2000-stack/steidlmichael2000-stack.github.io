@@ -259,6 +259,7 @@ body::after {
   gap: var(--sp-md);
   margin-bottom: var(--sp-md);
   padding: 0 2px;
+  position: relative;
 }
 .header-left h1 {
   font-size: 1.6rem;
@@ -283,23 +284,35 @@ body::after {
   align-items: center;
   flex-wrap: wrap;
 }
+/* Uniform height for all header pills & toggle */
+.header-right > * {
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+}
 
 .clock {
+  position: absolute;
+  top: 0;
+  right: 2px;
   font-family: var(--mono);
-  font-size: 1.15rem;
+  font-size: 0.78rem;
   font-weight: 500;
-  padding: 8px 14px;
-  border-radius: var(--r-md);
+  padding: 4px 10px;
+  border-radius: var(--r-sm);
   color: var(--accent);
   letter-spacing: 0.05em;
   white-space: nowrap;
   text-shadow: 0 0 18px rgba(245,158,11,0.25);
+  background: var(--surface);
+  border: 1px solid var(--surface-border);
 }
 
 .group-badge {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
-  padding: 6px 14px;
+  padding: 0 14px;
   border-radius: var(--r-full);
   border: 1.5px solid;
   cursor: pointer;
@@ -319,7 +332,7 @@ body::after {
 .week-pill {
   font-size: 0.7rem;
   font-weight: 600;
-  padding: 6px 12px;
+  padding: 0 12px;
   border-radius: var(--r-full);
   background: rgba(245,158,11,0.08);
   color: var(--accent);
@@ -688,7 +701,7 @@ td {
   border: 1px solid var(--surface-border);
   border-radius: var(--r-md);
   padding: 3px;
-  width: fit-content;
+  width: 100%;
 }
 .vt-btn {
   font-family: var(--sans);
@@ -702,6 +715,8 @@ td {
   cursor: pointer;
   transition: all 0.25s var(--ease);
   letter-spacing: 0.01em;
+  flex: 1;
+  text-align: center;
 }
 .vt-btn:hover { color: var(--text); }
 .vt-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
@@ -1029,9 +1044,9 @@ td {
    THEME TOGGLE BUTTON
    ═══════════════════════════════════════════════════ */
 .theme-toggle {
-  width: 34px;
-  height: 34px;
-  border-radius: var(--r-md);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-full);
   border: 1px solid var(--surface-border);
   background: var(--surface);
   color: var(--muted);
@@ -1055,10 +1070,18 @@ td {
    FERIEN COUNTDOWN
    ═══════════════════════════════════════════════════ */
 .ferien-cd {
-  font-size: 0.78rem;
+  display: none;
+  font-size: 0.68rem;
+  font-weight: 600;
   color: var(--green);
-  background: rgba(16,185,129,0.04) !important;
-  border-color: rgba(16,185,129,0.08) !important;
+  background: rgba(16,185,129,0.06);
+  border: 1px solid rgba(16,185,129,0.12);
+  border-radius: var(--r-full);
+  padding: 0 12px;
+  white-space: nowrap;
+  animation: slideIn 0.4s ease;
+  margin: 0;
+  justify-content: center;
 }
 .ferien-cd .cd-value { font-weight: 700; }
 
@@ -1170,6 +1193,12 @@ td {
 
 [data-theme="light"] .clock {
   text-shadow: 0 0 18px rgba(217,119,6,0.2);
+  background: var(--bg);
+  border-color: rgba(0,0,0,0.08);
+}
+[data-theme="light"] .ferien-cd {
+  background: rgba(5,150,105,0.08);
+  border-color: rgba(5,150,105,0.15);
 }
 
 [data-theme="light"] .week-pill {
@@ -1320,19 +1349,19 @@ body, .glass, .status-card, .table-wrap, .day-view, .month-view-inner,
   </div>
   <div class="header-right">
     <span class="week-pill" id="week-pill" aria-live="polite">Woche A</span>
+    <div id="ferien-countdown" class="ferien-cd" role="status"></div>
     <button class="group-badge g1" id="group-badge" onclick="App.showGroupOverlay()" aria-label="Gruppe wechseln">Gruppe 1</button>
     <button class="theme-toggle" id="theme-toggle" onclick="App.toggleTheme()" aria-label="Farbmodus wechseln">
       <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
-    <div class="clock glass" id="live-clock" aria-live="off" aria-label="Aktuelle Uhrzeit">--:--:--</div>
   </div>
 </div>
+<div class="clock" id="live-clock" aria-live="off" aria-label="Aktuelle Uhrzeit">--:--:--</div>
 
 <!-- ═══════════════ BANNERS ═══════════════ -->
 <div id="weekend-banner" class="banner glass" role="status">🎉 Wochenende – genieß die freie Zeit!</div>
 <div id="ferien-banner" class="banner glass" role="status">🏖️ Schulferien – gute Erholung!</div>
-<div id="ferien-countdown" class="banner glass ferien-cd" role="status" style="display:none"></div>
 <div id="loading-hint" class="loading-hint" role="status" aria-live="polite">⏳ Lade Feriendaten…</div>
 
 <!-- ═══════════════ STATUS CARD ═══════════════ -->
@@ -1500,12 +1529,23 @@ const App = (() => {
   }
 
   async function loadFerien() {
+    // Load fallback immediately so countdown works right away
+    const fallbackKeys = [];
+    FERIEN_FALLBACK.forEach(([s, e]) => fallbackKeys.push(...expandRange(s, e)));
+    ferienSet = new Set(fallbackKeys);
+    ferienLoaded = true;
+    document.getElementById('loading-hint').style.display = 'none';
+
+    // Then try API to upgrade (non-blocking, with timeout)
     const years = [new Date().getFullYear(), new Date().getFullYear() + 1];
     let apiData = [];
 
     for (const y of years) {
       try {
-        const r = await fetch(`https://ferien-api.de/api/v1/holidays/BY/${y}`);
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 4000);
+        const r = await fetch(`https://ferien-api.de/api/v1/holidays/BY/${y}`, { signal: controller.signal });
+        clearTimeout(timeout);
         if (!r.ok) continue;
         const data = await r.json();
         data.forEach(f => {
@@ -1515,20 +1555,13 @@ const App = (() => {
             apiData.push(...expandRange(s, e));
           }
         });
-      } catch (e) { /* silent — fallback below */ }
+      } catch (e) { /* silent — keep fallback */ }
     }
 
     if (apiData.length > 0) {
       ferienSet = new Set(apiData);
-    } else {
-      // Use hardcoded fallback
-      const keys = [];
-      FERIEN_FALLBACK.forEach(([s, e]) => keys.push(...expandRange(s, e)));
-      ferienSet = new Set(keys);
+      updateFerienCountdown(); // refresh with better data
     }
-
-    ferienLoaded = true;
-    document.getElementById('loading-hint').style.display = 'none';
   }
 
   function isFerien(date) {
@@ -1922,8 +1955,11 @@ const App = (() => {
     dom.ferienBanner.style.display = (!isWeekend && inFerien) ? '' : 'none';
     dom.statusCard.style.display = (isWeekend || inFerien) ? 'none' : '';
 
-    // Update ferien countdown once per minute
-    if (s === 0) updateFerienCountdown();
+    // Update ferien countdown once per minute (and on first call)
+    if (s === 0 || !dom.ferienCountdown._initialized) {
+      updateFerienCountdown();
+      dom.ferienCountdown._initialized = true;
+    }
 
     if (isWeekend || inFerien) {
       highlightColumn(-1, -1);
@@ -2070,15 +2106,20 @@ const App = (() => {
       showProgress(blockSecsLeft, blockTotalSecs, 'custom', subjColor);
       showNext(block.endRow, dayIdx, sch, lun);
     } else {
-      // Free hour or end of day
-      let hasMoreLessons = false;
+      // Free hour — check if it's leading (before first lesson) or trailing (after last lesson)
+      let hasLessonBefore = false;
+      let hasLessonAfter = false;
+      for (let r = 0; r < activeRow; r++) {
+        const s = PLAN[r];
+        if (s.type === 'hour' && (sch[dayIdx]?.[s.nr] || lun[dayIdx] === s.nr)) { hasLessonBefore = true; break; }
+      }
       for (let r = activeRow + 1; r < PLAN.length; r++) {
         const s = PLAN[r];
-        if (s.type !== 'hour') continue;
-        if (lun[dayIdx] === s.nr || sch[dayIdx]?.[s.nr]) { hasMoreLessons = true; break; }
+        if (s.type === 'hour' && (sch[dayIdx]?.[s.nr] || lun[dayIdx] === s.nr)) { hasLessonAfter = true; break; }
       }
 
-      if (!hasMoreLessons) {
+      if (!hasLessonAfter) {
+        // After last lesson — Schulschluss
         let lastEndM = 0;
         PLAN.forEach(sl => {
           if (sl.type !== 'hour') return;
@@ -2091,7 +2132,24 @@ const App = (() => {
         main.textContent = '🎉 Schulschluss';
         sub.textContent = findNextSchoolStart(dayIdx, nowM, lastEndM, sch, lun, wt);
         cpill.classList.add('hidden');
+      } else if (!hasLessonBefore) {
+        // Before first lesson — show when it starts
+        let firstStart = '';
+        for (let r = activeRow + 1; r < PLAN.length; r++) {
+          const s = PLAN[r];
+          if (s.type !== 'hour') continue;
+          const info = sch[dayIdx]?.[s.nr];
+          if (info || lun[dayIdx] === s.nr) {
+            firstStart = fmt(s.start);
+            break;
+          }
+        }
+        label.textContent = 'Außerhalb der Schulzeit';
+        main.textContent = 'Kein Unterricht';
+        sub.textContent = firstStart ? `Unterricht beginnt um ${firstStart} Uhr` : '';
+        cpill.classList.add('hidden');
       } else {
+        // Genuine Freistunde between lessons
         dot.classList.add('active');
         label.textContent = `${slot.nr}. Stunde`;
         main.textContent = 'Freistunde';
@@ -2140,12 +2198,16 @@ const App = (() => {
   }
 
   // ─── VIEW SWITCHING ────────────────────────────
+  let switching = false;
   function switchView(view) {
-    if (view === currentView) return;
+    if (view === currentView || switching) return;
+    switching = true;
+    // Safety: never leave locked for more than 800ms
+    const safetyTimer = setTimeout(() => { switching = false; }, 800);
     const prev = currentView;
     const prevIdx = VIEW_ORDER.indexOf(prev);
     const nextIdx = VIEW_ORDER.indexOf(view);
-    const goingRight = nextIdx > prevIdx; // sliding to higher index = left swipe = content goes left
+    const goingRight = nextIdx > prevIdx;
     currentView = view;
 
     ['week', 'day', 'month'].forEach(v => {
@@ -2161,50 +2223,66 @@ const App = (() => {
     };
 
     const outEl = views[prev];
-    // Temporarily disable overflow on table-wrap so transform isn't clipped
+    const inEl = views[view];
+
+    // Lock overflow on table during animation
     if (prev === 'week') outEl.style.overflow = 'hidden';
+
+    // 1) Animate out
     outEl.classList.add(goingRight ? 'slide-out-left' : 'slide-out-right');
 
     setTimeout(() => {
-      Object.values(views).forEach(v => {
-        v.style.display = 'none';
-        v.style.overflow = '';
-        v.classList.remove('slide-out-left', 'slide-out-right', 'slide-in-left', 'slide-in-right', 'switching');
-      });
+      // 2) Hide old, prepare new
+      outEl.style.display = 'none';
+      outEl.style.overflow = '';
+      outEl.classList.remove('slide-out-left', 'slide-out-right');
 
-      const inEl = views[view];
-      // Disable overflow on table-wrap during slide-in
-      if (view === 'week') inEl.style.overflow = 'hidden';
-      inEl.style.display = '';
-      inEl.classList.add(goingRight ? 'slide-in-left' : 'slide-in-right');
-
+      // Build content for the incoming view BEFORE showing it
       if (view === 'day') {
-        if (!dayViewExplicit) {
-          dayViewIdx = new Date().getDay() - 1;
-        }
+        if (!dayViewExplicit) dayViewIdx = new Date().getDay() - 1;
         dayViewExplicit = false;
         lastDayViewMinute = -1;
-        buildDayTabs();
-        buildDayView();
       }
       if (view === 'month') {
         const now = new Date();
         calYear = now.getFullYear();
         calMonth = now.getMonth();
-        renderCalendar();
       }
 
-      // Force layout so the browser registers the initial slide-in position
-      void inEl.offsetHeight;
+      // Lock overflow for table slide-in
+      if (view === 'week') inEl.style.overflow = 'hidden';
 
-      // Now remove the slide-in class — the CSS transition animates it to final position
-      requestAnimationFrame(() => {
-        inEl.classList.remove('slide-in-left', 'slide-in-right');
-        // Restore table overflow after animation completes
+      // 3) Set starting position via inline styles (no class toggling needed)
+      const xOffset = goingRight ? '30px' : '-30px';
+      inEl.style.transition = 'none';
+      inEl.style.opacity = '0';
+      inEl.style.transform = `translateX(${xOffset}) scale(0.98)`;
+      inEl.style.display = '';
+
+      // Build content now that it's visible
+      if (view === 'day') { buildDayTabs(); buildDayView(); }
+      if (view === 'month') renderCalendar();
+
+      // 4) Force browser to paint the starting position
+      void inEl.offsetWidth;
+
+      // 5) Now animate to final position
+      inEl.style.transition = 'opacity 0.28s ease, transform 0.28s ease';
+      inEl.style.opacity = '1';
+      inEl.style.transform = 'translateX(0) scale(1)';
+
+      // 6) Cleanup after animation
+      setTimeout(() => {
+        inEl.style.transition = '';
+        inEl.style.opacity = '';
+        inEl.style.transform = '';
         if (view === 'week') {
-          setTimeout(() => { inEl.style.overflow = ''; inEl.style.overflowX = 'auto'; }, 300);
+          inEl.style.overflow = '';
+          inEl.style.overflowX = 'auto';
         }
-      });
+        switching = false;
+        clearTimeout(safetyTimer);
+      }, 300);
     }, 260);
   }
 
@@ -2692,29 +2770,21 @@ const App = (() => {
   const VIEW_ORDER = ['week', 'day', 'month'];
 
   function initSwipe() {
-    let startX = 0, startY = 0, startEl = null, tracking = false;
+    let startX = 0, startY = 0, tracking = false;
     let tableScrollStart = 0;
     const THRESHOLD = 60;
     const RESTRAINT = 80;
 
-    function getScrollableParent(el) {
-      let node = el;
-      while (node && node !== document.body) {
-        if (node.scrollWidth > node.clientWidth + 2) return node;
-        node = node.parentElement;
-      }
-      return null;
-    }
-
     document.addEventListener('touchstart', e => {
-      const scrollable = getScrollableParent(e.target);
-      if (scrollable) {
-        // Track table scroll position at start
-        tableScrollStart = scrollable.scrollLeft;
+      // Only track table scroll if swiping inside table-wrap
+      const tableWrap = e.target.closest('.table-wrap');
+      if (tableWrap) {
+        tableScrollStart = tableWrap.scrollLeft;
+      } else {
+        tableScrollStart = -1; // not in table
       }
       startX = e.touches[0].clientX;
       startY = e.touches[0].clientY;
-      startEl = e.target;
       tracking = true;
     }, { passive: true });
 
@@ -2726,21 +2796,17 @@ const App = (() => {
 
       if (Math.abs(dx) < THRESHOLD || Math.abs(dy) > RESTRAINT) return;
 
-      // Check if swipe started inside a scrollable container (table)
-      const scrollable = getScrollableParent(startEl);
-      if (scrollable) {
-        const maxScroll = scrollable.scrollWidth - scrollable.clientWidth;
+      // If swipe started in table, check edges
+      if (tableScrollStart >= 0) {
+        const tableWrap = dom.tableWrap;
+        const maxScroll = tableWrap.scrollWidth - tableWrap.clientWidth;
         const atRightEdge = tableScrollStart >= maxScroll - 2;
         const atLeftEdge = tableScrollStart <= 2;
 
-        // Only allow view switch if swiping away from the edge
-        // Swipe left (dx < 0) at right edge → switch to next view
-        // Swipe right (dx > 0) at left edge → switch to prev view
-        if (dx < 0 && !atRightEdge) return; // still has room to scroll right
-        if (dx > 0 && !atLeftEdge) return;   // still has room to scroll left
+        if (dx < 0 && !atRightEdge) return;
+        if (dx > 0 && !atLeftEdge) return;
 
-        // Also skip if the table actually scrolled during this touch
-        const scrollDelta = Math.abs(scrollable.scrollLeft - tableScrollStart);
+        const scrollDelta = Math.abs(tableWrap.scrollLeft - tableScrollStart);
         if (scrollDelta > 5) return;
       }
 
@@ -2758,9 +2824,11 @@ const App = (() => {
   function updateFerienCountdown() {
     if (!ferienLoaded || !dom.ferienCountdown) return;
     const now = new Date();
+    const dayOfWeek = now.getDay();
+    const isWeekday = dayOfWeek !== 0 && dayOfWeek !== 6;
 
-    // If currently in ferien, hide (don't count down to current ferien)
-    if (isFerien(now) && now.getDay() !== 0 && now.getDay() !== 6) {
+    // If currently in ferien on a weekday, hide (you're already in ferien)
+    if (isWeekday && isFerien(now)) {
       dom.ferienCountdown.style.display = 'none';
       return;
     }
@@ -2772,8 +2840,8 @@ const App = (() => {
     let found = false;
 
     for (let i = 0; i < 200; i++) {
-      const dayOfWeek = cur.getDay();
-      if (dayOfWeek !== 0 && dayOfWeek !== 6) {
+      const dOW = cur.getDay();
+      if (dOW !== 0 && dOW !== 6) {
         if (isFerien(cur)) {
           found = true;
           break;
@@ -2783,13 +2851,13 @@ const App = (() => {
       cur.setDate(cur.getDate() + 1);
     }
 
-    if (found && schoolDays >= 0 && schoolDays <= 100) {
-      dom.ferienCountdown.style.display = '';
+    if (found) {
+      dom.ferienCountdown.style.display = 'inline-flex';
       if (schoolDays === 0) {
-        dom.ferienCountdown.innerHTML = `🏖️ <span class="cd-value">Morgen beginnen die Ferien!</span>`;
+        dom.ferienCountdown.innerHTML = `🏖️ Morgen Ferien!`;
       } else {
-        const tag = schoolDays === 1 ? 'Schultag' : 'Schultage';
-        dom.ferienCountdown.innerHTML = `🏖️ Noch <span class="cd-value">${schoolDays} ${tag}</span> bis zu den nächsten Ferien`;
+        const tag = schoolDays === 1 ? 'Tag' : 'Tage';
+        dom.ferienCountdown.innerHTML = `🏖️ <span class="cd-value">${schoolDays} ${tag}</span> bis Ferien`;
       }
     } else {
       dom.ferienCountdown.style.display = 'none';
@@ -2837,9 +2905,18 @@ const App = (() => {
     // Initialize day view index to today
     dayViewIdx = new Date().getDay() - 1;
 
-    // Default to day view on mobile (narrower than table min-width)
+    // Default to day view on mobile — set directly without animation
     if (window.innerWidth < 640) {
-      switchView('day');
+      currentView = 'day';
+      dom.tableWrap.style.display = 'none';
+      dom.dayView.style.display = '';
+      dom.monthView.style.display = 'none';
+      $('vt-week').classList.remove('active');
+      $('vt-week').setAttribute('aria-selected', 'false');
+      $('vt-day').classList.add('active');
+      $('vt-day').setAttribute('aria-selected', 'true');
+      buildDayTabs();
+      buildDayView();
     }
 
     update();

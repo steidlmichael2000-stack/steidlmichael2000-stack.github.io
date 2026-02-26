@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FST 1 Stundenplan</title>
+<link rel="icon" type="image/svg+xml" href="icon-512.svg">
+<link rel="apple-touch-icon" href="icon-512.svg">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#07080d">
 <meta name="mobile-web-app-capable" content="yes">
@@ -1314,15 +1316,15 @@ body, .glass, .status-card, .table-wrap, .day-view, .month-view-inner,
 <div class="header" role="banner">
   <div class="header-left">
     <h1>FST <span>1</span></h1>
-    <p>Josef-Greising-Schule · Stundenplan · <span id="semester-label"></span></p>
+    <p>Josef-Greising-Schule · Stundenplan · Sommersemester</p>
   </div>
   <div class="header-right">
     <span class="week-pill" id="week-pill" aria-live="polite">Woche A</span>
+    <button class="group-badge g1" id="group-badge" onclick="App.showGroupOverlay()" aria-label="Gruppe wechseln">Gruppe 1</button>
     <button class="theme-toggle" id="theme-toggle" onclick="App.toggleTheme()" aria-label="Farbmodus wechseln">
       <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
     </button>
-    <button class="group-badge g1" id="group-badge" onclick="App.showGroupOverlay()" aria-label="Gruppe wechseln">Gruppe 1</button>
     <div class="clock glass" id="live-clock" aria-live="off" aria-label="Aktuelle Uhrzeit">--:--:--</div>
   </div>
 </div>
@@ -1430,29 +1432,29 @@ const App = (() => {
   const LUNCH = { 0:8, 1:7, 2:7, 3:5 };
 
   const FACH_FULL = {
-    'Baukonstr':'Baukonstruktion','Baust. tech.':'Baustofftechnologie',
-    'Wi_PuG':'Wirtschaft, Politik & Gesellschaft','Statik':'Statik & Festigkeitslehre',
-    'Bauphysik':'Bauphysik','Baurecht':'Baurecht','Betr-psych':'Betriebspsychologie',
+    'Baukonstr':'Baukonstruktion','BauTech':'Baustofftechnologie',
+    'Wi_PuG':'Wirtschaft, Politik & Gesellschaft','Statik':'Baustatik',
+    'Bauphysik':'Bauphysik','Baurecht':'Baurecht','BetrPsych':'Betriebspsychologie',
     'CAD/Verm':'CAD & Vermessung','CAD/Lab':'CAD-Labor','EDV':'EDV','EDV/Lab':'EDV-Labor',
-    'Darst.G':'Darstellende Geometrie','Vermess':'Vermessung',
+    'DarstGeo':'Darstellende Geometrie','Vermess':'Vermessung',
     'Mathe':'Mathematik','Englisch':'Englisch','Deutsch':'Deutsch',
-    'CAD':'CAD','Labor':'Labor','CAD-Labor':'CAD-Labor',
+    'CAD':'CAD','Labor':'Betonlabor','CAD-Labor':'CAD-Labor',
   };
 
   const FACH_COLOR = {
-    'Baukonstr':'--c-bau','Baust. tech.':'--c-tech','Wi_PuG':'--c-wipug',
+    'Baukonstr':'--c-bau','BauTech':'--c-tech','Wi_PuG':'--c-wipug',
     'Statik':'--c-statik','Bauphysik':'--c-physik','Baurecht':'--c-recht',
-    'Betr-psych':'--c-psych','CAD':'--c-cad','CAD/Verm':'--c-cad',
+    'BetrPsych':'--c-psych','CAD':'--c-cad','CAD/Verm':'--c-cad',
     'CAD/Lab':'--c-cad','CAD-Labor':'--c-cad','EDV':'--c-edv','EDV/Lab':'--c-edv',
-    'Darst.G':'--c-darst','Vermess':'--c-verm','Mathe':'--c-mathe',
+    'DarstGeo':'--c-darst','Vermess':'--c-verm','Mathe':'--c-mathe',
     'Englisch':'--c-eng','Deutsch':'--c-deu','Labor':'--c-labor',
   };
 
   // Base schedule shared by both groups
   const COMMON = {
     0: {1:['Baukonstr','E 203','Reißer'],  2:['Baukonstr','E 203','Reißer'],
-        3:['Baust. tech.','E 203','Drexler'], 4:['Baust. tech.','E 203','Drexler'],
-        5:['Baust. tech.','E 203','Drexler'], 6:['Wi_PuG','E 203','Seiler'],
+        3:['BauTech','E 203','Drexler'], 4:['BauTech','E 203','Drexler'],
+        5:['BauTech','E 203','Drexler'], 6:['Wi_PuG','E 203','Seiler'],
         7:['Wi_PuG','E 203','Seiler'],     9:['Deutsch','E 203','Schnabel'],
        10:['Deutsch','E 203','Schnabel']},
     1: {2:['Statik','E 203','Schäfer'],    3:['Statik','E 203','Schäfer'],
@@ -1461,10 +1463,10 @@ const App = (() => {
         9:['Bauphysik','E 203','Küsel'],  10:['Bauphysik','E 203','Küsel']},
     2: {1:['Mathe','E 203','Hinte'],       2:['Mathe','E 203','Hinte'],
         3:['Baurecht','E 203','Carl'],     4:['Baurecht','E 203','Carl'],
-        5:['Betr-psych','E 203','Papsdorf'],6:['Betr-psych','E 203','Papsdorf']},
+        5:['BetrPsych','E 203','Papsdorf'],6:['BetrPsych','E 203','Papsdorf']},
     3: {6:['Mathe','E 203','Hinte'],       7:['Mathe','E 203','Hinte'],
         8:['Mathe','E 203','Hinte']},
-    4: {1:['Darst.G','E 203','Schwemmer'],2:['Darst.G','E 203','Schwemmer'],
+    4: {1:['DarstGeo','E 203','Schwemmer'],2:['DarstGeo','E 203','Schwemmer'],
         3:['Baukonstr','E 203','Reißer'], 4:['Baukonstr','E 203','Reißer']},
   };
 
@@ -1639,7 +1641,6 @@ const App = (() => {
     dom = {
       clock: $('live-clock'),
       weekPill: $('week-pill'),
-      semesterLabel: $('semester-label'),
       weekendBanner: $('weekend-banner'),
       ferienBanner: $('ferien-banner'),
       ferienCountdown: $('ferien-countdown'),
@@ -1681,10 +1682,11 @@ const App = (() => {
   }
 
   // Subject tag HTML
-  function subjTag(abbr) {
+  function subjTag(abbr, displayName) {
     const v = FACH_COLOR[abbr] || '--muted';
     const c = `var(${v})`;
-    return `<span class="subj-tag" style="color:${c};background:color-mix(in srgb,${c} 14%,transparent)">${abbr}</span>`;
+    const text = displayName || abbr;
+    return `<span class="subj-tag" style="color:${c};background:color-mix(in srgb,${c} 14%,transparent)">${text}</span>`;
   }
 
   // Get computed CSS color for subject
@@ -1789,12 +1791,16 @@ const App = (() => {
       dom.tableWrap.classList.add('switching');
       setTimeout(() => {
         buildTable();
+        lastDayViewMinute = -1;
         update();
+        if (currentView === 'day') buildDayView();
         dom.tableWrap.classList.remove('switching');
       }, 280);
     } else {
       buildTable();
+      lastDayViewMinute = -1;
       update();
+      if (currentView === 'day') buildDayView();
     }
   }
 
@@ -2155,20 +2161,24 @@ const App = (() => {
     };
 
     const outEl = views[prev];
+    // Temporarily disable overflow on table-wrap so transform isn't clipped
+    if (prev === 'week') outEl.style.overflow = 'hidden';
     outEl.classList.add(goingRight ? 'slide-out-left' : 'slide-out-right');
 
     setTimeout(() => {
       Object.values(views).forEach(v => {
         v.style.display = 'none';
+        v.style.overflow = '';
         v.classList.remove('slide-out-left', 'slide-out-right', 'slide-in-left', 'slide-in-right', 'switching');
       });
 
       const inEl = views[view];
+      // Disable overflow on table-wrap during slide-in
+      if (view === 'week') inEl.style.overflow = 'hidden';
       inEl.style.display = '';
       inEl.classList.add(goingRight ? 'slide-in-left' : 'slide-in-right');
 
       if (view === 'day') {
-        // Only reset to today if not explicitly set (e.g. from calendar tap)
         if (!dayViewExplicit) {
           dayViewIdx = new Date().getDay() - 1;
         }
@@ -2184,8 +2194,16 @@ const App = (() => {
         renderCalendar();
       }
 
+      // Force layout so the browser registers the initial slide-in position
+      void inEl.offsetHeight;
+
+      // Now remove the slide-in class — the CSS transition animates it to final position
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => inEl.classList.remove('slide-in-left', 'slide-in-right'));
+        inEl.classList.remove('slide-in-left', 'slide-in-right');
+        // Restore table overflow after animation completes
+        if (view === 'week') {
+          setTimeout(() => { inEl.style.overflow = ''; inEl.style.overflowX = 'auto'; }, 300);
+        }
       });
     }, 260);
   }
@@ -2401,8 +2419,7 @@ const App = (() => {
         <div class="dt-content">
           <div class="dt-card lesson" ${slotActive ? `style="border-color:${subjColor}20;background:${subjColor}0a"` : ''}>
             <div class="dt-card-top">
-              ${subjTag(info[0])}
-              <span class="dt-card-subj">${info[0]}</span>
+              ${subjTag(info[0], FACH_FULL[info[0]] || info[0])}
               <span class="dt-card-time">${fmt(slot.start)} – ${fmt(slot.end)}</span>
             </div>
             <div class="dt-card-info">${info[2]} · ${info[1]}</div>
@@ -2741,14 +2758,18 @@ const App = (() => {
   function updateFerienCountdown() {
     if (!ferienLoaded || !dom.ferienCountdown) return;
     const now = new Date();
-    if (isFerien(now)) { dom.ferienCountdown.style.display = 'none'; return; }
 
-    // Count school days until next ferien
+    // If currently in ferien, hide (don't count down to current ferien)
+    if (isFerien(now) && now.getDay() !== 0 && now.getDay() !== 6) {
+      dom.ferienCountdown.style.display = 'none';
+      return;
+    }
+
+    // Count school days until next ferien block
     let schoolDays = 0;
     const cur = new Date(now);
     cur.setDate(cur.getDate() + 1);
     let found = false;
-    let ferienName = '';
 
     for (let i = 0; i < 200; i++) {
       const dayOfWeek = cur.getDay();
@@ -2762,21 +2783,17 @@ const App = (() => {
       cur.setDate(cur.getDate() + 1);
     }
 
-    if (found && schoolDays > 0 && schoolDays <= 30) {
+    if (found && schoolDays >= 0 && schoolDays <= 100) {
       dom.ferienCountdown.style.display = '';
-      const tag = schoolDays === 1 ? 'Schultag' : 'Schultage';
-      dom.ferienCountdown.innerHTML = `🏖️ Noch <span class="cd-value">${schoolDays} ${tag}</span> bis zu den nächsten Ferien`;
+      if (schoolDays === 0) {
+        dom.ferienCountdown.innerHTML = `🏖️ <span class="cd-value">Morgen beginnen die Ferien!</span>`;
+      } else {
+        const tag = schoolDays === 1 ? 'Schultag' : 'Schultage';
+        dom.ferienCountdown.innerHTML = `🏖️ Noch <span class="cd-value">${schoolDays} ${tag}</span> bis zu den nächsten Ferien`;
+      }
     } else {
       dom.ferienCountdown.style.display = 'none';
     }
-  }
-
-  // ─── SEMESTER LABEL ────────────────────────────
-  function updateSemesterLabel() {
-    if (!dom.semesterLabel) return;
-    const m = new Date().getMonth(); // 0-11
-    // Sep-Feb = Wintersemester, Mar-Aug = Sommersemester (roughly)
-    dom.semesterLabel.textContent = (m >= 2 && m <= 7) ? 'Sommersemester' : 'Wintersemester';
   }
 
   // ─── THEME TOGGLE ───────────────────────────────
@@ -2807,7 +2824,6 @@ const App = (() => {
     initTheme();
     cacheDom();
     initSwipe();
-    updateSemesterLabel();
 
     await loadFerien();
     updateFerienCountdown();

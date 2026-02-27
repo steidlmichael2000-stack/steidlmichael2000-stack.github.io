@@ -259,7 +259,6 @@ body::after {
   gap: var(--sp-md);
   margin-bottom: var(--sp-md);
   padding: 0 2px;
-  position: relative;
 }
 .header-left h1 {
   font-size: 1.6rem;
@@ -292,21 +291,18 @@ body::after {
   box-sizing: border-box;
 }
 
+.header-title-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
 .clock {
-  position: absolute;
-  top: 0;
-  right: 2px;
   font-family: var(--mono);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
   font-weight: 500;
-  padding: 4px 10px;
-  border-radius: var(--r-sm);
-  color: var(--accent);
+  color: var(--muted);
   letter-spacing: 0.05em;
   white-space: nowrap;
-  text-shadow: 0 0 18px rgba(245,158,11,0.25);
-  background: var(--surface);
-  border: 1px solid var(--surface-border);
 }
 
 .group-badge {
@@ -1192,9 +1188,7 @@ td {
 [data-theme="light"] .group-btn.g2:hover { box-shadow: 0 8px 32px rgba(219,39,119,0.15); }
 
 [data-theme="light"] .clock {
-  text-shadow: 0 0 18px rgba(217,119,6,0.2);
-  background: var(--bg);
-  border-color: rgba(0,0,0,0.08);
+  color: var(--muted);
 }
 [data-theme="light"] .ferien-cd {
   background: rgba(5,150,105,0.08);
@@ -1344,7 +1338,10 @@ body, .glass, .status-card, .table-wrap, .day-view, .month-view-inner,
 <!-- ═══════════════ HEADER ═══════════════ -->
 <div class="header" role="banner">
   <div class="header-left">
-    <h1>FST <span>1</span></h1>
+    <div class="header-title-row">
+      <h1>FST <span>1</span></h1>
+      <div class="clock" id="live-clock" aria-live="off" aria-label="Aktuelle Uhrzeit">--:--:--</div>
+    </div>
     <p>Josef-Greising-Schule · Stundenplan · Sommersemester</p>
   </div>
   <div class="header-right">
@@ -1357,7 +1354,6 @@ body, .glass, .status-card, .table-wrap, .day-view, .month-view-inner,
     </button>
   </div>
 </div>
-<div class="clock" id="live-clock" aria-live="off" aria-label="Aktuelle Uhrzeit">--:--:--</div>
 
 <!-- ═══════════════ BANNERS ═══════════════ -->
 <div id="weekend-banner" class="banner glass" role="status">🎉 Wochenende – genieß die freie Zeit!</div>
@@ -2857,7 +2853,7 @@ const App = (() => {
         dom.ferienCountdown.innerHTML = `🏖️ Morgen Ferien!`;
       } else {
         const tag = schoolDays === 1 ? 'Tag' : 'Tage';
-        dom.ferienCountdown.innerHTML = `🏖️ <span class="cd-value">${schoolDays} ${tag}</span> bis Ferien`;
+        dom.ferienCountdown.innerHTML = `🏖️ <span class="cd-value">${schoolDays} ${tag}</span>&nbsp;bis Ferien`;
       }
     } else {
       dom.ferienCountdown.style.display = 'none';

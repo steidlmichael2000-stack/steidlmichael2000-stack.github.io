@@ -1531,6 +1531,12 @@ body, .glass, .status-card, .table-wrap, .day-view, .month-view-inner,
           <span class="toggle-knob"></span>
         </button>
       </div>
+      <div class="settings-row">
+        <span>Infobar (Woche / Gruppe)</span>
+        <button class="toggle-switch" id="toggle-infobar" onclick="App.toggleSetting('showInfobar')" role="switch" aria-checked="true">
+          <span class="toggle-knob"></span>
+        </button>
+      </div>
     </div>
 
     <div class="settings-section">
@@ -1908,6 +1914,7 @@ const App = (() => {
   // Settings
   const settings = {
     showFerien: localStorage.getItem('fst1_showFerien') !== 'false',
+    showInfobar: localStorage.getItem('fst1_showInfobar') !== 'false',
     mergeBlocks: localStorage.getItem('fst1_mergeBlocks') !== 'false',
     compact: localStorage.getItem('fst1_compact') === 'true',
     startView: localStorage.getItem('fst1_startView') || 'auto',
@@ -3341,6 +3348,7 @@ const App = (() => {
     const isDark = (document.documentElement.getAttribute('data-theme') || 'dark') === 'dark';
     $('toggle-theme').setAttribute('aria-checked', isDark ? 'true' : 'false');
     $('toggle-ferien').setAttribute('aria-checked', settings.showFerien ? 'true' : 'false');
+    $('toggle-infobar').setAttribute('aria-checked', settings.showInfobar ? 'true' : 'false');
     $('toggle-merge').setAttribute('aria-checked', settings.mergeBlocks ? 'true' : 'false');
     $('toggle-compact').setAttribute('aria-checked', settings.compact ? 'true' : 'false');
 
@@ -3379,6 +3387,11 @@ const App = (() => {
     syncSettingsUI();
 
     if (key === 'showFerien') updateFerienCountdown();
+    if (key === 'showInfobar') {
+      document.querySelectorAll('.header-right .week-pill, .header-right .ferien-cd, .header-right .custom-cd, .header-right .group-badge').forEach(el => {
+        el.style.display = settings.showInfobar ? '' : 'none';
+      });
+    }
     if (key === 'mergeBlocks') { lastDayViewMinute = -1; if (currentView === 'day') buildDayView(); }
     if (key === 'compact') document.body.setAttribute('data-compact', settings.compact);
   }
@@ -3593,6 +3606,11 @@ const App = (() => {
     initTheme();
     applyAccent();
     if (settings.compact) document.body.setAttribute('data-compact', 'true');
+    if (!settings.showInfobar) {
+      document.querySelectorAll('.header-right .week-pill, .header-right .ferien-cd, .header-right .custom-cd, .header-right .group-badge').forEach(el => {
+        el.style.display = 'none';
+      });
+    }
     cacheDom();
     initSwipe();
 

@@ -154,10 +154,6 @@ body::after {
 .fade-content {
   transition: opacity 0.28s ease, transform 0.28s ease;
 }
-.fade-content.switching {
-  opacity: 0;
-  transform: translateY(8px) scale(0.985);
-}
 .fade-content.slide-out-left {
   opacity: 0;
   transform: translateX(-30px) scale(0.98);
@@ -165,14 +161,6 @@ body::after {
 .fade-content.slide-out-right {
   opacity: 0;
   transform: translateX(30px) scale(0.98);
-}
-.fade-content.slide-in-left {
-  opacity: 0;
-  transform: translateX(30px) scale(0.98);
-}
-.fade-content.slide-in-right {
-  opacity: 0;
-  transform: translateX(-30px) scale(0.98);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -300,6 +288,7 @@ body::after {
   font-family: var(--mono);
   font-size: 0.75rem;
   font-weight: 500;
+  font-variant-numeric: tabular-nums;
   color: var(--muted);
   letter-spacing: 0.05em;
   white-space: nowrap;
@@ -424,6 +413,7 @@ body::after {
   font-family: var(--mono);
   font-size: 0.8rem;
   font-weight: 500;
+  font-variant-numeric: tabular-nums;
   background: rgba(245,158,11,0.08);
   color: var(--accent);
   border: 1px solid rgba(245,158,11,0.18);
@@ -431,7 +421,9 @@ body::after {
   border-radius: var(--r-full);
   white-space: nowrap;
   letter-spacing: 0.04em;
-  transition: all var(--t-normal);
+  transition: color var(--t-normal), background var(--t-normal), border-color var(--t-normal);
+  min-width: 70px;
+  text-align: center;
 }
 .countdown-pill.blue {
   background: rgba(59,130,246,0.08);
@@ -460,8 +452,9 @@ body::after {
   height: 100%;
   border-radius: var(--r-full);
   background: linear-gradient(90deg, var(--accent), #fbbf24);
-  transition: width 1s linear;
+  transition: width 1s linear, background 0.5s ease;
   position: relative;
+  will-change: width;
 }
 .progress-fill::after {
   content: '';
@@ -566,7 +559,7 @@ thead tr th {
 }
 thead tr th.today-head {
   color: var(--accent);
-  background: rgba(245,158,11,0.05);
+  background: rgba(245,158,11,0.08);
   text-shadow: 0 0 14px rgba(245,158,11,0.25);
 }
 
@@ -610,7 +603,7 @@ td {
   display: block;
   line-height: 1.4;
 }
-.lesson-cell.today-col { background: rgba(255,255,255,0.012); }
+.lesson-cell.today-col { background: rgba(245,158,11,0.06); border-left-color: rgba(245,158,11,0.12); border-right-color: rgba(245,158,11,0.12); }
 .lesson-cell.active {
   background: rgba(245,158,11,0.07) !important;
   border-color: rgba(245,158,11,0.15) !important;
@@ -634,7 +627,7 @@ td {
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
 }
-.pause-cell.today-col { background: rgba(255,255,255,0.012); }
+.pause-cell.today-col { background: rgba(245,158,11,0.04); }
 .pause-cell.active { background: rgba(59,130,246,0.06) !important; }
 
 .lunch-cell {
@@ -650,7 +643,7 @@ td {
 .lunch-cell.active { background: rgba(16,185,129,0.1) !important; color: var(--green) !important; }
 
 .free-cell { height: 56px; }
-.free-cell.today-col { background: rgba(255,255,255,0.008); }
+.free-cell.today-col { background: rgba(245,158,11,0.03); }
 
 /* Tooltips */
 [data-tip] { position: relative; }
@@ -877,7 +870,6 @@ td {
   gap: var(--sp-sm);
   margin-bottom: 3px;
 }
-.dt-card-subj { font-size: 0.82rem; font-weight: 700; }
 .dt-card-time {
   font-family: var(--mono);
   font-size: 0.62rem;
@@ -889,7 +881,19 @@ td {
 /* Active states */
 .dt-slot.is-active .dt-card.lesson {
   background: rgba(255,255,255,0.05);
-  border-color: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.12);
+  box-shadow: 0 0 24px var(--active-glow, rgba(245,158,11,0.18)),
+              inset 0 0 20px var(--active-glow, rgba(245,158,11,0.04)),
+              0 4px 16px rgba(0,0,0,0.2);
+  animation: cardGlow 3s ease-in-out infinite;
+}
+@keyframes cardGlow {
+  0%, 100% { box-shadow: 0 0 18px var(--active-glow, rgba(245,158,11,0.14)),
+                          inset 0 0 16px var(--active-glow, rgba(245,158,11,0.03)),
+                          0 4px 16px rgba(0,0,0,0.2); }
+  50% { box-shadow: 0 0 32px var(--active-glow, rgba(245,158,11,0.28)),
+                    inset 0 0 28px var(--active-glow, rgba(245,158,11,0.06)),
+                    0 4px 20px rgba(0,0,0,0.25); }
 }
 .dt-slot.is-pause-active .dt-dot {
   border-color: var(--accent2);
@@ -1039,7 +1043,7 @@ td {
 /* ═══════════════════════════════════════════════════
    THEME TOGGLE BUTTON
    ═══════════════════════════════════════════════════ */
-.theme-toggle {
+.settings-btn {
   width: 32px;
   height: 32px;
   border-radius: var(--r-full);
@@ -1054,13 +1058,143 @@ td {
   flex-shrink: 0;
   padding: 0;
 }
-.theme-toggle:hover { background: var(--surface-strong); color: var(--text); }
-.theme-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-.theme-toggle svg { width: 18px; height: 18px; fill: currentColor; }
-.theme-toggle .icon-sun,
-.theme-toggle .icon-moon { display: none; }
-[data-theme="dark"] .theme-toggle .icon-sun { display: block; }
-[data-theme="light"] .theme-toggle .icon-moon { display: block; }
+.settings-btn:hover { background: var(--surface-strong); color: var(--text); }
+.settings-btn svg { width: 16px; height: 16px; }
+
+/* Settings panel */
+.settings-panel { margin-bottom: var(--sp-md); animation: slideIn 0.3s ease; }
+.settings-inner { border-radius: var(--r-lg); padding: var(--sp-md); max-height: 70vh; overflow-y: auto; }
+.settings-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--sp-md); }
+.settings-header h3 { font-size: 0.85rem; font-weight: 700; }
+.settings-close {
+  background: none; border: none; color: var(--muted); font-size: 1rem;
+  cursor: pointer; padding: 4px 8px; border-radius: var(--r-sm); transition: all var(--t-fast);
+}
+.settings-close:hover { color: var(--text); background: var(--surface); }
+.settings-section { margin-bottom: var(--sp-md); }
+.settings-section:last-child { margin-bottom: 0; }
+.settings-label {
+  display: block; font-size: 0.62rem; text-transform: uppercase;
+  letter-spacing: 0.12em; color: var(--muted); font-weight: 600; margin-bottom: var(--sp-sm);
+}
+.settings-group-btns { display: flex; gap: var(--sp-sm); }
+.sg-btn {
+  flex: 1; padding: 8px; border-radius: var(--r-md); border: 1.5px solid var(--surface-border);
+  background: var(--surface); color: var(--text-dim); font-family: var(--sans);
+  font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all var(--t-normal);
+}
+.sg-btn:hover { background: var(--surface-strong); }
+.sg-btn.active-g1 { border-color: rgba(167,139,250,0.5); color: var(--g1); background: rgba(167,139,250,0.08); }
+.sg-btn.active-g2 { border-color: rgba(244,114,182,0.5); color: var(--g2); background: rgba(244,114,182,0.08); }
+.settings-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0; font-size: 0.78rem; color: var(--text-dim);
+  border-bottom: 1px solid var(--border);
+}
+.settings-row:last-child { border-bottom: none; }
+.toggle-switch {
+  width: 40px; height: 22px; border-radius: var(--r-full);
+  background: rgba(255,255,255,0.1); border: none; cursor: pointer;
+  position: relative; transition: background var(--t-normal); flex-shrink: 0; padding: 0;
+}
+.toggle-switch[aria-checked="true"] { background: var(--green); }
+.toggle-knob {
+  position: absolute; top: 2px; left: 2px; width: 18px; height: 18px;
+  border-radius: 50%; background: white; transition: transform var(--t-normal);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+}
+.toggle-switch[aria-checked="true"] .toggle-knob { transform: translateX(18px); }
+
+/* Settings view/accent pickers */
+.settings-view-btns {
+  display: flex; gap: 4px;
+}
+.settings-view-btns.mini { gap: 3px; }
+.sv-btn {
+  flex: 1; padding: 6px 10px; border-radius: var(--r-sm); border: 1px solid var(--surface-border);
+  background: var(--surface); color: var(--text-dim); font-family: var(--sans);
+  font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all var(--t-normal); text-align: center;
+}
+.sv-btn:hover { background: var(--surface-strong); }
+.sv-btn.active { border-color: var(--accent); color: var(--accent); background: rgba(245,158,11,0.08); }
+.settings-view-btns.mini .sv-btn { padding: 4px 8px; font-size: 0.65rem; }
+.settings-view-btns.mini .sv-btn.active { border-color: var(--accent); color: var(--accent); }
+
+.color-picker-row {
+  display: flex; gap: 8px; flex-wrap: wrap;
+}
+.color-dot {
+  width: 28px; height: 28px; border-radius: 50%; border: 2px solid transparent;
+  cursor: pointer; transition: all var(--t-normal); padding: 0;
+}
+.color-dot:hover { transform: scale(1.15); }
+.color-dot.active { border-color: var(--text); box-shadow: 0 0 10px currentColor; }
+
+.settings-input {
+  flex: 1; min-width: 0; padding: 6px 10px; border-radius: var(--r-sm);
+  border: 1px solid var(--surface-border); background: var(--surface);
+  color: var(--text); font-family: var(--sans); font-size: 0.72rem;
+  outline: none; transition: border-color var(--t-normal);
+}
+.settings-input:focus { border-color: var(--accent); }
+.settings-input::placeholder { color: var(--muted); }
+input[type="date"].settings-input { color-scheme: dark; }
+[data-theme="light"] input[type="date"].settings-input { color-scheme: light; }
+
+.settings-action-btn {
+  padding: 6px 14px; border-radius: var(--r-sm); border: 1px solid var(--accent);
+  background: rgba(245,158,11,0.08); color: var(--accent); font-family: var(--sans);
+  font-size: 0.7rem; font-weight: 600; cursor: pointer; transition: all var(--t-normal); white-space: nowrap;
+}
+.settings-action-btn:hover { background: rgba(245,158,11,0.15); }
+.settings-action-btn.secondary { border-color: var(--surface-border); color: var(--muted); background: var(--surface); }
+.settings-action-btn.secondary:hover { background: var(--surface-strong); }
+.settings-action-btn.full { width: 100%; text-align: center; padding: 10px; }
+
+.settings-hint {
+  font-size: 0.65rem; color: var(--muted); margin-bottom: var(--sp-sm);
+}
+.subject-notes-list {
+  display: flex; flex-direction: column; gap: 6px;
+}
+.subj-note-row {
+  display: flex; align-items: center; gap: 6px;
+}
+.subj-note-row .subj-tag-mini {
+  font-size: 0.62rem; font-weight: 700; padding: 2px 8px; border-radius: var(--r-full);
+  white-space: nowrap; min-width: 60px; text-align: center;
+}
+.subj-note-row input {
+  flex: 1; padding: 5px 8px; border-radius: var(--r-sm);
+  border: 1px solid var(--surface-border); background: var(--surface);
+  color: var(--text); font-family: var(--sans); font-size: 0.68rem; outline: none;
+}
+.subj-note-row input:focus { border-color: var(--accent); }
+
+/* Custom countdown banner */
+.custom-cd {
+  display: none; font-size: 0.68rem; font-weight: 600; color: var(--accent);
+  background: rgba(245,158,11,0.06); border: 1px solid rgba(245,158,11,0.12);
+  border-radius: var(--r-full); padding: 0 12px; white-space: nowrap;
+  justify-content: center; height: 32px; align-items: center;
+}
+
+/* Compact mode */
+[data-compact="true"] .status-card { padding: 10px 14px; }
+[data-compact="true"] .status-main { font-size: 0.9rem; }
+[data-compact="true"] .lesson-cell { height: 42px; padding: 3px 4px; }
+[data-compact="true"] .subj-tag { font-size: 0.55rem; padding: 2px 6px; }
+[data-compact="true"] .lesson-cell .info { font-size: 8px; margin-top: 1px; }
+[data-compact="true"] .dt-card { padding: 6px 10px; }
+[data-compact="true"] .dt-card-top { margin-bottom: 1px; }
+[data-compact="true"] .dt-card-subj { font-size: 0.72rem; }
+[data-compact="true"] body { padding: var(--sp-sm) 10px 24px; }
+
+/* Subject note in day view */
+.dt-card-note {
+  font-size: 0.62rem; color: var(--accent); margin-top: 3px;
+  font-style: italic; opacity: 0.85;
+}
 
 /* ═══════════════════════════════════════════════════
    FERIEN COUNTDOWN
@@ -1308,7 +1442,7 @@ td {
 /* Smooth theme transition */
 body, .glass, .status-card, .table-wrap, .day-view, .month-view-inner,
 .view-toggle, .vt-btn, thead tr th, td, .clock, .week-pill,
-.countdown-pill, .banner, .group-btn, .group-badge, .theme-toggle,
+.countdown-pill, .banner, .group-btn, .group-badge, .settings-btn,
 .dt-card, .cal-day, .cal-nav, .cal-leg-item, .next-preview, .progress-bar {
   transition: background 0.35s ease, color 0.35s ease, border-color 0.35s ease, box-shadow 0.35s ease;
 }
@@ -1347,11 +1481,120 @@ body, .glass, .status-card, .table-wrap, .day-view, .month-view-inner,
   <div class="header-right">
     <span class="week-pill" id="week-pill" aria-live="polite">Woche A</span>
     <div id="ferien-countdown" class="ferien-cd" role="status"></div>
-    <button class="group-badge g1" id="group-badge" onclick="App.showGroupOverlay()" aria-label="Gruppe wechseln">Gruppe 1</button>
-    <button class="theme-toggle" id="theme-toggle" onclick="App.toggleTheme()" aria-label="Farbmodus wechseln">
-      <svg class="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-      <svg class="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+    <div id="custom-countdown" class="custom-cd" role="status"></div>
+    <button class="group-badge g1" id="group-badge" aria-label="Gruppe">Gruppe 1</button>
+    <button class="settings-btn" id="settings-btn" onclick="App.toggleSettings()" aria-label="Einstellungen">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
     </button>
+  </div>
+</div>
+
+<!-- ═══════════════ SETTINGS PANEL ═══════════════ -->
+<div id="settings-panel" class="settings-panel" style="display:none">
+  <div class="settings-inner glass">
+    <div class="settings-header">
+      <h3>Einstellungen</h3>
+      <button class="settings-close" onclick="App.toggleSettings()" aria-label="Schließen">✕</button>
+    </div>
+
+    <div class="settings-section">
+      <label class="settings-label">Gruppe</label>
+      <div class="settings-group-btns">
+        <button class="sg-btn" id="sg-1" onclick="App.selectGroup(1)">Gruppe 1</button>
+        <button class="sg-btn" id="sg-2" onclick="App.selectGroup(2)">Gruppe 2</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <label class="settings-label">Darstellung</label>
+      <div class="settings-row">
+        <span>Dark Mode</span>
+        <button class="toggle-switch" id="toggle-theme" onclick="App.toggleTheme()" role="switch" aria-checked="true">
+          <span class="toggle-knob"></span>
+        </button>
+      </div>
+      <div class="settings-row">
+        <span>Kompakte Ansicht</span>
+        <button class="toggle-switch" id="toggle-compact" onclick="App.toggleSetting('compact')" role="switch" aria-checked="false">
+          <span class="toggle-knob"></span>
+        </button>
+      </div>
+      <div class="settings-row">
+        <span>Ferien-Countdown</span>
+        <button class="toggle-switch" id="toggle-ferien" onclick="App.toggleSetting('showFerien')" role="switch" aria-checked="true">
+          <span class="toggle-knob"></span>
+        </button>
+      </div>
+      <div class="settings-row">
+        <span>Fachblöcke zusammenfassen</span>
+        <button class="toggle-switch" id="toggle-merge" onclick="App.toggleSetting('mergeBlocks')" role="switch" aria-checked="true">
+          <span class="toggle-knob"></span>
+        </button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <label class="settings-label">Startansicht</label>
+      <div class="settings-view-btns">
+        <button class="sv-btn" id="sv-auto" onclick="App.setStartView('auto')">Auto</button>
+        <button class="sv-btn" id="sv-week" onclick="App.setStartView('week')">Woche</button>
+        <button class="sv-btn" id="sv-day" onclick="App.setStartView('day')">Tag</button>
+        <button class="sv-btn" id="sv-month" onclick="App.setStartView('month')">Monat</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <label class="settings-label">Akzentfarbe</label>
+      <div class="color-picker-row" id="accent-picker">
+        <button class="color-dot" data-color="#f59e0b" style="background:#f59e0b" onclick="App.setAccent('#f59e0b')"></button>
+        <button class="color-dot" data-color="#3b82f6" style="background:#3b82f6" onclick="App.setAccent('#3b82f6')"></button>
+        <button class="color-dot" data-color="#10b981" style="background:#10b981" onclick="App.setAccent('#10b981')"></button>
+        <button class="color-dot" data-color="#8b5cf6" style="background:#8b5cf6" onclick="App.setAccent('#8b5cf6')"></button>
+        <button class="color-dot" data-color="#ec4899" style="background:#ec4899" onclick="App.setAccent('#ec4899')"></button>
+        <button class="color-dot" data-color="#ef4444" style="background:#ef4444" onclick="App.setAccent('#ef4444')"></button>
+        <button class="color-dot" data-color="#06b6d4" style="background:#06b6d4" onclick="App.setAccent('#06b6d4')"></button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <label class="settings-label">Eigener Countdown</label>
+      <div class="settings-row" style="flex-wrap:wrap;gap:8px">
+        <input type="text" class="settings-input" id="custom-cd-label" placeholder="Name (z.B. Klausur)" maxlength="30">
+        <input type="date" class="settings-input" id="custom-cd-date">
+        <button class="settings-action-btn" onclick="App.setCustomCountdown()">Setzen</button>
+        <button class="settings-action-btn secondary" onclick="App.clearCustomCountdown()">Löschen</button>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <label class="settings-label">Fach-Notizen</label>
+      <p class="settings-hint">Notizen erscheinen in der Tagesansicht unter dem Fach.</p>
+      <div id="subject-notes-list" class="subject-notes-list"></div>
+    </div>
+
+    <div class="settings-section">
+      <label class="settings-label">Benachrichtigungen</label>
+      <div class="settings-row">
+        <span>Vor Unterrichtsbeginn erinnern</span>
+        <button class="toggle-switch" id="toggle-notif" onclick="App.toggleNotifications()" role="switch" aria-checked="false">
+          <span class="toggle-knob"></span>
+        </button>
+      </div>
+      <div class="settings-row" id="notif-minutes-row" style="display:none">
+        <span>Minuten vorher</span>
+        <div class="settings-view-btns mini">
+          <button class="sv-btn" onclick="App.setNotifMinutes(5)">5</button>
+          <button class="sv-btn" onclick="App.setNotifMinutes(10)">10</button>
+          <button class="sv-btn" onclick="App.setNotifMinutes(15)">15</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <label class="settings-label">Export</label>
+      <button class="settings-action-btn full" onclick="App.exportICS()">📅 Stundenplan als .ics exportieren</button>
+    </div>
+
   </div>
 </div>
 
@@ -1659,8 +1902,27 @@ const App = (() => {
   let prevActiveDay = -1;
   let prevActiveRow = -1;
   let calYear, calMonth;
-  let dayViewIdx = -1; // which weekday the day view shows (0=Mo..4=Fr, -1=today)
-  let dayViewExplicit = false; // set when calendar tap navigates to specific day
+  let dayViewIdx = -1;
+  let dayViewExplicit = false;
+
+  // Settings
+  const settings = {
+    showFerien: localStorage.getItem('fst1_showFerien') !== 'false',
+    mergeBlocks: localStorage.getItem('fst1_mergeBlocks') !== 'false',
+    compact: localStorage.getItem('fst1_compact') === 'true',
+    startView: localStorage.getItem('fst1_startView') || 'auto',
+    accent: localStorage.getItem('fst1_accent') || '#f59e0b',
+    notif: localStorage.getItem('fst1_notif') === 'true',
+    notifMinutes: parseInt(localStorage.getItem('fst1_notifMinutes') || '10'),
+    customCdLabel: localStorage.getItem('fst1_customCdLabel') || '',
+    customCdDate: localStorage.getItem('fst1_customCdDate') || '',
+  };
+  // Subject notes: { "Mathe": "Taschenrechner!", ... }
+  let subjectNotes = {};
+  try { subjectNotes = JSON.parse(localStorage.getItem('fst1_notes') || '{}'); } catch(e) {}
+  // Custom subject colors: { "Mathe": "#ff0000", ... }
+  let customSubjColors = {};
+  try { customSubjColors = JSON.parse(localStorage.getItem('fst1_subjColors') || '{}'); } catch(e) {}
 
   // ─── DOM REFS (cached once) ────────────────────
   const $ = id => document.getElementById(id);
@@ -1696,6 +1958,8 @@ const App = (() => {
       monthView: $('month-view'),
       calTitle: $('cal-title'),
       calGrid: $('cal-grid'),
+      settingsPanel: $('settings-panel'),
+      customCountdown: $('custom-countdown'),
     };
   }
 
@@ -1812,18 +2076,21 @@ const App = (() => {
     localStorage.setItem('fst1_group', g);
     dom.groupOverlay.style.display = 'none';
     updateGroupBadge();
+    syncSettingsUI();
 
     // Invalidate cache
     cacheKey = '';
 
     if (was && was !== g) {
-      dom.tableWrap.classList.add('switching');
+      dom.tableWrap.style.opacity = '0';
+      dom.tableWrap.style.transition = 'opacity 0.25s ease';
       setTimeout(() => {
         buildTable();
         lastDayViewMinute = -1;
         update();
         if (currentView === 'day') buildDayView();
-        dom.tableWrap.classList.remove('switching');
+        dom.tableWrap.style.opacity = '1';
+        setTimeout(() => { dom.tableWrap.style.transition = ''; dom.tableWrap.style.opacity = ''; }, 280);
       }, 280);
     } else {
       buildTable();
@@ -1849,7 +2116,17 @@ const App = (() => {
     const tbody = dom.planBody;
     tbody.innerHTML = '';
     const now = new Date();
-    const wt = getWeekType(currentGroup, now);
+
+    // On weekends, show next week's schedule
+    const refDate = new Date(now);
+    const dayJs = now.getDay();
+    if (dayJs === 0 || dayJs === 6) {
+      // Advance to Monday
+      const daysUntilMonday = dayJs === 6 ? 2 : 1;
+      refDate.setDate(refDate.getDate() + daysUntilMonday);
+    }
+
+    const wt = getWeekType(currentGroup, refDate);
     const { sch, lun } = buildScheduleFor(currentGroup, wt);
 
     PLAN.forEach((slot, rowIdx) => {
@@ -1949,11 +2226,14 @@ const App = (() => {
     const inFerien = isFerien(now);
     dom.weekendBanner.style.display = isWeekend ? '' : 'none';
     dom.ferienBanner.style.display = (!isWeekend && inFerien) ? '' : 'none';
-    dom.statusCard.style.display = (isWeekend || inFerien) ? 'none' : '';
+
+    // Show status card on weekends too (with next lesson info)
+    dom.statusCard.style.display = inFerien && !isWeekend ? 'none' : '';
 
     // Update ferien countdown once per minute (and on first call)
     if (s === 0 || !dom.ferienCountdown._initialized) {
       updateFerienCountdown();
+      updateCustomCountdown();
       dom.ferienCountdown._initialized = true;
     }
 
@@ -1961,7 +2241,14 @@ const App = (() => {
       highlightColumn(-1, -1);
       if (currentView === 'day' && lastDayViewMinute !== -999) {
         buildDayView();
-        lastDayViewMinute = -999; // sentinel: built for non-school day, don't rebuild
+        lastDayViewMinute = -999;
+      }
+
+      // Weekend/ferien status card: show next school info
+      if (isWeekend && currentGroup) {
+        updateWeekendStatus(now);
+      } else if (inFerien) {
+        dom.statusCard.style.display = 'none';
       }
       return;
     }
@@ -1985,6 +2272,7 @@ const App = (() => {
 
     highlightColumn(dayIdx, activeRow);
     updateStatusCard(activeRow, activeType, secsLeft, totalSecs, dayIdx, nowM, nowS, sch, lun, wt);
+    checkNotifications(nowM, dayIdx, sch, lun);
 
     if (currentView === 'day') {
       // Full DOM rebuild only on minute change; just update marker position on seconds
@@ -2159,10 +2447,11 @@ const App = (() => {
 
   function showProgress(left, total, mode, color) {
     if (total <= 0) return;
-    const pct = Math.round(((total - left) / total) * 100);
+    const pct = ((total - left) / total) * 100;
+    const pctDisplay = Math.round(pct);
     dom.progressWrap.classList.remove('hidden');
-    dom.progressWrap.setAttribute('aria-valuenow', pct);
-    dom.progressFill.style.width = pct + '%';
+    dom.progressWrap.setAttribute('aria-valuenow', pctDisplay);
+    dom.progressFill.style.width = pct.toFixed(2) + '%';
 
     if (mode === 'blue') {
       dom.progressFill.classList.add('blue');
@@ -2170,7 +2459,7 @@ const App = (() => {
       dom.progressFill.style.background = `linear-gradient(90deg, ${color}90, ${color})`;
       dom.progressFill.style.setProperty('--prog-color', color);
     }
-    dom.progressPct.textContent = pct + '%';
+    dom.progressPct.textContent = pctDisplay + '%';
   }
 
   function showNext(curRow, dIdx, schedule, lunch) {
@@ -2191,6 +2480,63 @@ const App = (() => {
         return;
       }
     }
+  }
+
+  // ─── WEEKEND STATUS ──────────────────────────
+  function updateWeekendStatus(now) {
+    const { statusCard: card, statusDot: dot, statusLabel: label,
+            statusMain: main, statusSub: sub, countdownPill: cpill,
+            progressWrap: pWrap, progressFill: pFill, nextPreview: nextEl,
+            nextSubject: nextSubj, nextInfo } = dom;
+
+    card.className = 'status-card glass';
+    card.style.cssText = '';
+    dot.className = 'status-dot';
+    dot.style.cssText = '';
+    cpill.classList.add('hidden');
+    pWrap.classList.add('hidden');
+    nextEl.classList.add('hidden');
+
+    // Find next Monday (or next school day)
+    const DAY_NAMES = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag'];
+    for (let offset = 1; offset <= 7; offset++) {
+      const futureDate = new Date(now);
+      futureDate.setDate(futureDate.getDate() + offset);
+      const futureDayJs = futureDate.getDay();
+      if (futureDayJs === 0 || futureDayJs === 6) continue;
+      if (isFerien(futureDate)) continue;
+
+      const futureIdx = futureDayJs - 1;
+      const futureWt = getWeekType(currentGroup, futureDate);
+      const { sch: futureSch } = buildScheduleFor(currentGroup, futureWt);
+
+      // Find first lesson
+      for (let i = 0; i < PLAN.length; i++) {
+        const slot = PLAN[i];
+        if (slot.type !== 'hour') continue;
+        const info = futureSch[futureIdx]?.[slot.nr];
+        if (info) {
+          label.textContent = 'Nächster Unterricht';
+          main.textContent = `${DAY_NAMES[futureIdx]} um ${fmt(slot.start)} Uhr`;
+          const fullName = FACH_FULL[info[0]] || info[0];
+          sub.textContent = `${fullName} · ${info[2]} · ${info[1]}`;
+
+          // Show subject color
+          const subjColor = getSubjColor(info[0]);
+          if (subjColor) {
+            dot.style.background = subjColor;
+            dot.style.boxShadow = `0 0 10px ${subjColor}60`;
+            card.style.borderColor = `${subjColor}15`;
+          }
+          return;
+        }
+      }
+    }
+
+    // Fallback
+    label.textContent = 'Wochenende';
+    main.textContent = '🎉 Genieß die freie Zeit!';
+    sub.textContent = '';
   }
 
   // ─── VIEW SWITCHING ────────────────────────────
@@ -2393,19 +2739,86 @@ const App = (() => {
     // Build using DocumentFragment
     const frag = document.createDocumentFragment();
 
-    PLAN.forEach((slot, rowIdx) => {
-      if (rowIdx < firstRow) return;
-      if (rowIdx > lastRow) return;
+    // Pre-compute merged blocks: consecutive hours with same subject → one card
+    const mergedBlocks = [];
+    let i = firstRow;
+    while (i <= lastRow) {
+      const slot = PLAN[i];
+      if (slot.type === 'pause') { mergedBlocks.push({ type: 'pause', row: i }); i++; continue; }
+      if (slot.type !== 'hour') { i++; continue; }
 
-      const sM = toMins(slot.start), eM = toMins(slot.end);
-      const isNow = isToday && nowM >= sM && nowM < eM;
-      const isPast = isToday && nowM >= eM;
+      const isLunch = lun[showIdx] === slot.nr;
+      const info = sch[showIdx]?.[slot.nr];
 
+      if (!info && !isLunch) {
+        // Free slot — only show if there are more lessons after
+        let hasMore = false;
+        for (let r = i + 1; r <= lastRow; r++) {
+          const s = PLAN[r]; if (s.type === 'hour' && (sch[showIdx]?.[s.nr] || lun[showIdx] === s.nr)) { hasMore = true; break; }
+        }
+        if (hasMore) mergedBlocks.push({ type: 'free', row: i });
+        i++; continue;
+      }
+
+      if (isLunch) { mergedBlocks.push({ type: 'lunch', row: i }); i++; continue; }
+
+      // Regular lesson — look ahead for same subject if merging is enabled
+      const subj = info[0];
+      let endRow = i;
+      if (settings.mergeBlocks) {
+        for (let r = i + 1; r <= lastRow; r++) {
+          const s = PLAN[r];
+          if (s.type === 'pause') continue;
+          if (s.type !== 'hour') break;
+          const ri = sch[showIdx]?.[s.nr];
+          if (!ri || ri[0] !== subj) break;
+          endRow = r;
+        }
+      } // end if mergeBlocks
+      mergedBlocks.push({ type: 'lesson', startRow: i, endRow, info });
+      i = endRow + 1;
+      // Also skip trailing pause if it's between this block and the next (only when merging)
+      if (settings.mergeBlocks) {
+        while (i <= lastRow && PLAN[i].type === 'pause') {
+        // Check if next non-pause has same subject
+        let nextR = i + 1;
+        while (nextR <= lastRow && PLAN[nextR].type === 'pause') nextR++;
+        if (nextR <= lastRow && PLAN[nextR].type === 'hour') {
+          const nextInfo = sch[showIdx]?.[PLAN[nextR].nr];
+          if (nextInfo && nextInfo[0] === subj) {
+            // Absorb pause into block
+            endRow = nextR;
+            // Continue absorbing
+            for (let r = nextR + 1; r <= lastRow; r++) {
+              const s = PLAN[r];
+              if (s.type === 'pause') continue;
+              if (s.type !== 'hour') break;
+              const ri = sch[showIdx]?.[s.nr];
+              if (!ri || ri[0] !== subj) break;
+              endRow = r;
+            }
+            mergedBlocks[mergedBlocks.length - 1].endRow = endRow;
+            i = endRow + 1;
+            continue;
+          }
+        }
+        // Different subject after pause — render the pause
+        mergedBlocks.push({ type: 'pause', row: i });
+        i++;
+      }
+      } // end if mergeBlocks trailing-pause
+    }
+
+    // Render merged blocks
+    mergedBlocks.forEach(block => {
       const el = document.createElement('div');
       el.className = 'dt-slot';
 
-      // Pause
-      if (slot.type === 'pause') {
+      if (block.type === 'pause') {
+        const slot = PLAN[block.row];
+        const sM = toMins(slot.start), eM = toMins(slot.end);
+        const isNow = isToday && nowM >= sM && nowM < eM;
+        const isPast = isToday && nowM >= eM;
         el.classList.add('is-pause');
         if (isNow) el.classList.add('is-pause-active');
         if (isPast) el.classList.add('is-past');
@@ -2419,18 +2832,9 @@ const App = (() => {
         return;
       }
 
-      const isLunch = lun[showIdx] === slot.nr;
-      const info = sch[showIdx]?.[slot.nr];
-
-      // Free slot
-      if (!info && !isLunch) {
-        let hasMore = false;
-        for (let r = rowIdx + 1; r <= lastRow; r++) {
-          const s = PLAN[r];
-          if (s.type === 'hour' && (sch[showIdx]?.[s.nr] || lun[showIdx] === s.nr)) { hasMore = true; break; }
-        }
-        if (!hasMore) return;
-
+      if (block.type === 'free') {
+        const slot = PLAN[block.row];
+        const isPast = isToday && nowM >= toMins(slot.end);
         if (isPast) el.classList.add('is-past');
         el.innerHTML = `
           <div class="dt-time">
@@ -2445,11 +2849,13 @@ const App = (() => {
         return;
       }
 
-      // Lunch
-      if (isLunch) {
+      if (block.type === 'lunch') {
+        const slot = PLAN[block.row];
+        const sM = toMins(slot.start), eM = toMins(slot.end);
+        const isNow = isToday && nowM >= sM && nowM < eM;
+        const isPast = isToday && nowM >= eM;
         if (isNow) el.classList.add('is-lunch-active');
         if (isPast) el.classList.add('is-past');
-
         el.innerHTML = `
           <div class="dt-time"><span>${fmt(slot.start)}</span></div>
           <div class="dt-dot"></div>
@@ -2465,38 +2871,51 @@ const App = (() => {
         return;
       }
 
-      // Regular lesson
+      // Merged lesson block
+      const { info, startRow, endRow } = block;
+      const startSlot = PLAN[startRow];
+      const endSlot = PLAN[endRow];
       const subjColor = getSubjColor(info[0]) || '#f59e0b';
-      const block = findSubjectBlock(rowIdx, showIdx, sch, lun);
 
-      let isBlockActive = false;
-      if (isToday && block && !block.isLunch) {
-        const bStartS = toMins(PLAN[block.startRow].start) * 60;
-        const bEndS = toMins(PLAN[block.endRow].end) * 60;
-        isBlockActive = nowS >= bStartS && nowS < bEndS;
+      const bStartM = toMins(startSlot.start);
+      const bEndM = toMins(endSlot.end);
+      const bStartS = bStartM * 60;
+      const bEndS = bEndM * 60;
+      const isBlockActive = isToday && nowS >= bStartS && nowS < bEndS;
+      const isPast = isToday && nowM >= bEndM;
+
+      if (isBlockActive) el.classList.add('is-active');
+      if (isPast && !isBlockActive) el.classList.add('is-past');
+
+      // Count actual lesson hours in block
+      let hourCount = 0;
+      for (let r = startRow; r <= endRow; r++) {
+        if (PLAN[r].type === 'hour' && sch[showIdx]?.[PLAN[r].nr]) hourCount++;
       }
 
-      const slotActive = isNow || (isBlockActive && block && rowIdx >= block.startRow && rowIdx <= block.endRow);
-      if (slotActive) el.classList.add('is-active');
-      if (isPast && !slotActive) el.classList.add('is-past');
-
-      const dotStyle = slotActive
+      const dotStyle = isBlockActive
         ? `style="background:${subjColor};border-color:${subjColor};box-shadow:0 0 10px ${subjColor}80"`
         : (isPast ? `style="background:${subjColor};border-color:${subjColor}"` : '');
 
+      const hourLabel = hourCount > 1 ? `${startSlot.nr}.–${endSlot.nr}. Std` : `${startSlot.nr}. Std`;
+      const cardStyle = isBlockActive
+        ? `style="border-color:${subjColor}30;background:${subjColor}0a;--active-glow:${subjColor}25"`
+        : '';
+
       el.innerHTML = `
         <div class="dt-time">
-          <span class="dt-hour-nr">${slot.nr}.</span>
-          <span>${fmt(slot.start)}</span>
+          <span class="dt-hour-nr">${hourLabel}</span>
+          <span>${fmt(startSlot.start)}</span>
         </div>
         <div class="dt-dot" ${dotStyle}></div>
         <div class="dt-content">
-          <div class="dt-card lesson" ${slotActive ? `style="border-color:${subjColor}20;background:${subjColor}0a"` : ''}>
+          <div class="dt-card lesson" ${cardStyle}>
             <div class="dt-card-top">
               ${subjTag(info[0], FACH_FULL[info[0]] || info[0])}
-              <span class="dt-card-time">${fmt(slot.start)} – ${fmt(slot.end)}</span>
+              <span class="dt-card-time">${fmt(startSlot.start)} – ${fmt(endSlot.end)}</span>
             </div>
-            <div class="dt-card-info">${info[2]} · ${info[1]}</div>
+            <div class="dt-card-info">${info[2]} · ${info[1]}${hourCount > 1 ? ` · ${hourCount} Stunden` : ''}</div>
+            ${subjectNotes[info[0]] ? `<div class="dt-card-note">📝 ${subjectNotes[info[0]]}</div>` : ''}
           </div>
         </div>`;
 
@@ -2504,6 +2923,16 @@ const App = (() => {
     });
 
     timeline.appendChild(frag);
+
+    // Auto-scroll to active card on today
+    if (isToday) {
+      requestAnimationFrame(() => {
+        const activeSlot = timeline.querySelector('.dt-slot.is-active');
+        if (activeSlot) {
+          activeSlot.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+    }
 
     // ── Timeline progress (only for today) ──
     if (!isToday) {
@@ -2819,6 +3248,10 @@ const App = (() => {
   // ─── FERIEN COUNTDOWN ───────────────────────────
   function updateFerienCountdown() {
     if (!ferienLoaded || !dom.ferienCountdown) return;
+    if (!settings.showFerien) {
+      dom.ferienCountdown.style.display = 'none';
+      return;
+    }
     const now = new Date();
     const dayOfWeek = now.getDay();
     const isWeekday = dayOfWeek !== 0 && dayOfWeek !== 6;
@@ -2879,18 +3312,293 @@ const App = (() => {
     localStorage.setItem('fst1_theme', next);
     const meta = document.querySelector('meta[name="theme-color"]');
     if (meta) meta.content = next === 'light' ? '#f4f5f7' : '#07080d';
-    // Flush color cache so getSubjColor picks up new CSS values
     Object.keys(colorCache).forEach(k => delete colorCache[k]);
+    syncSettingsUI();
+    // Rebuild views with new colors
+    buildTable(); lastDayViewMinute = -1;
+    if (currentView === 'day') buildDayView();
+  }
+
+  // ─── SETTINGS PANEL ───────────────────────────
+  function toggleSettings() {
+    const panel = dom.settingsPanel;
+    if (panel.style.display === 'none') {
+      panel.style.display = '';
+      syncSettingsUI();
+      buildSubjectNotesList();
+    } else {
+      panel.style.display = 'none';
+    }
+  }
+
+  function syncSettingsUI() {
+    // Group buttons
+    const sg1 = $('sg-1'), sg2 = $('sg-2');
+    sg1.className = currentGroup === 1 ? 'sg-btn active-g1' : 'sg-btn';
+    sg2.className = currentGroup === 2 ? 'sg-btn active-g2' : 'sg-btn';
+
+    // Toggles
+    const isDark = (document.documentElement.getAttribute('data-theme') || 'dark') === 'dark';
+    $('toggle-theme').setAttribute('aria-checked', isDark ? 'true' : 'false');
+    $('toggle-ferien').setAttribute('aria-checked', settings.showFerien ? 'true' : 'false');
+    $('toggle-merge').setAttribute('aria-checked', settings.mergeBlocks ? 'true' : 'false');
+    $('toggle-compact').setAttribute('aria-checked', settings.compact ? 'true' : 'false');
+
+    // Start view
+    ['auto','week','day','month'].forEach(v => {
+      const btn = $(`sv-${v}`);
+      if (btn) btn.className = settings.startView === v ? 'sv-btn active' : 'sv-btn';
+    });
+
+    // Accent color
+    document.querySelectorAll('#accent-picker .color-dot').forEach(d => {
+      d.classList.toggle('active', d.dataset.color === settings.accent);
+    });
+
+    // Notifications
+    const notifOn = settings.notif;
+    $('toggle-notif').setAttribute('aria-checked', notifOn ? 'true' : 'false');
+    $('notif-minutes-row').style.display = notifOn ? '' : 'none';
+    if (notifOn) {
+      document.querySelectorAll('#notif-minutes-row .sv-btn').forEach(b => {
+        const mins = parseInt(b.textContent);
+        b.className = mins === settings.notifMinutes ? 'sv-btn active' : 'sv-btn';
+      });
+    }
+
+    // Custom countdown inputs
+    const cdLabel = $('custom-cd-label');
+    const cdDate = $('custom-cd-date');
+    if (cdLabel && !cdLabel.value && settings.customCdLabel) cdLabel.value = settings.customCdLabel;
+    if (cdDate && !cdDate.value && settings.customCdDate) cdDate.value = settings.customCdDate;
+  }
+
+  function toggleSetting(key) {
+    settings[key] = !settings[key];
+    localStorage.setItem(`fst1_${key}`, settings[key]);
+    syncSettingsUI();
+
+    if (key === 'showFerien') updateFerienCountdown();
+    if (key === 'mergeBlocks') { lastDayViewMinute = -1; if (currentView === 'day') buildDayView(); }
+    if (key === 'compact') document.body.setAttribute('data-compact', settings.compact);
+  }
+
+  // ── Start View
+  function setStartView(v) {
+    settings.startView = v;
+    localStorage.setItem('fst1_startView', v);
+    syncSettingsUI();
+  }
+
+  // ── Accent Color
+  function setAccent(color) {
+    settings.accent = color;
+    localStorage.setItem('fst1_accent', color);
+    document.documentElement.style.setProperty('--accent', color);
+    // Update accent-dependent pills
+    document.querySelectorAll('.week-pill:not(.b)').forEach(el => {
+      el.style.background = `${color}14`;
+      el.style.borderColor = `${color}2e`;
+      el.style.color = color;
+    });
+    Object.keys(colorCache).forEach(k => delete colorCache[k]);
+    syncSettingsUI();
+    buildTable(); lastDayViewMinute = -1;
+    if (currentView === 'day') buildDayView();
+  }
+
+  function applyAccent() {
+    if (settings.accent && settings.accent !== '#f59e0b') {
+      document.documentElement.style.setProperty('--accent', settings.accent);
+    }
+  }
+
+  // ── Custom Countdown
+  function setCustomCountdown() {
+    const label = $('custom-cd-label').value.trim();
+    const date = $('custom-cd-date').value;
+    if (!label || !date) return;
+    settings.customCdLabel = label;
+    settings.customCdDate = date;
+    localStorage.setItem('fst1_customCdLabel', label);
+    localStorage.setItem('fst1_customCdDate', date);
+    updateCustomCountdown();
+  }
+
+  function clearCustomCountdown() {
+    settings.customCdLabel = '';
+    settings.customCdDate = '';
+    localStorage.removeItem('fst1_customCdLabel');
+    localStorage.removeItem('fst1_customCdDate');
+    $('custom-cd-label').value = '';
+    $('custom-cd-date').value = '';
+    if (dom.customCountdown) dom.customCountdown.style.display = 'none';
+  }
+
+  function updateCustomCountdown() {
+    const el = dom.customCountdown;
+    if (!el || !settings.customCdDate || !settings.customCdLabel) { if (el) el.style.display = 'none'; return; }
+    const target = new Date(settings.customCdDate + 'T00:00:00');
+    const now = new Date();
+    now.setHours(0,0,0,0);
+    const diff = Math.ceil((target - now) / (1000 * 60 * 60 * 24));
+    if (diff < 0) { el.style.display = 'none'; return; }
+    const tag = diff === 1 ? 'Tag' : 'Tage';
+    if (diff === 0) {
+      el.innerHTML = `🎯 <b>${settings.customCdLabel}</b> ist heute!`;
+    } else {
+      el.innerHTML = `🎯 <b>${diff}</b>&nbsp;${tag} bis ${settings.customCdLabel}`;
+    }
+    el.style.display = 'inline-flex';
+  }
+
+  // ── Subject Notes
+  function buildSubjectNotesList() {
+    const container = $('subject-notes-list');
+    if (!container || !currentGroup) return;
+    container.innerHTML = '';
+    // Get unique subjects from both week types
+    const subjects = new Set();
+    ['A', 'B'].forEach(wt => {
+      const { sch } = buildScheduleFor(currentGroup, wt);
+      Object.values(sch).forEach(day => {
+        if (!day) return;
+        Object.values(day).forEach(info => { if (info && info[0]) subjects.add(info[0]); });
+      });
+    });
+    [...subjects].sort().forEach(subj => {
+      const row = document.createElement('div');
+      row.className = 'subj-note-row';
+      const color = getSubjColor(subj) || 'var(--muted)';
+      const fullName = FACH_FULL[subj] || subj;
+      row.innerHTML = `
+        <span class="subj-tag-mini" style="background:${color}18;color:${color};border:1px solid ${color}30">${subj}</span>
+        <input type="text" placeholder="Notiz für ${fullName}…" maxlength="60"
+               value="${(subjectNotes[subj] || '').replace(/"/g, '&quot;')}"
+               data-subj="${subj}">
+      `;
+      row.querySelector('input').addEventListener('input', e => {
+        const val = e.target.value.trim();
+        if (val) subjectNotes[subj] = val;
+        else delete subjectNotes[subj];
+        localStorage.setItem('fst1_notes', JSON.stringify(subjectNotes));
+        if (currentView === 'day') { lastDayViewMinute = -1; buildDayView(); }
+      });
+      container.appendChild(row);
+    });
+  }
+
+  // ── Notifications
+  function toggleNotifications() {
+    if (!settings.notif) {
+      if ('Notification' in window && Notification.permission !== 'granted') {
+        Notification.requestPermission().then(perm => {
+          if (perm === 'granted') {
+            settings.notif = true;
+            localStorage.setItem('fst1_notif', 'true');
+          }
+          syncSettingsUI();
+        });
+        return;
+      }
+      settings.notif = true;
+    } else {
+      settings.notif = false;
+    }
+    localStorage.setItem('fst1_notif', settings.notif);
+    syncSettingsUI();
+  }
+
+  function setNotifMinutes(m) {
+    settings.notifMinutes = m;
+    localStorage.setItem('fst1_notifMinutes', m);
+    syncSettingsUI();
+  }
+
+  let lastNotifKey = '';
+  function checkNotifications(nowM, dayIdx, sch, lun) {
+    if (!settings.notif || !('Notification' in window) || Notification.permission !== 'granted') return;
+    const mins = settings.notifMinutes;
+    // Find next lesson that starts in exactly `mins` minutes
+    for (let i = 0; i < PLAN.length; i++) {
+      const slot = PLAN[i];
+      if (slot.type !== 'hour') continue;
+      const sM = toMins(slot.start);
+      if (sM - nowM === mins) {
+        const info = sch[dayIdx]?.[slot.nr];
+        if (!info) continue;
+        const key = `${dayIdx}-${slot.nr}-${sM}`;
+        if (key === lastNotifKey) return; // already sent
+        lastNotifKey = key;
+        const fullName = FACH_FULL[info[0]] || info[0];
+        new Notification(`${fullName} in ${mins} Minuten`, {
+          body: `${info[2]} · ${info[1]} · ${fmt(slot.start)} Uhr`,
+          icon: './icon-192.png',
+          tag: 'fst1-lesson',
+        });
+        return;
+      }
+    }
+  }
+
+  // ── ICS Export
+  function exportICS() {
+    if (!currentGroup) return;
+    const now = new Date();
+    const monday = new Date(now);
+    const dayJs = now.getDay();
+    monday.setDate(now.getDate() - ((dayJs + 6) % 7));
+
+    let ics = 'BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//FST1//Stundenplan//DE\r\nCALSCALE:GREGORIAN\r\n';
+
+    // Export 20 weeks
+    for (let w = 0; w < 20; w++) {
+      const weekStart = new Date(monday);
+      weekStart.setDate(monday.getDate() + w * 7);
+      const wt = getWeekType(currentGroup, weekStart);
+      const { sch, lun } = buildScheduleFor(currentGroup, wt);
+
+      for (let d = 0; d < 5; d++) {
+        const date = new Date(weekStart);
+        date.setDate(weekStart.getDate() + d);
+        if (isFerien(date)) continue;
+
+        const dateStr = dateToKey(date).replace(/-/g, '');
+        const dayLessons = sch[d];
+        if (!dayLessons) continue;
+
+        Object.entries(dayLessons).forEach(([nr, info]) => {
+          const slot = PLAN.find(s => s.type === 'hour' && s.nr === parseInt(nr));
+          if (!slot || !info) return;
+          const fullName = FACH_FULL[info[0]] || info[0];
+          const startT = `${pad(slot.start[0])}${pad(slot.start[1])}00`;
+          const endT = `${pad(slot.end[0])}${pad(slot.end[1])}00`;
+          ics += `BEGIN:VEVENT\r\nDTSTART:${dateStr}T${startT}\r\nDTEND:${dateStr}T${endT}\r\n`;
+          ics += `SUMMARY:${fullName}\r\nLOCATION:${info[1]}\r\nDESCRIPTION:${info[2]}\r\nEND:VEVENT\r\n`;
+        });
+      }
+    }
+    ics += 'END:VCALENDAR\r\n';
+
+    const blob = new Blob([ics], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `FST1_Stundenplan_Gruppe${currentGroup}.ics`;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   }
 
   // ─── INIT ──────────────────────────────────────
   async function init() {
     initTheme();
+    applyAccent();
+    if (settings.compact) document.body.setAttribute('data-compact', 'true');
     cacheDom();
     initSwipe();
 
     await loadFerien();
     updateFerienCountdown();
+    updateCustomCountdown();
 
     if (currentGroup) {
       dom.groupOverlay.style.display = 'none';
@@ -2901,18 +3609,27 @@ const App = (() => {
     // Initialize day view index to today
     dayViewIdx = new Date().getDay() - 1;
 
-    // Default to day view on mobile — set directly without animation
-    if (window.innerWidth < 640) {
-      currentView = 'day';
-      dom.tableWrap.style.display = 'none';
-      dom.dayView.style.display = '';
-      dom.monthView.style.display = 'none';
-      $('vt-week').classList.remove('active');
-      $('vt-week').setAttribute('aria-selected', 'false');
-      $('vt-day').classList.add('active');
-      $('vt-day').setAttribute('aria-selected', 'true');
-      buildDayTabs();
-      buildDayView();
+    // Determine start view
+    const sv = settings.startView;
+    const isMobile = window.innerWidth < 640;
+    const initialView = sv === 'auto' ? (isMobile ? 'day' : 'week') : sv;
+
+    if (initialView !== 'week') {
+      currentView = initialView;
+      dom.tableWrap.style.display = initialView === 'week' ? '' : 'none';
+      dom.dayView.style.display = initialView === 'day' ? '' : 'none';
+      dom.monthView.style.display = initialView === 'month' ? '' : 'none';
+      ['week', 'day', 'month'].forEach(v => {
+        const btn = $(`vt-${v}`);
+        btn.classList.toggle('active', v === initialView);
+        btn.setAttribute('aria-selected', v === initialView);
+      });
+      if (initialView === 'day') { buildDayTabs(); buildDayView(); }
+      if (initialView === 'month') {
+        const now = new Date();
+        calYear = now.getFullYear(); calMonth = now.getMonth();
+        renderCalendar();
+      }
     }
 
     update();
@@ -2934,7 +3651,9 @@ const App = (() => {
   }
 
   // Public API (for onclick handlers)
-  return { selectGroup, showGroupOverlay, switchView, calNav, toggleTheme, selectDayTab };
+  return { selectGroup, showGroupOverlay, switchView, calNav, toggleTheme, selectDayTab,
+           toggleSettings, toggleSetting, setStartView, setAccent, setCustomCountdown,
+           clearCustomCountdown, toggleNotifications, setNotifMinutes, exportICS };
 })();
 </script>
 </body>

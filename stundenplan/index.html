@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>FST 2 TB · Stundenplan</title>
+<meta name="description" content="Stundenplan der FST 2 TB – Josef-Greising-Schule Würzburg, Wintersemester 2026/27. Mit Live-Status, Tages- und Monatsansicht, offline nutzbar.">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#07080d">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="FST 2 TB">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="app.css">
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ═══════════════ HEADER ═══════════════ -->
+  <header class="header">
+    <div class="header-left">
+      <a class="home-link" href="../">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+        Übersicht
+      </a>
+      <div class="header-title-row">
+        <h1>FST <span>2 TB</span></h1>
+        <div class="clock" id="live-clock" aria-label="Aktuelle Uhrzeit">--:--:--</div>
+      </div>
+      <p id="header-sub">Josef-Greising-Schule · Wintersemester 2026/27</p>
+    </div>
+
+    <div class="header-right">
+      <div class="pill pill-green hidden" id="ferien-countdown" role="status"></div>
+      <div class="pill pill-accent hidden" id="custom-countdown" role="status"></div>
+      <button class="icon-btn" id="theme-btn" aria-label="Hell/Dunkel umschalten" title="Hell/Dunkel">
+        <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+      </button>
+      <button class="icon-btn" id="settings-btn" aria-label="Einstellungen" aria-expanded="false" title="Einstellungen">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ═══════════════ UPDATE-HINWEIS ═══════════════ -->
+  <div class="update-banner" id="update-banner" role="status">
+    <span>Neue Version verfügbar.</span>
+    <button type="button" id="update-reload">Jetzt laden</button>
+  </div>
+
+  <!-- ═══════════════ EINSTELLUNGEN ═══════════════ -->
+  <section class="settings-panel" id="settings-panel" hidden aria-label="Einstellungen">
+    <div class="settings-inner glass">
+      <div class="settings-header">
+        <h2>Einstellungen</h2>
+        <button class="icon-btn" id="settings-close" aria-label="Einstellungen schließen">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div class="settings-section">
+        <span class="settings-label">Mein Plan</span>
+        <div class="settings-row">
+          <span class="sr-text">
+            Kompletten Klassenplan zeigen
+            <span class="sr-hint">Stunden, die für dich wegfallen (Mathe, Mo 9.–11.), erscheinen ausgegraut und durchgestrichen.</span>
+          </span>
+          <button class="toggle-switch" id="tg-showAll" role="switch" aria-checked="false"><span class="toggle-knob"></span></button>
+        </div>
+        <div class="settings-row">
+          <span class="sr-text">
+            Freistunden anzeigen
+            <span class="sr-hint">Leere Stunden zwischen dem Unterricht als Freistunde markieren.</span>
+          </span>
+          <button class="toggle-switch" id="tg-showFree" role="switch" aria-checked="true"><span class="toggle-knob"></span></button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <span class="settings-label">Darstellung</span>
+        <div class="settings-row">
+          <span class="sr-text">Kompakte Ansicht</span>
+          <button class="toggle-switch" id="tg-compact" role="switch" aria-checked="false"><span class="toggle-knob"></span></button>
+        </div>
+        <div class="settings-row">
+          <span class="sr-text">Fachblöcke zusammenfassen</span>
+          <button class="toggle-switch" id="tg-mergeBlocks" role="switch" aria-checked="true"><span class="toggle-knob"></span></button>
+        </div>
+        <div class="settings-row">
+          <span class="sr-text">Ferien-Countdown</span>
+          <button class="toggle-switch" id="tg-showFerien" role="switch" aria-checked="true"><span class="toggle-knob"></span></button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <span class="settings-label">Startansicht</span>
+        <div class="btn-row" id="startview-row">
+          <button class="chip-btn" data-view="auto">Auto</button>
+          <button class="chip-btn" data-view="week">Woche</button>
+          <button class="chip-btn" data-view="day">Tag</button>
+          <button class="chip-btn" data-view="month">Monat</button>
+        </div>
+        <p class="settings-hint" style="margin-top:8px;margin-bottom:0">Auto: am Schultag die Tagesansicht, sonst die Woche.</p>
+      </div>
+
+      <div class="settings-section">
+        <span class="settings-label">Akzentfarbe</span>
+        <div class="color-picker-row" id="accent-picker"></div>
+      </div>
+
+      <div class="settings-section">
+        <span class="settings-label">Eigener Countdown</span>
+        <div class="settings-row" style="flex-wrap:wrap;gap:8px;border:none;padding-top:0">
+          <input type="text" class="settings-input" id="cd-label" placeholder="Name (z. B. Prüfung Geotechnik)" maxlength="34">
+          <input type="date" class="settings-input" id="cd-date" aria-label="Datum des eigenen Countdowns">
+          <button class="action-btn" id="cd-set">Setzen</button>
+          <button class="action-btn secondary" id="cd-clear">Löschen</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <span class="settings-label">Benachrichtigungen</span>
+        <div class="settings-row">
+          <span class="sr-text">
+            Vor Unterrichtsbeginn erinnern
+            <span class="sr-hint">Funktioniert, solange die App im Hintergrund geöffnet bleibt.</span>
+          </span>
+          <button class="toggle-switch" id="tg-notif" role="switch" aria-checked="false"><span class="toggle-knob"></span></button>
+        </div>
+        <div class="settings-row" id="notif-min-row" hidden>
+          <span class="sr-text">Minuten vorher</span>
+          <div class="btn-row mini" id="notif-min-btns">
+            <button class="chip-btn" data-min="5">5</button>
+            <button class="chip-btn" data-min="10">10</button>
+            <button class="chip-btn" data-min="15">15</button>
+            <button class="chip-btn" data-min="30">30</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <span class="settings-label">Fach-Notizen</span>
+        <p class="settings-hint">Erscheinen in der Tagesansicht unter dem Fach – z. B. „Taschenrechner“ oder „Abgabe KW 48“.</p>
+        <div class="notes-list" id="notes-list"></div>
+      </div>
+
+      <div class="settings-section">
+        <span class="settings-label">Export</span>
+        <div class="btn-row">
+          <button class="action-btn full" id="btn-ics">Stundenplan als .ics exportieren</button>
+        </div>
+        <p class="settings-hint" style="margin-top:8px;margin-bottom:0">Nur deine Stunden, vom Semesterbeginn bis zum Semesterende, ohne Ferien und Feiertage. Ein Termin pro Fachblock.</p>
+      </div>
+
+      <div class="settings-section">
+        <span class="settings-label">Zurücksetzen</span>
+        <button class="action-btn secondary full" id="btn-reset">Alle Einstellungen &amp; Notizen löschen</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══════════════ BANNER ═══════════════ -->
+  <div class="banner" id="info-banner" role="status"></div>
+
+  <!-- ═══════════════ STATUS-KARTE ═══════════════ -->
+  <div class="status-card glass" id="status-card" role="status" aria-live="polite">
+    <span class="status-dot" id="status-dot" aria-hidden="true"></span>
+    <div class="status-text">
+      <div class="status-label" id="status-label">Status</div>
+      <div class="status-main" id="status-main">–</div>
+      <div class="status-sub" id="status-sub"></div>
+    </div>
+    <div class="countdown-pill hidden" id="countdown-pill" aria-label="Verbleibende Zeit">00:00</div>
+    <div class="progress-wrap hidden" id="progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+      <span class="progress-pct" id="progress-pct">0 %</span>
+    </div>
+    <div class="next-preview hidden" id="next-preview">
+      <span class="next-label">Danach</span>
+      <span class="next-subject" id="next-subject">–</span>
+      <span class="next-info" id="next-info"></span>
+    </div>
+  </div>
+
+  <!-- ═══════════════ ANSICHTEN ═══════════════ -->
+  <div class="view-toggle" id="view-toggle" role="tablist" aria-label="Ansicht wählen">
+    <button class="vt-btn active" data-view="week"  role="tab" aria-selected="true"  aria-controls="view-week">Woche</button>
+    <button class="vt-btn"        data-view="day"   role="tab" aria-selected="false" aria-controls="view-day">Tag</button>
+    <button class="vt-btn"        data-view="month" role="tab" aria-selected="false" aria-controls="view-month">Monat</button>
+    <button class="vt-btn"        data-view="subj"  role="tab" aria-selected="false" aria-controls="view-subj">Fächer</button>
+  </div>
+
+  <!-- Wochenansicht -->
+  <div class="table-wrap fade-content" id="view-week" role="tabpanel">
+    <table aria-label="Wochenplan">
+      <colgroup><col class="time-col"><col><col><col><col><col></colgroup>
+      <thead><tr>
+        <th scope="col">Zeit</th>
+        <th scope="col" id="head-0">Mo</th>
+        <th scope="col" id="head-1">Di</th>
+        <th scope="col" id="head-2">Mi</th>
+        <th scope="col" id="head-3">Do</th>
+        <th scope="col" id="head-4">Fr</th>
+      </tr></thead>
+      <tbody id="plan-body"></tbody>
+    </table>
+  </div>
+
+  <!-- Tagesansicht -->
+  <div class="day-view fade-content" id="view-day" role="tabpanel" hidden>
+    <div class="day-tabs" id="day-tabs" role="tablist" aria-label="Wochentag wählen"></div>
+    <div class="day-view-header" id="day-view-header"></div>
+    <div class="day-timeline" id="day-timeline"></div>
+  </div>
+
+  <!-- Monatsansicht -->
+  <div class="month-view fade-content" id="view-month" role="tabpanel" hidden>
+    <div class="month-view-inner">
+      <div class="cal-header">
+        <button class="cal-nav" id="cal-prev" aria-label="Vorheriger Monat">‹</button>
+        <h2 class="cal-title" id="cal-title" aria-live="polite">–</h2>
+        <button class="cal-nav" id="cal-next" aria-label="Nächster Monat">›</button>
+      </div>
+      <div class="cal-legend">
+        <span class="cal-leg-item leg-school">Schultag</span>
+        <span class="cal-leg-item leg-ferien">Ferien / frei</span>
+        <span class="cal-leg-item leg-outside">außerhalb des Semesters</span>
+      </div>
+      <div class="cal-grid" id="cal-grid" role="grid" aria-label="Kalender"></div>
+    </div>
+  </div>
+
+  <!-- Fächerübersicht -->
+  <div class="subjects-view fade-content" id="view-subj" role="tabpanel" hidden></div>
+
+  <p class="about" id="about"></p>
+
+</div>
+
+<script src="plan.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

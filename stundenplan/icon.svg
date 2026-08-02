@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-label="Stundenplan">
+  <rect width="32" height="32" rx="7" fill="#0b0f14"/>
+  <!-- Kopfzeile -->
+  <rect x="6" y="7" width="20" height="3.2" rx="1.6" fill="#34d399" opacity="0.55"/>
+  <!-- Raster: 3 x 3 Stunden, eine Zelle hervorgehoben -->
+  <rect x="6"    y="13"   width="5.4" height="5" rx="1.5" fill="#34d399" opacity="0.32"/>
+  <rect x="13.3" y="13"   width="5.4" height="5" rx="1.5" fill="#34d399"/>
+  <rect x="20.6" y="13"   width="5.4" height="5" rx="1.5" fill="#34d399" opacity="0.32"/>
+  <rect x="6"    y="20.3" width="5.4" height="5" rx="1.5" fill="#34d399" opacity="0.32"/>
+  <rect x="13.3" y="20.3" width="5.4" height="5" rx="1.5" fill="#34d399" opacity="0.32"/>
+  <rect x="20.6" y="20.3" width="5.4" height="5" rx="1.5" fill="#34d399" opacity="0.32"/>
+</svg>

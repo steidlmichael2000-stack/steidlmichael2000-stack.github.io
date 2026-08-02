@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32" role="img" aria-label="Übersicht">
+  <!-- Dunkles, abgerundetes Quadrat als Grundform (Seiten-Hintergrund #07080d) -->
+  <rect width="32" height="32" rx="7" fill="#07080d"/>
+  <!-- Grobes 2x2-Karten-Raster in Amber – alle vier Blöcke bleiben auch bei 16x16 sichtbar -->
+  <rect x="5"  y="5"  width="10" height="10" rx="2.6" fill="#f59e0b"/>
+  <rect x="17" y="5"  width="10" height="10" rx="2.6" fill="#f59e0b" opacity=".62"/>
+  <rect x="5"  y="17" width="10" height="10" rx="2.6" fill="#f59e0b" opacity=".62"/>
+  <rect x="17" y="17" width="10" height="10" rx="2.6" fill="#f59e0b" opacity=".42"/>
+</svg>

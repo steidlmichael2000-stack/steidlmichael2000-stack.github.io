@@ -100,14 +100,36 @@ body::after {
 
 .glass {
   background: var(--surface);
-  backdrop-filter: blur(20px) saturate(1.3);
-  -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  backdrop-filter: blur(22px) saturate(1.35);
+  -webkit-backdrop-filter: blur(22px) saturate(1.35);
   border: 1px solid var(--surface-border);
   border-radius: var(--r-lg);
+  /* Lichtkante oben + weicher Schlagschatten geben der Fläche Tiefe */
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.07),
+    0 22px 46px -28px rgba(0,0,0,0.8);
 }
 [data-theme="light"] .glass {
-  background: rgba(255,255,255,0.62);
+  background: rgba(255,255,255,0.66);
   border-color: rgba(0,0,0,0.08);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.9),
+    0 18px 40px -26px rgba(15,20,40,0.22);
+}
+
+/* dieselbe Tiefe für die Panels, die kein .glass tragen */
+.table-wrap, .day-view, .month-view-inner, .subjects-view {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.05),
+    0 22px 46px -30px rgba(0,0,0,0.75);
+}
+[data-theme="light"] .table-wrap,
+[data-theme="light"] .day-view,
+[data-theme="light"] .month-view-inner,
+[data-theme="light"] .subjects-view {
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,0.9),
+    0 18px 40px -28px rgba(15,20,40,0.2);
 }
 
 .sr-only {
@@ -119,10 +141,20 @@ body::after {
 @keyframes fadeIn  { from { opacity: 0; } }
 @keyframes slideIn { from { opacity: 0; transform: translateY(-6px); } }
 @keyframes tipIn   { from { opacity: 0; transform: translateX(-50%) translateY(4px); } }
+@keyframes riseIn  { from { opacity: 0; transform: translateY(7px); } }
 @keyframes glowPulse {
   0%, 100% { opacity: 0.85; filter: brightness(1); }
   50%      { opacity: 1;    filter: brightness(1.3); }
 }
+
+/* Gestaffeltes Einblenden — läuft nur beim Neuaufbau, nicht im Sekundentakt */
+#plan-body tr, .dt-slot, .subj-row {
+  animation: riseIn 0.38s var(--ease) backwards;
+}
+/* nach oben begrenzt, damit lange Listen nicht träge wirken */
+#plan-body tr { animation-delay: calc(min(var(--i, 0), 13) * 20ms); }
+.dt-slot      { animation-delay: calc(min(var(--i, 0), 10) * 26ms); }
+.subj-row     { animation-delay: calc(min(var(--i, 0), 9) * 22ms); }
 
 .fade-content { transition: opacity 0.28s ease, transform 0.28s ease; }
 .fade-content.slide-out-left  { opacity: 0; transform: translateX(-30px) scale(0.98); }
@@ -266,22 +298,40 @@ body::after {
 
 /* ─── STATUS-KARTE ──────────────────────────────────────────────────── */
 .status-card {
-  padding: var(--sp-md) 20px;
+  padding: 17px 20px;
   margin-bottom: var(--sp-md);
   display: flex;
-  align-items: center;
-  gap: 14px;
-  flex-wrap: wrap;
-  transition: border-color var(--t-slow), background var(--t-slow);
+  flex-direction: column;
+  gap: 11px;
   position: relative;
   overflow: hidden;
+  isolation: isolate;
+  transition: border-color 0.6s var(--ease);
 }
+.status-card.is-live { border-color: color-mix(in srgb, var(--ac) 32%, transparent); }
+
+/* Farbschein in der Fachfarbe — liegt über dem Glas, unter dem Text */
+.status-glow {
+  position: absolute;
+  inset: -60% -25% auto -25%;
+  height: 230%;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.7s var(--ease), background 0.7s var(--ease);
+  background: radial-gradient(ellipse 55% 50% at 88% 12%,
+              color-mix(in srgb, var(--ac, transparent) 30%, transparent), transparent 72%);
+}
+.status-card.is-live .status-glow { opacity: 1; }
+
+.status-head { display: flex; align-items: center; gap: 14px; }
+
 .status-dot {
-  width: 10px; height: 10px;
+  width: 9px; height: 9px;
   border-radius: 50%;
   background: var(--muted);
   flex-shrink: 0;
-  transition: all var(--t-normal);
+  transition: background var(--t-normal), box-shadow var(--t-normal);
 }
 .status-dot.is-live { animation: glowPulse 2.2s ease-in-out infinite; }
 
@@ -296,57 +346,45 @@ body::after {
 .status-main { font-size: 1.05rem; font-weight: 700; margin-top: 3px; line-height: 1.25; }
 .status-sub  { font-size: 0.75rem; color: var(--text-dim); margin-top: 3px; }
 
-.countdown-pill {
-  font-family: var(--mono);
-  font-size: 0.8rem;
-  font-weight: 500;
-  font-variant-numeric: tabular-nums;
-  background: color-mix(in srgb, var(--accent) 8%, transparent);
-  color: var(--accent);
-  border: 1px solid color-mix(in srgb, var(--accent) 18%, transparent);
-  padding: 5px 12px;
-  border-radius: var(--r-full);
-  white-space: nowrap;
-  letter-spacing: 0.04em;
-  min-width: 72px;
-  text-align: center;
-  flex-shrink: 0;
-}
-.countdown-pill.hidden { display: none; }
-
-.progress-wrap { width: 100%; margin-top: 10px; display: flex; align-items: center; gap: 10px; }
-.progress-wrap.hidden { display: none; }
-.progress-bar {
-  flex: 1; height: 3px;
-  background: rgba(255,255,255,0.06);
-  border-radius: var(--r-full);
-  overflow: hidden;
-}
-[data-theme="light"] .progress-bar { background: rgba(0,0,0,0.07); }
-.progress-fill {
-  height: 100%;
-  border-radius: var(--r-full);
-  background: linear-gradient(90deg, color-mix(in srgb, var(--prog) 55%, transparent), var(--prog, var(--accent)));
-  --prog: var(--accent);
-  transition: width 1s linear;
+/* ─── FORTSCHRITTSRING ──────────────────────────────────────────────
+   Ersetzt Balken und Countdown-Pille: Bogen = Fortschritt,
+   Mitte = Restzeit.                                                  */
+.status-ring {
+  --rc: var(--accent);
   position: relative;
+  width: 62px; height: 62px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
 }
-.progress-fill::after {
-  content: '';
+.status-ring.hidden { display: none; }
+.status-ring svg {
   position: absolute;
-  right: -2px; top: 50%;
-  transform: translateY(-50%);
-  width: 7px; height: 7px;
-  border-radius: 50%;
-  background: var(--prog, var(--accent));
-  box-shadow: 0 0 8px color-mix(in srgb, var(--prog, var(--accent)) 60%, transparent);
+  inset: 0;
+  width: 100%; height: 100%;
+  transform: rotate(-90deg);
 }
-.progress-pct {
+.ring-track {
+  fill: none;
+  stroke: rgba(255,255,255,0.09);
+  stroke-width: 3;
+}
+[data-theme="light"] .ring-track { stroke: rgba(0,0,0,0.1); }
+.ring-fill {
+  fill: none;
+  stroke: var(--rc);
+  stroke-width: 3;
+  stroke-linecap: round;
+  filter: drop-shadow(0 0 4px color-mix(in srgb, var(--rc) 55%, transparent));
+  transition: stroke-dashoffset 1s linear, stroke 0.5s var(--ease);
+}
+.ring-time {
   font-family: var(--mono);
-  font-size: 0.6rem;
-  color: var(--muted);
-  min-width: 32px;
-  text-align: right;
+  font-size: 0.74rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+  color: var(--rc);
 }
 
 .next-preview {
@@ -488,23 +526,69 @@ td {
   font-weight: 700;
 }
 
-.lesson-cell { height: 58px; padding: 5px 4px; position: relative; }
-.lesson-cell .info {
-  font-size: 9px;
-  color: var(--muted);
-  margin-top: 3px;
+/* Jede Stunde ist eine eigene getönte Karte in der Fachfarbe */
+.lesson-cell { height: 58px; padding: 3px; position: relative; }
+.lesson-chip {
+  position: absolute;
+  inset: 3px;
+  border-radius: 9px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 4px 3px;
+  overflow: hidden;
+  background: linear-gradient(155deg,
+    color-mix(in srgb, var(--sc) 22%, transparent),
+    color-mix(in srgb, var(--sc) 8%, transparent));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--sc) 20%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--sc) 30%, transparent);
+  transition: box-shadow var(--t-normal), background var(--t-normal);
+}
+.lesson-chip .subj-tag {
+  background: none;
+  padding: 0;
+  font-size: 10.5px;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: center;
+  color: var(--sc);
+}
+.lesson-chip .info {
+  font-size: 8.5px;
+  line-height: 1.35;
+  text-align: center;
+  color: color-mix(in srgb, var(--sc) 42%, var(--text));
   display: block;
-  line-height: 1.4;
 }
 .i-teacher::before { content: ' · '; }
+
 .lesson-cell.today-col,
 .free-cell.today-col { background: color-mix(in srgb, var(--accent) 5%, transparent); }
-.lesson-cell.active {
-  background: color-mix(in srgb, var(--sc, var(--accent)) 9%, transparent) !important;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sc, var(--accent)) 28%, transparent);
+
+/* laufende Stunde: kräftiger getönt, mit Schein */
+.lesson-cell.active .lesson-chip {
+  background: linear-gradient(155deg,
+    color-mix(in srgb, var(--sc) 38%, transparent),
+    color-mix(in srgb, var(--sc) 15%, transparent));
+  box-shadow:
+    inset 0 0 0 1.5px color-mix(in srgb, var(--sc) 60%, transparent),
+    inset 0 1px 0 color-mix(in srgb, var(--sc) 45%, transparent),
+    0 0 20px color-mix(in srgb, var(--sc) 28%, transparent);
 }
-.lesson-cell.is-dropped { opacity: 0.34; }
-.lesson-cell.is-dropped .subj-tag { text-decoration: line-through; text-decoration-thickness: 1.5px; }
+.lesson-cell.active .lesson-chip .subj-tag { filter: brightness(1.12); }
+
+.lesson-cell.is-dropped .lesson-chip {
+  background: none;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sc) 22%, transparent);
+  opacity: 0.5;
+}
+.lesson-cell.is-dropped .subj-tag {
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+}
 .time-badge {
   display: inline-block;
   margin-top: 3px;
@@ -730,8 +814,20 @@ td {
   position: relative;
   transition: all 0.35s var(--ease);
 }
-.dt-card.lesson { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); }
-[data-theme="light"] .dt-card.lesson { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.06); }
+.dt-card.lesson {
+  background: linear-gradient(100deg,
+    color-mix(in srgb, var(--sc, var(--accent)) 13%, transparent),
+    rgba(255,255,255,0.028) 62%);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-left: 3px solid color-mix(in srgb, var(--sc, var(--accent)) 65%, transparent);
+}
+[data-theme="light"] .dt-card.lesson {
+  background: linear-gradient(100deg,
+    color-mix(in srgb, var(--sc, var(--accent)) 15%, transparent),
+    rgba(0,0,0,0.02) 62%);
+  border-color: rgba(0,0,0,0.06);
+  border-left-color: color-mix(in srgb, var(--sc, var(--accent)) 70%, transparent);
+}
 .dt-card.pause-card { background: transparent; padding: 2px 14px; font-size: 0.65rem; color: var(--muted); font-weight: 500; }
 .dt-card.lunch {
   background: color-mix(in srgb, var(--green) 5%, transparent);
@@ -877,8 +973,21 @@ td {
   position: relative;
   transition: all 0.15s;
   gap: 1px;
+  padding-bottom: 7px;      /* Platz für den Farbstreifen */
   border: 1px solid transparent;
+  overflow: hidden;
 }
+
+/* Farbstreifen am unteren Rand: die Fächer des Tages in Fachfarben */
+.cal-strip {
+  position: absolute;
+  left: 5px; right: 5px; bottom: 4px;
+  height: 3px;
+  display: flex;
+  gap: 1px;
+  border-radius: 2px;
+}
+.cal-strip i { flex: 1 1 0; min-width: 1px; border-radius: 1px; }
 .cal-day.empty { background: transparent; }
 .cal-day.weekend { color: var(--muted); opacity: 0.38; }
 .cal-day.ferien { background: color-mix(in srgb, var(--green) 11%, transparent); color: var(--green); border-color: color-mix(in srgb, var(--green) 16%, transparent); }
@@ -917,6 +1026,22 @@ td {
 .subj-row-main { flex: 1; min-width: 0; }
 .subj-row-name { font-size: 0.82rem; font-weight: 700; }
 .subj-row-meta { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+/* Balken zeigt das Gewicht des Fachs in der Woche */
+.subj-bar {
+  margin-top: 7px;
+  max-width: 240px;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(255,255,255,0.07);
+  overflow: hidden;
+}
+[data-theme="light"] .subj-bar { background: rgba(0,0,0,0.08); }
+.subj-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--sc) 50%, transparent), var(--sc));
+}
 .subj-row-hours {
   font-family: var(--mono);
   font-size: 0.7rem;
@@ -1095,9 +1220,11 @@ input[type="date"].settings-input { color-scheme: dark; }
 [data-compact="true"] body { padding: var(--sp-sm) 10px 28px; }
 [data-compact="true"] .status-card { padding: 11px 14px; }
 [data-compact="true"] .status-main { font-size: 0.92rem; }
-[data-compact="true"] .lesson-cell, [data-compact="true"] .lunch-cell, [data-compact="true"] .free-cell { height: 44px; padding: 3px 4px; }
-[data-compact="true"] .subj-tag { font-size: 10px; padding: 2px 6px; }
-[data-compact="true"] .lesson-cell .info { font-size: 8px; margin-top: 1px; }
+[data-compact="true"] .lesson-cell, [data-compact="true"] .lunch-cell, [data-compact="true"] .free-cell { height: 44px; padding: 2px; }
+[data-compact="true"] .lesson-chip { inset: 2px; gap: 1px; padding: 2px; border-radius: 7px; }
+[data-compact="true"] .lesson-chip .subj-tag { font-size: 9.5px; }
+[data-compact="true"] .lesson-chip .info { font-size: 8px; }
+[data-compact="true"] .status-ring { width: 52px; height: 52px; }
 [data-compact="true"] .dt-slot { min-height: 48px; }
 [data-compact="true"] .dt-card { padding: 6px 10px; }
 
@@ -1117,11 +1244,13 @@ input[type="date"].settings-input { color-scheme: dark; }
   .pill { font-size: 0.62rem; padding: 0 10px; }
 
   /* Status */
-  .status-card { padding: 13px 14px; gap: 11px; }
+  .status-card { padding: 14px 15px; gap: 10px; }
+  .status-head { gap: 11px; }
   .status-main { font-size: 0.98rem; }
   .status-label { font-size: 0.6rem; }
   .status-sub { font-size: 0.72rem; }
-  .countdown-pill { min-width: 64px; font-size: 0.75rem; padding: 5px 10px; }
+  .status-ring { width: 54px; height: 54px; }
+  .ring-time { font-size: 0.66rem; }
 
   /* Ansichtsumschalter — großzügige Tippfläche */
   .vt-btn { padding: 10px 4px; font-size: 0.68rem; }
@@ -1132,9 +1261,11 @@ input[type="date"].settings-input { color-scheme: dark; }
   thead th { font-size: 0.55rem; letter-spacing: 0.06em; padding: 8px 2px; }
   .time-cell { font-size: 9px; padding: 4px 3px; letter-spacing: -0.03em; }
   .time-cell .hour-nr { font-size: 7px; }
-  .lesson-cell { height: 54px; padding: 3px 2px; }
+  .lesson-cell { height: 54px; padding: 2px; }
+  .lesson-chip { inset: 2px; border-radius: 7px; gap: 2px; padding: 3px 2px; }
   .subj-tag { font-size: 9px; padding: 2px 4px; border-radius: 5px; letter-spacing: -0.01em; }
-  .lesson-cell .info { font-size: 7.5px; margin-top: 2px; }
+  .lesson-chip .subj-tag { font-size: 9px; letter-spacing: -0.02em; }
+  .lesson-chip .info { font-size: 7.5px; line-height: 1.25; }
   .i-teacher { display: none; }         /* nur der Raum, Lehrkraft steht in der Tagesansicht */
   .lunch-cell, .free-cell { height: 54px; }
   .lunch-cell { font-size: 8px; }
@@ -1159,8 +1290,10 @@ input[type="date"].settings-input { color-scheme: dark; }
 
   /* Kalender */
   .cal-grid { grid-template-columns: 17px repeat(7, 1fr); gap: 2px; }
-  .cal-day { font-size: 0.68rem; border-radius: 8px; }
+  .cal-day { font-size: 0.68rem; border-radius: 8px; padding-bottom: 6px; }
   .cal-hours { font-size: 6px; }
+  .cal-strip { left: 3px; right: 3px; bottom: 3px; height: 2.5px; }
+  .subj-bar { max-width: none; }
   .cal-leg-item { font-size: 0.56rem; padding: 4px 8px; }
   .cal-title { font-size: 0.9rem; }
 
@@ -1193,11 +1326,20 @@ input[type="date"].settings-input { color-scheme: dark; }
   /* Gedruckt wird immer die Wochenübersicht, egal welche Ansicht offen ist */
   #view-week, #view-week[hidden] { display: block !important; }
   .about { font-size: 8pt; color: #555; margin-top: 10px; }
-  .table-wrap { border-color: #999; background: #fff; overflow: visible; }
+  .table-wrap { border-color: #999; background: #fff; overflow: visible; box-shadow: none; }
   table { min-width: 0; }
   thead th { background: #eee; color: #000; }
   td { border-color: #bbb; }
-  .lesson-cell.is-dropped { display: none; }
-  .subj-tag { background: transparent !important; color: #000 !important; }
-  .lesson-cell .info { color: #444; }
+  .lesson-cell.is-dropped .lesson-chip { display: none; }
+  /* im Druck ohne Farbflächen, dafür mit farbiger Kante */
+  .lesson-chip {
+    position: static;
+    background: none !important;
+    box-shadow: none !important;
+    border-left: 2.5px solid var(--sc);
+    border-radius: 0;
+    padding: 4px 2px;
+  }
+  .lesson-chip .subj-tag { color: #000 !important; }
+  .lesson-chip .info { color: #444 !important; }
 }

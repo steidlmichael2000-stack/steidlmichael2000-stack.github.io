@@ -169,16 +169,21 @@
 
   <!-- ═══════════════ STATUS-KARTE ═══════════════ -->
   <div class="status-card glass" id="status-card" role="status" aria-live="polite">
-    <span class="status-dot" id="status-dot" aria-hidden="true"></span>
-    <div class="status-text">
-      <div class="status-label" id="status-label">Status</div>
-      <div class="status-main" id="status-main">–</div>
-      <div class="status-sub" id="status-sub"></div>
-    </div>
-    <div class="countdown-pill hidden" id="countdown-pill" aria-label="Verbleibende Zeit">00:00</div>
-    <div class="progress-wrap hidden" id="progress-wrap" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
-      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
-      <span class="progress-pct" id="progress-pct">0 %</span>
+    <span class="status-glow" id="status-glow" aria-hidden="true"></span>
+    <div class="status-head">
+      <span class="status-dot" id="status-dot" aria-hidden="true"></span>
+      <div class="status-text">
+        <div class="status-label" id="status-label">Status</div>
+        <div class="status-main" id="status-main">–</div>
+        <div class="status-sub" id="status-sub"></div>
+      </div>
+      <div class="status-ring hidden" id="status-ring" role="img" aria-label="Verbleibende Zeit">
+        <svg viewBox="0 0 44 44" aria-hidden="true">
+          <circle class="ring-track" cx="22" cy="22" r="19" />
+          <circle class="ring-fill" id="ring-fill" cx="22" cy="22" r="19" />
+        </svg>
+        <span class="ring-time" id="ring-time">–</span>
+      </div>
     </div>
     <div class="next-preview hidden" id="next-preview">
       <span class="next-label">Danach</span>

@@ -268,6 +268,7 @@ function buildWeek() {
 
   PLAN.forEach((p, i) => {
     const tr = mk('tr');
+    tr.style.setProperty('--i', i);   // für den gestaffelten Einblendeffekt
 
     if (p.type === 'pause') {
       tr.appendChild(mk('td', 'pause-cell pause-time'));
@@ -308,9 +309,12 @@ function buildWeek() {
         td.style.setProperty('--sc', subjColor(seg.lesson.s));
         if (seg.dropped) td.classList.add('is-dropped');
 
+        // Eigene Fläche pro Stunde: getönte Karte statt nackter Tabellenzelle
+        const chip = mk('div', 'lesson-chip');
+
         const tag = mk('span', 'subj-tag');
         tag.textContent = lessonAbbr(seg.lesson);
-        td.appendChild(tag);
+        chip.appendChild(tag);
 
         // Raum und Lehrkraft getrennt, damit auf dem Handy nur der Raum bleibt
         const info = mk('span', 'info');
@@ -320,13 +324,14 @@ function buildWeek() {
         teacher.textContent = seg.lesson.t;
         info.appendChild(room);
         info.appendChild(teacher);
-        td.appendChild(info);
+        chip.appendChild(info);
 
         if (seg.shifted) {
           const badge = mk('span', 'time-badge');
           badge.textContent = `ab ${fmtMin(seg.sMin)}`;
-          td.appendChild(badge);
+          chip.appendChild(badge);
         }
+        td.appendChild(chip);
 
         const parts = [lessonTitle(seg.lesson), seg.lesson.t, seg.lesson.r];
         if (seg.span > 1) parts.push(`${seg.span} ${plural(seg.span, 'Stunde', 'Stunden')}`);
@@ -419,8 +424,9 @@ function buildDay() {
   blocks.forEach(b => { if (b.kind === 'lesson' && !b.dropped) lastOwn = b; });
   let prevRoom = null;
 
-  blocks.forEach(b => {
+  blocks.forEach((b, bi) => {
     const slot = mk('div', 'dt-slot');
+    slot.style.setProperty('--i', bi);
     slot.dataset.smin = b.sMin;
     slot.dataset.emin = b.endMin;
 
@@ -673,6 +679,19 @@ function renderCalendar() {
       const hours = mk('span', 'cal-hours');
       hours.textContent = m.mine ? `${m.mine} Std` : 'frei';
       cell.appendChild(hours);
+
+      // Farbstreifen: zeigt auf einen Blick, welche Fächer der Tag bringt
+      const own = groupBlocks(m.segs).filter(b => b.kind === 'lesson' && !b.dropped);
+      if (own.length) {
+        const strip = mk('span', 'cal-strip');
+        own.forEach(b => {
+          const part = mk('i');
+          part.style.background = subjColor(b.lesson.s);
+          part.style.flexGrow = String(b.span);
+          strip.appendChild(part);
+        });
+        cell.appendChild(strip);
+      }
       cell.title = `${DAY_FULL[wd]} · ${m.mine} ${plural(m.mine, 'Stunde', 'Stunden')}`;
       cell.tabIndex = 0;
       const jump = () => { dayIdx = wd; dayPinned = true; switchView('day'); };
@@ -728,9 +747,12 @@ function buildSubjects() {
     `<span>Klasse gesamt: <b>${sumMine + sumGone}</b></span>`;
   box.appendChild(sum);
 
-  rows.forEach(r => {
+  const maxHours = Math.max(...rows.map(r => r.hours), 1);
+
+  rows.forEach((r, i) => {
     const row = mk('div', 'subj-row');
     row.style.setProperty('--sc', subjColor(r.lesson.s));
+    row.style.setProperty('--i', i);
     if (r.dropped) row.classList.add('is-dropped');
 
     const main = mk('div', 'subj-row-main');
@@ -743,6 +765,14 @@ function buildSubjects() {
     meta.textContent = `${days} · ${[...r.teachers].join(', ')} · ${[...r.rooms].join(', ')}` +
       (r.dropped ? ' · entfällt für dich' : '');
     main.appendChild(meta);
+
+    // Balken zeigt das Gewicht des Fachs in der Woche
+    const bar = mk('div', 'subj-bar');
+    const barFill = mk('i');
+    barFill.style.width = `${(r.hours / maxHours) * 100}%`;
+    bar.appendChild(barFill);
+    main.appendChild(bar);
+
     row.appendChild(main);
 
     const h = mk('span', 'subj-row-hours');
@@ -779,44 +809,57 @@ function nextOwnLesson(from) {
 
 function resetStatus() {
   const card = $('status-card');
-  card.style.removeProperty('border-color');
+  card.style.removeProperty('--ac');
+  card.classList.remove('is-live');
   const dot = $('status-dot');
   dot.className = 'status-dot';
   dot.style.cssText = '';
-  const pill = $('countdown-pill');
-  pill.classList.add('hidden');
-  pill.style.cssText = '';
-  $('progress-wrap').classList.add('hidden');
-  $('progress-fill').style.removeProperty('--prog');
+  const ring = $('status-ring');
+  ring.classList.add('hidden');
+  ring.style.removeProperty('--rc');
   $('next-preview').classList.add('hidden');
+}
+
+/** Umgebungsfarbe der Karte — färbt Rand, Schein und Ring. */
+function setAccentColor(color) {
+  const card = $('status-card');
+  card.style.setProperty('--ac', color);
+  card.classList.add('is-live');
 }
 
 function setDot(color) {
   const dot = $('status-dot');
   dot.classList.add('is-live');
   dot.style.background = color;
-  dot.style.boxShadow = `0 0 12px ${color}`;
+  dot.style.boxShadow = `0 0 0 4px color-mix(in srgb, ${color} 18%, transparent), 0 0 16px ${color}`;
 }
 
-function setCountdown(sec, color) {
-  const pill = $('countdown-pill');
-  pill.classList.remove('hidden');
-  pill.textContent = fmtCountdown(sec);
-  if (color) {
-    pill.style.color = color;
-    pill.style.background = `color-mix(in srgb, ${color} 12%, transparent)`;
-    pill.style.borderColor = `color-mix(in srgb, ${color} 26%, transparent)`;
-  }
+/** Kompakte Zeit für die Ringmitte: 40:00 bzw. 1:05 ab einer Stunde. */
+function fmtRing(sec) {
+  sec = Math.max(0, Math.floor(sec));
+  const h = Math.floor(sec / 3600), m = Math.floor((sec % 3600) / 60), s = sec % 60;
+  return h > 0 ? `${h}:${pad(m)}` : `${pad(m)}:${pad(s)}`;
 }
 
-function setProgress(leftSec, totalSec, color) {
-  if (totalSec <= 0) return;
-  const pct = Math.min(100, Math.max(0, ((totalSec - leftSec) / totalSec) * 100));
-  $('progress-wrap').classList.remove('hidden');
-  $('progress-wrap').setAttribute('aria-valuenow', Math.round(pct));
-  $('progress-fill').style.width = pct.toFixed(2) + '%';
-  if (color) $('progress-fill').style.setProperty('--prog', color);
-  $('progress-pct').textContent = Math.round(pct) + ' %';
+const RING_LEN = 2 * Math.PI * 19;   // Umfang des SVG-Kreises (r = 19)
+
+/**
+ * Fortschrittsring. totalSec = 0 zeigt nur die Zeit ohne Bogen
+ * (z. B. Countdown bis zum Unterrichtsbeginn, wo es keinen Bezugswert gibt).
+ */
+function setRing(leftSec, totalSec, color) {
+  const ring = $('status-ring');
+  ring.classList.remove('hidden');
+  const done = totalSec > 0 ? Math.min(1, Math.max(0, (totalSec - leftSec) / totalSec)) : 0;
+  const fill = $('ring-fill');
+  fill.style.strokeDasharray = RING_LEN.toFixed(2);
+  fill.style.strokeDashoffset = (RING_LEN * (1 - done)).toFixed(2);
+  if (color) ring.style.setProperty('--rc', color);
+  $('ring-time').textContent = fmtRing(leftSec);
+  ring.setAttribute('aria-label',
+    totalSec > 0
+      ? `${fmtCountdown(leftSec)} verbleibend, ${Math.round(done * 100)} Prozent vorbei`
+      : `${fmtCountdown(leftSec)} bis zum Beginn`);
 }
 
 function setNext(text, info) {
@@ -857,6 +900,7 @@ function updateStatus(now) {
       const days = dayDiff(now, nx.date);
       setNext(fmtDate(nx.date), days === 1 ? '· morgen' : `· in ${days} Tagen`);
       setDot(subjColor(nx.block.lesson.s));
+      setAccentColor(subjColor(nx.block.lesson.s));
     } else {
       main.textContent = 'Kein Unterricht';
       sub.textContent = '';
@@ -879,11 +923,14 @@ function updateStatus(now) {
       return;
     }
     if (nowMin < model.mineFirstMin) {
+      const first = blocks.find(b => b.kind === 'lesson' && !b.dropped);
+      const firstColor = first ? subjColor(first.lesson.s) : 'var(--accent)';
       label.textContent = 'Vor dem Unterricht';
       main.textContent = `Beginn um ${fmtMin(model.mineFirstMin)} Uhr`;
-      const first = blocks.find(b => b.kind === 'lesson' && !b.dropped);
       sub.textContent = first ? `${lessonTitle(first.lesson)} · ${first.lesson.r}` : '';
-      setCountdown(model.mineFirstMin * 60 - nowSec, null);
+      setDot(firstColor);
+      setAccentColor(firstColor);
+      setRing(model.mineFirstMin * 60 - nowSec, 0, firstColor);
     } else {
       label.textContent = 'Feierabend';
       main.textContent = 'Schulschluss';
@@ -896,11 +943,11 @@ function updateStatus(now) {
   /* ── Pause / Lücke ── */
   if (current.kind === 'pause' || current.kind === 'gap') {
     setDot('var(--accent2)');
+    setAccentColor('var(--accent2)');
     label.textContent = 'Jetzt';
     main.textContent = 'Pause';
     sub.textContent = `Bis ${fmtMin(current.endMin)} Uhr`;
-    setCountdown(current.endMin * 60 - nowSec, null);
-    setProgress(current.endMin * 60 - nowSec, (current.endMin - current.sMin) * 60, null);
+    setRing(current.endMin * 60 - nowSec, (current.endMin - current.sMin) * 60, 'var(--accent2)');
     showNextOwn(now);
     return;
   }
@@ -908,22 +955,22 @@ function updateStatus(now) {
   /* ── Mittagspause ── */
   if (current.kind === 'lunch') {
     setDot('var(--green)');
+    setAccentColor('var(--green)');
     label.textContent = 'Jetzt';
     main.textContent = 'Mittagspause';
     sub.textContent = `Bis ${fmtMin(current.endMin)} Uhr`;
-    setCountdown(current.endMin * 60 - nowSec, null);
-    setProgress(current.endMin * 60 - nowSec, (current.endMin - current.sMin) * 60, null);
+    setRing(current.endMin * 60 - nowSec, (current.endMin - current.sMin) * 60, 'var(--green)');
     showNextOwn(now);
     return;
   }
 
   /* ── Freistunde ── */
   if (current.kind === 'free') {
+    setDot('var(--muted)');
     label.textContent = `${current.nr}. Stunde`;
     main.textContent = 'Freistunde';
     sub.textContent = `Bis ${fmtMin(current.endMin)} Uhr`;
-    setCountdown(current.endMin * 60 - nowSec, null);
-    setProgress(current.endMin * 60 - nowSec, (current.endMin - current.sMin) * 60, null);
+    setRing(current.endMin * 60 - nowSec, (current.endMin - current.sMin) * 60, 'var(--muted)');
     showNextOwn(now);
     return;
   }
@@ -949,9 +996,8 @@ function updateStatus(now) {
     : `${current.nr}. Stunde`;
   main.textContent = lessonTitle(l);
   sub.textContent = `${l.t} · ${l.r} · bis ${fmtMin(run.endMin)} Uhr`;
-  setCountdown(runLeft, color);
-  setProgress(runLeft, runTotal, color);
-  $('status-card').style.borderColor = `color-mix(in srgb, ${color} 22%, transparent)`;
+  setAccentColor(color);
+  setRing(runLeft, runTotal, color);
 
   // Was kommt danach?
   const idx = blocks.indexOf(current);
@@ -1411,12 +1457,17 @@ function tick() {
     updateBreakPill(now);
     updateCustomPill(now);
     checkNotifications(now);
-    if (currentView === 'day' && !dayPinned) {
+    // Der Inhalt eines Wochentags ändert sich nicht minütlich — nur die
+    // Markierung. Neu gebaut wird nur, wenn wirklich ein anderer Tag dran ist.
+    if (currentView === 'day') {
       const t = todayIdx();
-      if (t >= 0 && t !== dayIdx) { dayIdx = t; buildDayTabs(); }
-      buildDay();
-    } else if (currentView === 'day') {
-      buildDay();
+      if (!dayPinned && t >= 0 && t !== dayIdx) {
+        dayIdx = t;
+        buildDayTabs();
+        buildDay();
+      } else {
+        updateDayMarker();
+      }
     }
   } else if (currentView === 'day') {
     updateDayMarker();

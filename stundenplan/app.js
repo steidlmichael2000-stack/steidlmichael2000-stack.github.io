@@ -1444,8 +1444,7 @@ function init() {
   applyAccent();
   applyCompact();
 
-  $('header-sub').textContent =
-    `${KLASSE.schule.replace(' Würzburg', '')} · ${KLASSE.semester} · gültig ab ${fmtDateShort(parseKey(SEM_START))}`;
+  $('header-sub').textContent = `${KLASSE.schule.replace(' Würzburg', '')} · ${KLASSE.semester}`;
   $('about').textContent =
     `${KLASSE.klasse} · Semesterplan ${KLASSE.semester.replace('Wintersemester ', '')} · ` +
     `Semesterleiter ${KLASSE.leiter} · ${fmtDateShort(parseKey(SEM_START))} – ${fmtDateShort(parseKey(SEM_END))} · ` +

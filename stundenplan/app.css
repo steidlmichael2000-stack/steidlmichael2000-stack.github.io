@@ -1319,27 +1319,70 @@ input[type="date"].settings-input { color-scheme: dark; }
 
 /* ─── DRUCK ─────────────────────────────────────────────────────────── */
 @media print {
+  /* Die Farbtokens müssen auf Papier neu gesetzt werden — sonst wird im
+     Dunkelmodus weiße Schrift auf weißes Papier gedruckt. Die höhere
+     Spezifität (html + Attribut) schlägt beide Theme-Blöcke.            */
+  html, html[data-theme="dark"], html[data-theme="light"] {
+    --bg: #fff;
+    --surface: transparent;
+    --surface-strong: #f1f1f2;
+    --surface-border: #9aa0a6;
+    --border: #c4c8cc;
+    --text: #000;
+    --text-dim: #333;
+    --muted: #555;
+    --faint: #888;
+    /* !important, weil applyAccent() --accent als Inline-Style auf <html>
+       setzt und ein Inline-Style sonst jede Stylesheet-Regel schlägt */
+    --accent: #000 !important;
+    --accent2: #000 !important;
+    --green: #444;
+  }
+
   body { background: #fff; color: #000; padding: 0; }
   body::before, body::after { display: none; }
-  .header-right, .view-toggle, .settings-panel, .status-card, .banner,
+
+  .header-right, .clock, .view-toggle, .settings-panel, .status-card, .banner,
   .update-banner, .day-view, .month-view, .subjects-view, .home-link { display: none !important; }
+
   /* Gedruckt wird immer die Wochenübersicht, egal welche Ansicht offen ist */
   #view-week, #view-week[hidden] { display: block !important; }
-  .about { font-size: 8pt; color: #555; margin-top: 10px; }
-  .table-wrap { border-color: #999; background: #fff; overflow: visible; box-shadow: none; }
+
+  .header { margin-bottom: 10px; }
+  .header-left h1 { font-size: 16pt; }
+  .header-left h1 span { -webkit-text-fill-color: #000; color: #000; }
+  .header-left p { font-size: 8.5pt; color: #333; }
+  .about { font-size: 7.5pt; color: #555; margin-top: 10px; text-align: left; }
+
+  .table-wrap { border-color: #9aa0a6; background: #fff; overflow: visible; box-shadow: none; }
   table { min-width: 0; }
-  thead th { background: #eee; color: #000; }
-  td { border-color: #bbb; }
+  thead th { background: #f1f1f2; color: #000; position: static; }
+  td { border-color: #c4c8cc; }
+
+  /* keine „heute"-Tönung auf Papier */
+  .today-head, .today-col, .lesson-cell.active { background: none !important; }
+  .lesson-cell.active .lesson-chip { box-shadow: none !important; }
+
+  .time-cell { background: #fafafa; color: #000; }
+  .time-cell .hour-nr { color: #777; }
+  .lunch-cell { background: none; color: #555; }
+  .free-cell .free-mark { color: #888; }
+  .pause-cell, .pause-cell.pause-time { background: #fafafa; }
+
+  /* Stunden ohne Farbflächen, dafür mit grauer Kante — bleibt auch
+     im Schwarzweißdruck lesbar */
+  /* nur den Inhalt ausblenden — eine td auf display:none würde die
+     ganze Zeile verschieben */
   .lesson-cell.is-dropped .lesson-chip { display: none; }
-  /* im Druck ohne Farbflächen, dafür mit farbiger Kante */
   .lesson-chip {
     position: static;
     background: none !important;
     box-shadow: none !important;
-    border-left: 2.5px solid var(--sc);
+    border-left: 2.5px solid #767b80;
     border-radius: 0;
     padding: 4px 2px;
   }
   .lesson-chip .subj-tag { color: #000 !important; }
   .lesson-chip .info { color: #444 !important; }
+  .time-badge { background: none; color: #000; border: 1px solid #999; }
 }

@@ -140,11 +140,18 @@ const LESSONS = [
 ];
 
 /* ── Unterrichtsfreie Tage (Bayern, Semesterzeitraum) ──────────────────
-   [von, bis, Bezeichnung]  ·  bis ist inklusive                        */
+   [von, bis, Bezeichnung]  ·  bis ist inklusive
+   Stand geprüft am 03.08.2026 gegen die offiziellen bayerischen Termine.
+
+   ACHTUNG: Bayern hat zusätzlich 4 bewegliche Ferientage pro Schuljahr,
+   die jede Schule selbst festlegt. Die stehen hier nicht drin, weil sie
+   schulspezifisch sind — sobald du sie kennst, einfach als weitere Zeile
+   ergänzen, z. B.  ['2026-12-23', '2026-12-23', 'beweglicher Ferientag'].
+   Dasselbe gilt für Prüfungs- oder Projekttage ohne Unterricht.        */
 const FREE_RANGES = [
   ['2026-11-02', '2026-11-06', 'Herbstferien'],
-  ['2026-11-18', '2026-11-18', 'Buß- und Bettag'],
+  ['2026-11-18', '2026-11-18', 'Buß- und Bettag'],   // in Bayern unterrichtsfrei
   ['2026-12-24', '2027-01-08', 'Weihnachtsferien'],
-  /* nach Semesterende, nur für die Kalenderansicht */
+  /* nach Semesterende, nur noch für die Kalenderansicht relevant */
   ['2027-02-08', '2027-02-12', 'Frühjahrsferien'],
 ];

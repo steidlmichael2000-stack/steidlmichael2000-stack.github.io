@@ -4,12 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Übersicht · steidlmichael2000-stack</title>
-<meta name="description" content="Übersicht der Projekte von steidlmichael2000-stack: Stundenplan der Fachschulklasse FST 2 TB (Josef-Greising-Schule Würzburg) und Punktwolken-Viewer für 3D-Aufnahmen.">
+<meta name="description" content="Übersicht der Projekte von steidlmichael2000-stack: Stundenplan der Fachschulklasse FST 2 TB (Josef-Greising-Schule Würzburg), Punktwolken-Viewer für 3D-Aufnahmen und Railnav zum Verorten von Streckenkilometern.">
 <meta name="color-scheme" content="dark light">
 <!-- Die Media-Variante zuerst, damit im Hellmodus die helle Farbe greift. -->
 <meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#07080d">
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Übersicht">
 
 <!-- ═══════════════════════════════════════════════════════════════════
      SKRIPT (a) · STANDALONE-REDIRECT
@@ -21,6 +25,9 @@
      Ausnahme: Mit "?home=1" (bzw. beliebigem "home" in der Query) wird die
      Weiterleitung übersprungen – so ist die Übersicht auch aus einer
      installierten App heraus erreichbar.
+     Genau darauf zeigt die "start_url" im Manifest ("./?home=1"): Wer die
+     Übersicht selbst installiert, landet in der Übersicht; die alten
+     Homescreen-Icons zeigen weiterhin auf "/" und damit auf den Stundenplan.
      ═══════════════════════════════════════════════════════════════════ -->
 <script>
 (function () {
@@ -52,6 +59,7 @@
   --muted: #7a8098;
   --accent: #f59e0b;
   --accent2: #4a90d9;
+  --accent3: #a78bfa;
 
   --sans: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -79,6 +87,7 @@
     --muted: #666b7a;
     --accent: #d97706;
     --accent2: #2563eb;
+    --accent3: #7c3aed;
 
     --mesh-1: rgba(124,58,237,0.07);
     --mesh-2: rgba(217,119,6,0.07);
@@ -254,6 +263,11 @@ h1 {
   --card-edge: rgba(74,144,217,0.45);
   --card-glow: rgba(74,144,217,0.28);
 }
+.card-rail {
+  --card-accent: var(--accent3);
+  --card-edge: rgba(167,139,250,0.45);
+  --card-glow: rgba(167,139,250,0.28);
+}
 @media (prefers-color-scheme: light) {
   .card-plan {
     --card-edge: rgba(217,119,6,0.5);
@@ -262,6 +276,10 @@ h1 {
   .card-pw {
     --card-edge: rgba(37,99,235,0.45);
     --card-glow: rgba(37,99,235,0.2);
+  }
+  .card-rail {
+    --card-edge: rgba(124,58,237,0.45);
+    --card-glow: rgba(124,58,237,0.2);
   }
 }
 
@@ -446,42 +464,61 @@ h1 {
       </svg>
     </a>
 
+    <!-- Karte 3 · Railnav -->
+    <a class="card card-rail animate" href="./railnav/" style="animation-delay: 0.18s">
+      <span class="card-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <!-- Strecke mit Kilometersteinen -->
+          <path d="M6.4 3v18"/>
+          <path d="M3.6 7.4h2.8M3.6 12h2.8M3.6 16.6h2.8"/>
+          <!-- Markierter Punkt -->
+          <path d="M16 21s4.3-4.8 4.3-7.9a4.3 4.3 0 1 0-8.6 0C11.7 16.2 16 21 16 21z"/>
+          <circle cx="16" cy="13.1" r="1.5" fill="currentColor" stroke="none"/>
+        </svg>
+      </span>
+      <span class="card-body">
+        <h2 class="card-title">Railnav</h2>
+        <p class="card-desc">Streckenkilometer verorten. Streckennummer und Kilometer eingeben – oder auf die Karte tippen und ablesen, welcher Kilometer dort liegt. Mit Kilometersteinen, Luftbild und Absprung nach Google&nbsp;Maps.</p>
+        <span class="card-meta">
+          <span class="chip">VzG-Strecken</span>
+          <span class="chip">Karte</span>
+          <span class="chip">offline</span>
+        </span>
+      </span>
+      <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M9 5l7 7-7 7"/>
+      </svg>
+    </a>
+
   </main>
 
   <!-- ═══════════════ FUSSBEREICH ═══════════════ -->
-  <footer class="foot animate" style="animation-delay: 0.18s">
+  <footer class="foot animate" style="animation-delay: 0.24s">
     <p>Private Projektseite · Quellcode auf <a href="https://github.com/steidlmichael2000-stack" target="_blank" rel="noopener">github.com/steidlmichael2000-stack</a></p>
   </footer>
 
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════════════
-     SKRIPT (b) · ALTEN SERVICE WORKER ABRÄUMEN
-     Der frühere Wurzel-Worker (`fst1-v1`) lieferte die alte App
-     cache-first aus. `./sw.js` ist deshalb nur noch ein Kill-Switch: er
-     löscht alle Caches, deregistriert sich und lädt offene Fenster neu.
+     SKRIPT (b) · SERVICE WORKER
+     `./sw.js` macht die Übersicht offlinefähig und installierbar – Chrome
+     bietet die Installation nur an, wenn ein Worker mit fetch-Handler
+     registriert ist.
 
-     Registriert wird bewusst nur dann, wenn im Root-Scope überhaupt noch
-     eine Registrierung existiert. Sonst würde bei jedem Besuch der
-     Übersicht erneut ein Worker installiert, der origin-weit alle Caches
-     löscht – inklusive dem Cache von /stundenplan/. Neubesucher brauchen
-     hier keinen Service Worker.
+     Früher stand hier ein Kill-Switch, der den alten Wurzel-Worker
+     (`fst1-v1`) der ursprünglichen Root-PWA abräumen musste. Das erledigt
+     jetzt der neue Worker mit: Er wird über dieselbe Skript-URL verteilt
+     und löscht den Altbestand gezielt. Deshalb wird hier – anders als
+     zuvor – unbedingt registriert und nicht nur bei vorhandener
+     Alt-Registrierung.
      ═══════════════════════════════════════════════════════════════════ -->
 <script>
 (function () {
   try {
     if (!('serviceWorker' in navigator)) return;
     window.addEventListener('load', function () {
-      try {
-        navigator.serviceWorker.getRegistration('./').then(function (reg) {
-          // Keine Alt-Registrierung im Root-Scope? Dann gibt es nichts zu tun.
-          if (!reg) return;
-          // Vorhandene Registrierung auf `./sw.js` (Kill-Switch) aktualisieren.
-          navigator.serviceWorker.register('./sw.js', { scope: './' })
-            .then(function (r) { try { r.update(); } catch (e) {} })
-            .catch(function () {});
-        }).catch(function () {});
-      } catch (e) { /* ignorieren */ }
+      navigator.serviceWorker.register('./sw.js', { scope: './' })
+        .catch(function () { /* ohne Worker läuft die Seite ganz normal weiter */ });
     });
   } catch (e) { /* ignorieren */ }
 })();

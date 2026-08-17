@@ -1,7 +1,7 @@
 {
   "name": "Übersicht · steidlmichael2000-stack",
   "short_name": "Übersicht",
-  "description": "Sammelseite der Projekte: Stundenplan FST 2 TB, Punktwolken-Viewer und Railnav.",
+  "description": "Sammelseite der Projekte: Stundenplan FST 2 TB, Punktwolken-Viewer, Railnav und Punktcodes.",
   "lang": "de",
   "dir": "ltr",
   "id": "/uebersicht",
@@ -21,6 +21,7 @@
   "shortcuts": [
     { "name": "Stundenplan FST 2 TB", "url": "./stundenplan/" },
     { "name": "Railnav", "url": "./railnav/" },
+    { "name": "Punktcodes", "url": "./punktcodes/" },
     { "name": "3D-Aufnahmen", "url": "./pw-viewer/" }
   ]
 }

@@ -19,10 +19,10 @@
 
    ABGRENZUNG ZU DEN ANDEREN APPS
    ------------------------------
-   /stundenplan/, /pw-viewer/ und /railnav/ sind eigenständige Apps mit
-   eigenen Workern. Deren Scope ist enger und gewinnt für ihre Seiten. Damit
-   es hier gar nicht erst zu Überschneidungen kommt, werden Anfragen in
-   diese Ordner unten ausdrücklich durchgereicht.
+   Die verlinkten Apps sind eigenständig und bringen eigene Worker mit. Deren
+   Scope ist enger und gewinnt für ihre Seiten. Damit es hier gar nicht erst
+   zu Überschneidungen kommt, werden Anfragen in diese Ordner unten
+   ausdrücklich durchgereicht (Liste FOREIGN).
 
    WICHTIG: `caches.delete()` arbeitet origin-weit. Beim Aufräumen werden
    deshalb nur die eigenen Caches (Präfix `uebersicht-`) und der bekannte
@@ -30,7 +30,7 @@
    Apps bei jedem Deploy ihren Offline-Bestand verlieren.
    ═══════════════════════════════════════════════════════════════════════ */
 
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = `uebersicht-${VERSION}`;
 const LEGACY = ['fst1-v1'];
 
@@ -43,8 +43,9 @@ const SHELL = [
   'icon-512.png'
 ];
 
-// Eigenständige Apps mit eigenem Service Worker – hier nicht anfassen
-const FOREIGN = ['/stundenplan/', '/pw-viewer/', '/railnav/'];
+// Eigenständige Apps mit eigenem Service Worker – hier nicht anfassen.
+// Beim Aufnehmen einer neuen App in die Übersicht unbedingt hier ergänzen.
+const FOREIGN = ['/stundenplan/', '/pw-viewer/', '/railnav/', '/punktcodes/'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {

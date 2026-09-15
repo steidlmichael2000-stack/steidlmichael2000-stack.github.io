@@ -4,12 +4,32 @@ Dachseite **MS Tools** über vier Apps. Alle liegen auf derselben Herkunft
 `https://steidlmichael2000-stack.github.io/` — das ist für Service Worker,
 Caches und Installationen der entscheidende Punkt.
 
-| Kachel | Pfad | Wo der Code liegt |
+| Seite | Pfad | Wo der Code liegt |
 |---|---|---|
+| MS Tools (Dachseite) | `/start/` | **hier im Repo**, Unterordner `start/` |
 | Stundenplan FST 2 TB | `/stundenplan/` | **hier im Repo**, Unterordner `stundenplan/` |
 | 3D-Aufnahmen | `/pw-viewer/` | eigenes Repo `pw-viewer` |
 | TrackPilot | `/trackpilot/` | eigenes Repo `trackpilot` |
 | Punktcodes | `/punktcodes/` | eigenes Repo `punktcodes` |
+
+## Auf der Wurzel darf nie wieder eine App liegen
+
+`/index.html` ist eine reine Weiterleitung ohne Manifest, `/sw.js` nur noch
+ein Aufräumkommando, das sich selbst abmeldet. Das ist kein Schönheitsfehler,
+sondern der Kern der Sache:
+
+Ein `scope` muss die eigene `start_url` enthalten. Eine App auf `/` hat damit
+zwingend den Scope `/` — und Chrome rechnet **jede** Seite, die im Scope einer
+installierten App liegt, dieser App zu. Solange MS Tools auf der Wurzel lag,
+bot Chrome auf `/punktcodes/`, `/trackpilot/` und `/pw-viewer/` deshalb keine
+Installation mehr an, sondern nur noch „in MS Tools öffnen". Nur der
+Stundenplan kam durch, weil dort schon eine Installation mit dem engeren
+Scope `/stundenplan/` lag — bei mehreren passenden Scopes gewinnt der
+längste.
+
+Seit dem Umzug nach `/start/` reicht jeder Scope nur noch so weit wie seine
+App. Wer die Dachseite wieder auf die Wurzel zieht, bricht damit die
+Installierbarkeit aller anderen Apps.
 
 ## Jede App ist für sich installierbar
 
@@ -36,7 +56,7 @@ Offline-Bestand der Nachbar-Apps mitnehmen.
 
 Zwei Ebenen, die zusammengehören:
 
-- **Kachel-Icons** in `index.html`: Linienzeichnung, `viewBox="0 0 24 24"`,
+- **Kachel-Icons** in `start/index.html`: Linienzeichnung, `viewBox="0 0 24 24"`,
   `stroke-width="1.8"`, `currentColor`, je Karte eine Akzentfarbe
   (`--accent` bis `--accent4`).
 - **App-Icons** der einzelnen Apps: dieselbe Zeichnung, groß, auf dunklem Grund
@@ -56,8 +76,13 @@ dieselbe Zeichnung im quadratischen Rahmen, `make-icons.ps1` erzeugt die PNGs.
 Die Dachseite hieß vorher **„Übersicht"**. Geändert wurden `name`, `short_name`,
 Seitentitel und Überschrift — **nicht** aber `id` im Manifest: die bleibt
 `/uebersicht`, weil Android die installierte App daran erkennt. Ein neuer Wert
-hätte bei allen ein zweites Icon erzeugt. Der Cache-Präfix im Service Worker
-heißt jetzt `mstools-`; `uebersicht-` wird beim Aktivieren mit aufgeräumt.
+hätte bei allen ein zweites Icon erzeugt. Das gilt auch über den Umzug nach
+`/start/` hinweg: die `id` ist herkunftsbezogen und hängt nicht daran, wo das
+Manifest liegt.
+
+Beim Umzug entfallen sind die `shortcuts` im Manifest — Kurzbefehl-Ziele müssen
+im Scope liegen, und die Apps liegen jetzt ausserhalb. Sie haben ohnehin eigene
+Icons auf dem Startbildschirm.
 
 ## „Railnav" heißt seit dem 15.09.2026 „TrackPilot"
 

@@ -5,7 +5,7 @@
   "lang": "de",
   "dir": "ltr",
   "id": "/uebersicht",
-  "start_url": "./?home=1",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "background_color": "#07080d",
@@ -17,11 +17,5 @@
     { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
     { "src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
     { "src": "favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
-  ],
-  "shortcuts": [
-    { "name": "Stundenplan FST 2 TB", "url": "./stundenplan/" },
-    { "name": "TrackPilot", "url": "./trackpilot/" },
-    { "name": "Punktcodes", "url": "./punktcodes/" },
-    { "name": "3D-Aufnahmen", "url": "./pw-viewer/" }
   ]
 }

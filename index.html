@@ -3,557 +3,61 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>MS Tools · steidlmichael2000-stack</title>
-<meta name="description" content="MS Tools – die Projekte von steidlmichael2000-stack: Stundenplan der Fachschulklasse FST 2 TB (Josef-Greising-Schule Würzburg), Punktwolken-Viewer für 3D-Aufnahmen, TrackPilot zum Verorten von Streckenkilometern und die Punktcode-Suche für den Außendienst.">
+<title>steidlmichael2000-stack</title>
+<meta name="robots" content="noindex">
 <meta name="color-scheme" content="dark light">
-<!-- Die Media-Variante zuerst, damit im Hellmodus die helle Farbe greift. -->
-<meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#07080d">
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icon-180.png">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="MS Tools">
+<link rel="icon" href="start/favicon.svg" type="image/svg+xml">
+<link rel="canonical" href="https://steidlmichael2000-stack.github.io/start/">
 
 <!-- ═══════════════════════════════════════════════════════════════════
-     SKRIPT (a) · STANDALONE-REDIRECT
-     Die alte Stundenplan-App war unter "/" als PWA installierbar; viele
-     haben dieses Icon auf dem Homescreen. Damit es weiterhin direkt im
-     Stundenplan landet, wird im Standalone-Modus sofort weitergeleitet.
-     Läuft absichtlich als ERSTES Skript (noch im <head>), damit die
-     MS Tools nicht kurz aufblitzt.
-     Ausnahme: Mit "?home=1" (bzw. beliebigem "home" in der Query) wird die
-     Weiterleitung übersprungen – so ist MS Tools auch aus einer
-     installierten App heraus erreichbar.
-     Genau darauf zeigt die "start_url" im Manifest ("./?home=1"): Wer
-     MS Tools selbst installiert, landet in MS Tools; die alten
-     Homescreen-Icons zeigen weiterhin auf "/" und damit auf den Stundenplan.
+     WEICHE AUF DER WURZEL
+
+     Diese Seite ist absichtlich nur noch eine Weiterleitung und trägt
+     KEIN Manifest. Der Grund: ein Scope muss die eigene start_url
+     enthalten. Läge MS Tools weiterhin hier, wäre sein Scope "/" — und
+     Chrome rechnet jede Seite im Scope einer installierten App dieser App
+     zu. Die vier Apps liessen sich dann nicht mehr einzeln installieren,
+     Chrome bot statt der Installation nur "in MS Tools öffnen" an.
+     MS Tools liegt deshalb unter /start/ mit eigenem, engem Scope.
+
+     Zwei Fälle landen hier:
+
+     1. Die alte Stundenplan-App war einmal unter "/" als PWA installierbar
+        und liegt so noch auf manchen Homescreens. Im Standalone-Modus wird
+        deshalb direkt in den Stundenplan weitergeleitet, damit dieses Icon
+        weiterhin dort landet, wo es hingehört.
+     2. Alle anderen — Aufrufe im Browser und die alte start_url "/?home=1"
+        aus Installationen von vor dem Umzug — gehen nach /start/.
+
+     Läuft als erstes Skript im <head>, damit nichts aufblitzt.
      ═══════════════════════════════════════════════════════════════════ -->
 <script>
 (function () {
+  var ziel = 'start/';
   try {
     var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches)
       || navigator.standalone;
-    if (standalone && !location.search.includes('home')) {
-      location.replace('./stundenplan/');
-    }
-  } catch (e) { /* Kein Redirect – MS Tools bleibt einfach stehen. */ }
+    if (standalone && !location.search.includes('home')) ziel = 'stundenplan/';
+  } catch (e) { /* im Zweifel zu MS Tools */ }
+  location.replace(ziel);
 })();
 </script>
-
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<noscript><meta http-equiv="refresh" content="0; url=start/"></noscript>
 
 <style>
-/* ═══════════════ DESIGN TOKENS ═══════════════
-   An die Tokens der übrigen Seiten (stundenplan/app.css) angelehnt. */
-:root {
-  color-scheme: dark light;
-
-  --bg: #07080d;
-  --surface: rgba(255,255,255,0.04);
-  --surface-strong: rgba(255,255,255,0.06);
-  --border: rgba(255,255,255,0.07);
-  --text: #e8eaf0;
-  --muted: #7a8098;
-  --accent: #f59e0b;
-  --accent2: #4a90d9;
-  --accent3: #a78bfa;
-  --accent4: #34d399;
-
-  --sans: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-
-  --r-md: 12px;
-  --r-lg: 16px;
-  --r-xl: 18px;
-  --r-full: 999px;
-
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
-
-  /* Hintergrund-Mesh (violett / amber / blau, sehr niedrige Deckkraft) */
-  --mesh-1: rgba(167,139,250,0.07);
-  --mesh-2: rgba(245,158,11,0.05);
-  --mesh-3: rgba(74,144,217,0.04);
-}
-
-@media (prefers-color-scheme: light) {
-  :root {
-    --bg: #f4f5f7;
-    --surface: rgba(255,255,255,0.7);
-    --surface-strong: rgba(255,255,255,0.85);
-    --border: rgba(0,0,0,0.08);
-    --text: #1a1d26;
-    --muted: #666b7a;
-    --accent: #d97706;
-    --accent2: #2563eb;
-    --accent3: #7c3aed;
-    --accent4: #059669;
-
-    --mesh-1: rgba(124,58,237,0.07);
-    --mesh-2: rgba(217,119,6,0.07);
-    --mesh-3: rgba(37,99,235,0.05);
+  html { color-scheme: dark; }
+  body {
+    margin: 0; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    background: #07080d; color: #e7e9ee;
+    font: 15px/1.6 system-ui, -apple-system, "Segoe UI", sans-serif;
+    text-align: center; padding: 24px;
   }
-}
-
-/* ═══════════════ RESET & BASE ═══════════════ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-html { -webkit-text-size-adjust: 100%; }
-
-body {
-  min-height: 100vh;
-  min-height: 100dvh;
-  /* Auf hohen Bildschirmen sitzt der Block mittig, auf kleinen scrollt er */
-  display: grid;
-  place-items: center;
-  padding: clamp(28px, 7vh, 72px) 16px calc(36px + env(safe-area-inset-bottom));
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  font-size: 16px;
-  line-height: 1.55;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Dezentes Hintergrund-Mesh, fest hinter dem Inhalt */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  background:
-    radial-gradient(ellipse 620px 420px at 15% 18%, var(--mesh-1) 0%, transparent 70%),
-    radial-gradient(ellipse 520px 520px at 85% 78%, var(--mesh-2) 0%, transparent 70%),
-    radial-gradient(ellipse 420px 320px at 50% 48%, var(--mesh-3) 0%, transparent 70%);
-}
-
-.wrap { width: 100%; max-width: 880px; margin: 0 auto; }
-
-/* ═══════════════ ANIMATION ═══════════════ */
-@keyframes rise {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-/* `backwards` statt `both`: nach dem Lauf gilt wieder der normale Stil,
-   damit der Hover-Lift der Karten nicht überschrieben wird. */
-.animate { animation: rise 0.5s var(--ease) backwards; }
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.001s !important;
-    animation-delay: 0s !important;
-    transition-duration: 0.001s !important;
-  }
-}
-
-/* ═══════════════ KOPFBEREICH ═══════════════ */
-.head { padding: 0 2px; margin-bottom: 30px; }
-
-/* Kleine Bildmarke – dasselbe Monogramm wie Favicon und App-Icon */
-.mark {
-  display: block;
-  width: auto; height: 28px;
-  margin-bottom: 16px;
-  color: var(--accent);
-  filter: drop-shadow(0 0 14px rgba(245,158,11,0.35));
-}
-@media (prefers-color-scheme: light) {
-  .mark { filter: none; }
-}
-
-h1 {
-  font-size: clamp(32px, 8vw, 48px);
-  font-weight: 800;
-  letter-spacing: -0.03em;
-  line-height: 1.02;
-  background: linear-gradient(150deg, var(--text) 30%, color-mix(in srgb, var(--text) 62%, var(--accent)));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.host {
-  margin-top: 11px;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--mono);
-  font-size: 12.5px;
-  font-weight: 400;
-  letter-spacing: 0.01em;
-  color: var(--muted);
-  word-break: break-word;
-}
-/* feiner Akzentstrich vor der Domain */
-.host::before {
-  content: '';
-  width: 22px;
-  height: 2px;
-  border-radius: 2px;
-  flex-shrink: 0;
-  background: linear-gradient(90deg, var(--accent), transparent);
-}
-
-/* ═══════════════ KARTEN ═══════════════ */
-.cards { display: grid; gap: 14px; }
-
-/* Ab 720px zweispaltig, darunter einspaltig */
-@media (min-width: 720px) {
-  .cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-
-.card {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: stretch;
-  gap: 15px;
-  padding: 19px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-xl);
-  background: var(--surface);
-  backdrop-filter: blur(22px) saturate(1.35);
-  -webkit-backdrop-filter: blur(22px) saturate(1.35);
-  color: inherit;
-  text-decoration: none;
-  /* Lichtkante oben + weicher Schlagschatten, wie in der Stundenplan-App */
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.07),
-    0 22px 46px -28px rgba(0,0,0,0.8);
-  transition:
-    transform 0.3s var(--ease),
-    border-color 0.3s var(--ease),
-    box-shadow 0.3s var(--ease),
-    background 0.3s var(--ease);
-}
-@media (prefers-color-scheme: light) {
-  .card {
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.9),
-      0 18px 40px -26px rgba(15,20,40,0.22);
-  }
-}
-
-/* weicher Schein in der Kartenfarbe, oben rechts */
-.card::before {
-  content: '';
-  position: absolute;
-  inset: -55% -30% auto -30%;
-  height: 215%;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.5;
-  transition: opacity 0.35s var(--ease);
-  background: radial-gradient(ellipse 48% 44% at 86% 9%, var(--card-glow), transparent 72%);
-}
-
-/* Akzentfarbe pro Karte — Icon und Schein leiten sich daraus ab */
-.card-plan {
-  --card-accent: var(--accent);
-  --card-edge: rgba(245,158,11,0.45);
-  --card-glow: rgba(245,158,11,0.30);
-}
-.card-pw {
-  --card-accent: var(--accent2);
-  --card-edge: rgba(74,144,217,0.45);
-  --card-glow: rgba(74,144,217,0.28);
-}
-.card-rail {
-  --card-accent: var(--accent3);
-  --card-edge: rgba(167,139,250,0.45);
-  --card-glow: rgba(167,139,250,0.28);
-}
-.card-code {
-  --card-accent: var(--accent4);
-  --card-edge: rgba(52,211,153,0.45);
-  --card-glow: rgba(52,211,153,0.26);
-}
-@media (prefers-color-scheme: light) {
-  .card-plan {
-    --card-edge: rgba(217,119,6,0.5);
-    --card-glow: rgba(217,119,6,0.22);
-  }
-  .card-pw {
-    --card-edge: rgba(37,99,235,0.45);
-    --card-glow: rgba(37,99,235,0.2);
-  }
-  .card-rail {
-    --card-edge: rgba(124,58,237,0.45);
-    --card-glow: rgba(124,58,237,0.2);
-  }
-  .card-code {
-    --card-edge: rgba(5,150,105,0.45);
-    --card-glow: rgba(5,150,105,0.2);
-  }
-}
-
-/* Hover: leichtes Anheben + Glow in der Akzentfarbe */
-@media (hover: hover) {
-  .card:hover {
-    transform: translateY(-4px);
-    border-color: var(--card-edge);
-    background: var(--surface-strong);
-    box-shadow:
-      inset 0 1px 0 rgba(255,255,255,0.1),
-      0 26px 50px -20px var(--card-glow),
-      0 10px 24px -18px rgba(0,0,0,0.6);
-  }
-  .card:hover::before { opacity: 1; }
-  .card:hover .card-arrow { transform: translateX(3px); color: var(--card-accent); }
-  .card:hover .card-title { color: var(--card-accent); }
-  .card:hover .card-icon {
-    box-shadow: 0 0 0 1px var(--card-edge), 0 0 22px -4px var(--card-glow);
-    transform: scale(1.04);
-  }
-}
-.card:active { transform: translateY(-1px); }
-
-/* Sichtbarer Fokus-Ring für Tastaturbedienung
-   (mit Fallback für Browser ohne :focus-visible) */
-.card:focus { outline: 2px solid var(--card-accent); outline-offset: 3px; }
-.card:focus:not(:focus-visible) { outline: none; }
-.card:focus-visible { outline: 2px solid var(--card-accent); outline-offset: 3px; }
-
-.card-icon {
-  align-self: start;
-  display: grid;
-  place-items: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 13px;
-  background: linear-gradient(155deg,
-    color-mix(in srgb, var(--card-accent) 26%, transparent),
-    color-mix(in srgb, var(--card-accent) 9%, transparent));
-  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--card-accent) 32%, transparent);
-  color: var(--card-accent);
-  transition: box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
-}
-.card-icon svg { display: block; width: 23px; height: 23px; }
-
-/* Inhalt füllt die Karte, damit die Chips unten abschließen und beide
-   Karten in der zweispaltigen Anordnung gleich hoch wirken */
-.card-body { display: flex; flex-direction: column; }
-
-.card-title {
-  display: block;
-  font-size: 17px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  line-height: 1.25;
-  transition: color 0.3s var(--ease);
-}
-
-.card-desc {
-  display: block;
-  margin-top: 6px;
-  font-size: 13.5px;
-  font-weight: 400;
-  line-height: 1.55;
-  color: var(--muted);
-}
-
-.card-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 13px; }
-
-.chip {
-  padding: 3px 8px;
-  border: 1px solid var(--border);
-  border-radius: var(--r-full);
-  background: var(--surface-strong);
-  font-family: var(--mono);
-  font-size: 10.5px;
-  font-weight: 500;
-  letter-spacing: 0.02em;
-  line-height: 1.5;
-  color: var(--muted);
-  white-space: nowrap;
-}
-
-.card-arrow {
-  align-self: center;
-  width: 18px;
-  height: 18px;
-  color: var(--muted);
-  transition: transform 0.3s var(--ease), color 0.3s var(--ease);
-}
-/* Einspaltig sind die Karten hoch — dann sitzt der Pfeil auf Höhe des Titels */
-@media (max-width: 719px) {
-  .card-arrow { align-self: start; margin-top: 13px; }
-}
-
-/* ═══════════════ FUSSBEREICH ═══════════════ */
-.foot {
-  margin-top: 28px;
-  padding: 0 2px;
-  font-size: 12px;
-  color: var(--muted);
-}
-.foot a {
-  color: var(--muted);
-  text-decoration: none;
-  border-bottom: 1px solid var(--border);
-  transition: color 0.2s var(--ease), border-color 0.2s var(--ease);
-}
-.foot a:hover { color: var(--accent); border-bottom-color: var(--accent); }
-.foot a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-bottom-color: transparent; }
+  a { color: #f59e0b; }
 </style>
 </head>
 <body>
-<div class="wrap">
-
-  <!-- ═══════════════ KOPFBEREICH ═══════════════ -->
-  <header class="head animate">
-    <img class="mark" src="logo.svg" alt="" aria-hidden="true">
-    <h1>MS Tools</h1>
-    <p class="host">steidlmichael2000-stack.github.io</p>
-  </header>
-
-  <!-- ═══════════════ KARTEN ═══════════════
-       Ganze Karte ist ein <a> – funktioniert auch ohne JavaScript. -->
-  <main class="cards">
-
-    <!-- Karte 1 · Stundenplan -->
-    <a class="card card-plan animate" href="./stundenplan/" style="animation-delay: 0.06s">
-      <span class="card-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="3" y="4.5" width="18" height="16.5" rx="3"/>
-          <path d="M3 9.5h18"/>
-          <path d="M8 4.5V2.5"/>
-          <path d="M16 4.5V2.5"/>
-          <rect x="6" y="12" width="5.5" height="3" rx="1.2" fill="currentColor" stroke="none"/>
-          <rect x="13" y="12" width="5" height="3" rx="1.2" fill="currentColor" stroke="none" opacity=".35"/>
-          <rect x="6" y="17" width="5" height="1.6" rx=".8" fill="currentColor" stroke="none" opacity=".35"/>
-        </svg>
-      </span>
-      <span class="card-body">
-        <h2 class="card-title">Stundenplan FST 2 TB</h2>
-        <p class="card-desc">Stundenplan der Fachschulklasse FST&nbsp;2&nbsp;TB an der Josef-Greising-Schule Würzburg. Live-Status der laufenden Stunde, Wochen-, Tages- und Monatsansicht – offline nutzbar und als App installierbar.</p>
-        <span class="card-meta">
-          <span class="chip">Wintersemester 2026/27</span>
-          <span class="chip">PWA</span>
-          <span class="chip">offline</span>
-        </span>
-      </span>
-      <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M9 5l7 7-7 7"/>
-      </svg>
-    </a>
-
-    <!-- Karte 2 · Punktwolken-Viewer -->
-    <a class="card card-pw animate" href="./pw-viewer/" style="animation-delay: 0.12s">
-      <span class="card-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M12 2.9l8.3 4.5v9.2L12 21.1 3.7 16.6V7.4z"/>
-          <path d="M12 11.9l8.3-4.5"/>
-          <path d="M12 11.9L3.7 7.4"/>
-          <path d="M12 11.9v9.2"/>
-          <circle cx="8.1" cy="14.6" r=".95" fill="currentColor" stroke="none" opacity=".55"/>
-          <circle cx="15.9" cy="14.6" r=".95" fill="currentColor" stroke="none" opacity=".55"/>
-        </svg>
-      </span>
-      <span class="card-body">
-        <h2 class="card-title">3D-Aufnahmen</h2>
-        <p class="card-desc">Punktwolken-Viewer für 3D-Aufnahmen. Aufnahmen direkt im Browser ansehen und erkunden, ohne Zusatzsoftware oder Installation.</p>
-        <span class="card-meta">
-          <span class="chip">Punktwolken</span>
-          <span class="chip">WebGL</span>
-        </span>
-      </span>
-      <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M9 5l7 7-7 7"/>
-      </svg>
-    </a>
-
-    <!-- Karte 3 · TrackPilot -->
-    <a class="card card-rail animate" href="./trackpilot/" style="animation-delay: 0.18s">
-      <span class="card-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <!-- Strecke mit Kilometersteinen -->
-          <path d="M6.4 3v18"/>
-          <path d="M3.6 7.4h2.8M3.6 12h2.8M3.6 16.6h2.8"/>
-          <!-- Markierter Punkt -->
-          <path d="M16 21s4.3-4.8 4.3-7.9a4.3 4.3 0 1 0-8.6 0C11.7 16.2 16 21 16 21z"/>
-          <circle cx="16" cy="13.1" r="1.5" fill="currentColor" stroke="none"/>
-        </svg>
-      </span>
-      <span class="card-body">
-        <h2 class="card-title">TrackPilot</h2>
-        <p class="card-desc">Streckenkilometer verorten. Streckennummer und Kilometer eingeben – oder auf die Karte tippen und ablesen, welcher Kilometer dort liegt. Mit Kilometersteinen, Luftbild und Absprung nach Google&nbsp;Maps.</p>
-        <span class="card-meta">
-          <span class="chip">VzG-Strecken</span>
-          <span class="chip">Karte</span>
-          <span class="chip">offline</span>
-        </span>
-      </span>
-      <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M9 5l7 7-7 7"/>
-      </svg>
-    </a>
-
-    <!-- Karte 4 · Punktcodes -->
-    <a class="card card-code animate" href="./punktcodes/" style="animation-delay: 0.24s">
-      <span class="card-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <!-- Codeliste -->
-          <path d="M3.8 5.6h9.4M3.8 10h7M3.8 14.4h4.6"/>
-          <!-- Lupe -->
-          <circle cx="15.4" cy="14.6" r="4.3"/>
-          <path d="M18.5 17.7 21.4 20.6"/>
-        </svg>
-      </span>
-      <span class="card-body">
-        <h2 class="card-title">Punktcodes</h2>
-        <p class="card-desc">Punktcode-Suche für den Außendienst. Die Vermessungs-Codeliste durchsuchen, ohne im Ordner zu blättern – funktioniert auch ohne Empfang und ist als App installierbar.</p>
-        <span class="card-meta">
-          <span class="chip">Vermessung</span>
-          <span class="chip">PWA</span>
-          <span class="chip">offline</span>
-        </span>
-      </span>
-      <svg class="card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M9 5l7 7-7 7"/>
-      </svg>
-    </a>
-
-  </main>
-
-  <!-- ═══════════════ FUSSBEREICH ═══════════════ -->
-  <footer class="foot animate" style="animation-delay: 0.30s">
-    <p>Private Projektseite · Quellcode auf <a href="https://github.com/steidlmichael2000-stack" target="_blank" rel="noopener">github.com/steidlmichael2000-stack</a></p>
-  </footer>
-
-</div>
-
-<!-- ═══════════════════════════════════════════════════════════════════
-     SKRIPT (b) · SERVICE WORKER
-     `./sw.js` macht MS Tools offlinefähig und installierbar – Chrome
-     bietet die Installation nur an, wenn ein Worker mit fetch-Handler
-     registriert ist.
-
-     Früher stand hier ein Kill-Switch, der den alten Wurzel-Worker
-     (`fst1-v1`) der ursprünglichen Root-PWA abräumen musste. Das erledigt
-     jetzt der neue Worker mit: Er wird über dieselbe Skript-URL verteilt
-     und löscht den Altbestand gezielt. Deshalb wird hier – anders als
-     zuvor – unbedingt registriert und nicht nur bei vorhandener
-     Alt-Registrierung.
-     ═══════════════════════════════════════════════════════════════════ -->
-<script>
-(function () {
-  try {
-    if (!('serviceWorker' in navigator)) return;
-    window.addEventListener('load', function () {
-      navigator.serviceWorker.register('./sw.js', { scope: './' })
-        .catch(function () { /* ohne Worker läuft die Seite ganz normal weiter */ });
-    });
-  } catch (e) { /* ignorieren */ }
-})();
-</script>
-
+  <p>Weiter zu <a href="start/">MS Tools</a></p>
 </body>
 </html>

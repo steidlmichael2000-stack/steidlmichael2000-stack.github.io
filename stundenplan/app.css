@@ -4,26 +4,27 @@
 
 /* ─── DESIGN TOKENS ─────────────────────────────────────────────────── */
 :root {
-  --bg: #07080d;
-  --surface: rgba(255,255,255,0.04);
-  --surface-strong: rgba(255,255,255,0.06);
-  --surface-border: rgba(255,255,255,0.07);
-  --border: rgba(255,255,255,0.05);
-  --text: #e8eaf0;
-  --text-dim: rgba(255,255,255,0.58);
-  --muted: #7a8098;        /* 5,1:1 — am Handy auch bei Sonne noch lesbar */
-  --faint: rgba(255,255,255,0.18);
-  --accent: #f59e0b;
-  --accent2: #3b82f6;
-  --green: #10b981;
+  --bg: #06070b;
+  --surface: rgba(255,255,255,0.045);
+  --surface-strong: rgba(255,255,255,0.07);
+  --surface-border: rgba(255,255,255,0.22);   /* Kante, nicht Andeutung */
+  --border: rgba(255,255,255,0.09);
+  --text: #e9ebf1;
+  --text-dim: rgba(255,255,255,0.72);
+  --muted: #8a90a3;        /* 6,4:1 — am Handy auch bei Sonne noch lesbar */
+  --faint: rgba(255,255,255,0.32);
+  --accent: #f5a524;
+  --accent2: #4a90d9;
+  --green: #34d399;
   --t-nach: #38bdf8;      /* Nachschreibtermin */
   --t-pruef: #fb7185;     /* Prüfung */
   --t-info: #a78bfa;      /* Ablauftermin */
+  --grid: rgba(255,255,255,0.028);
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --sans: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
   --sp-xs: 4px;  --sp-sm: 8px;  --sp-md: 16px;  --sp-lg: 24px;  --sp-xl: 32px;
-  --r-sm: 8px;   --r-md: 12px;  --r-lg: 16px;   --r-xl: 18px;   --r-full: 999px;
+  --r-sm: 2px;   --r-md: 2px;   --r-lg: 2px;    --r-xl: 3px;    --r-full: 2px;
 
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --t-fast: 0.2s var(--ease);
@@ -32,21 +33,23 @@
 }
 
 [data-theme="light"] {
-  --bg: #f4f5f7;
-  --surface: rgba(0,0,0,0.03);
-  --surface-strong: rgba(0,0,0,0.05);
-  --surface-border: rgba(0,0,0,0.08);
-  --border: rgba(0,0,0,0.06);
-  --text: #1a1d26;
-  --text-dim: rgba(0,0,0,0.64);
-  --muted: #666b7a;        /* 4,8:1 auf hellem Grund */
-  --faint: rgba(0,0,0,0.22);
-  --accent: #d97706;
-  --accent2: #2563eb;
-  --green: #059669;
-  --t-nach: #0284c7;
-  --t-pruef: #e11d48;
-  --t-info: #7c3aed;
+  /* Plan: Zeichenpapier, bewusst warm statt neutralgrau */
+  --bg: #eceae3;
+  --surface: rgba(18,20,26,0.035);
+  --surface-strong: rgba(18,20,26,0.06);
+  --surface-border: rgba(18,20,26,0.34);
+  --border: rgba(18,20,26,0.14);
+  --text: #14161c;
+  --text-dim: rgba(18,20,26,0.78);
+  --muted: #5b6070;        /* 5,3:1 auf hellem Grund */
+  --faint: rgba(18,20,26,0.36);
+  --accent: #96590a;
+  --accent2: #2f6fb0;
+  --green: #0f8a62;
+  --t-nach: #0369a1;
+  --t-pruef: #be123c;
+  --t-info: #6d4fd6;
+  --grid: rgba(18,20,26,0.05);
 }
 
 /* ─── RESET & BASE ──────────────────────────────────────────────────── */
@@ -58,7 +61,13 @@
 html { -webkit-text-size-adjust: 100%; }
 
 body {
-  background: var(--bg);
+  background-color: var(--bg);
+  /* Millimeterpapier – Atmosphäre, die aus der Sache kommt, kein Verlauf */
+  background-image:
+    linear-gradient(90deg, var(--grid) 0 1px, transparent 1px),
+    linear-gradient(180deg, var(--grid) 0 1px, transparent 1px);
+  background-size: 24px 24px, 24px 24px;
+  background-attachment: fixed;
   font-family: var(--sans);
   color: var(--text);
   min-height: 100vh;
@@ -1413,4 +1422,32 @@ input[type="date"].settings-input { color-scheme: dark; }
   .lesson-chip .subj-tag { color: #000 !important; }
   .lesson-chip .info { color: #444 !important; }
   .time-badge { background: none; color: #000; border: 1px solid #999; }
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════
+   MESSWERK · Nachtrag
+   Die Handschrift des Systems sitzt in den Tokens oben. Was sich nicht als
+   Token ausdrücken lässt, steht hier.
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* Zahlen laufen tabellarisch. Eine Uhrzeit, die beim Umschalten springt,
+   weil die Ziffern unterschiedlich breit sind, ist in einem Stundenplan
+   ein Fehler, kein Detail. */
+body { font-variant-numeric: tabular-nums; }
+
+/* Der Schalter ist das einzige Bauteil, das rund bleiben muss –
+   --r-full gilt jetzt für die Pillen, die keine mehr sein sollen. */
+.toggle-switch, .toggle-knob { border-radius: 999px; }
+
+/* Das Strichmaß: große Teilung 48px, kleine 8px. Trennt und misst zugleich. */
+.rule {
+  height: 14px;
+  border-top: 1px solid var(--surface-border);
+  background-image:
+    repeating-linear-gradient(90deg, var(--surface-border) 0 1px, transparent 1px 48px),
+    repeating-linear-gradient(90deg, var(--border) 0 1px, transparent 1px 8px);
+  background-size: 100% 13px, 100% 6px;
+  background-position: 0 0, 0 0;
+  background-repeat: no-repeat, no-repeat;
 }

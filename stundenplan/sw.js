@@ -16,7 +16,7 @@
    schadet aber nicht.
    ═══════════════════════════════════════════════════════════════════════ */
 
-const CACHE = 'fst2tb-v2';
+const CACHE = 'fst2tb-v3';
 
 const CORE = [
   './',

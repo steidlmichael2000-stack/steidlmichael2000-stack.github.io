@@ -25,7 +25,7 @@
    würden die Nachbar-Apps bei jedem Deploy ihren Offline-Bestand verlieren.
    ═══════════════════════════════════════════════════════════════════════ */
 
-const VERSION = 'v4';
+const VERSION = 'v5';
 const CACHE = `mstools-${VERSION}`;
 
 const SHELL = [

@@ -25,19 +25,24 @@
    ausdrücklich durchgereicht (Liste FOREIGN).
 
    WICHTIG: `caches.delete()` arbeitet origin-weit. Beim Aufräumen werden
-   deshalb nur die eigenen Caches (Präfix `uebersicht-`) und der bekannte
+   deshalb nur die eigenen Caches (Präfix `mstools-`, früher `uebersicht-`)
+   und der bekannte
    Altbestand angefasst – niemals pauschal alles, sonst würden die anderen
    Apps bei jedem Deploy ihren Offline-Bestand verlieren.
    ═══════════════════════════════════════════════════════════════════════ */
 
-const VERSION = 'v2';
-const CACHE = `uebersicht-${VERSION}`;
+const VERSION = 'v3';
+const CACHE = `mstools-${VERSION}`;
 const LEGACY = ['fst1-v1'];
+/* Die Seite hieß bis September 2026 "Übersicht" – deren Caches liegen noch
+ * auf den Geräten und werden beim Aktivieren mit weggeräumt. */
+const PRAEFIXE = ['mstools-', 'uebersicht-'];
 
 const SHELL = [
   './',
   'index.html',
   'favicon.svg',
+  'logo.svg',
   'manifest.webmanifest',
   'icon-192.png',
   'icon-512.png'
@@ -45,7 +50,7 @@ const SHELL = [
 
 // Eigenständige Apps mit eigenem Service Worker – hier nicht anfassen.
 // Beim Aufnehmen einer neuen App in die Übersicht unbedingt hier ergänzen.
-const FOREIGN = ['/stundenplan/', '/pw-viewer/', '/railnav/', '/punktcodes/'];
+const FOREIGN = ['/stundenplan/', '/pw-viewer/', '/trackpilot/', '/punktcodes/'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil((async () => {
@@ -61,7 +66,7 @@ self.addEventListener('activate', (event) => {
     try {
       const keys = await caches.keys();
       await Promise.all(keys
-        .filter((key) => LEGACY.includes(key) || (key.startsWith('uebersicht-') && key !== CACHE))
+        .filter((key) => LEGACY.includes(key) || (PRAEFIXE.some((p) => key.startsWith(p)) && key !== CACHE))
         .map((key) => caches.delete(key).catch(() => {})));
     } catch (e) { /* Cache Storage nicht verfügbar – ignorieren */ }
     await self.clients.claim();

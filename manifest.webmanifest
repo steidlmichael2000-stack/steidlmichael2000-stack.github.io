@@ -1,7 +1,7 @@
 {
-  "name": "Übersicht · steidlmichael2000-stack",
-  "short_name": "Übersicht",
-  "description": "Sammelseite der Projekte: Stundenplan FST 2 TB, Punktwolken-Viewer, Railnav und Punktcodes.",
+  "name": "MS Tools",
+  "short_name": "MS Tools",
+  "description": "Sammelseite der Apps: Stundenplan FST 2 TB, Punktwolken-Viewer, TrackPilot und Punktcodes.",
   "lang": "de",
   "dir": "ltr",
   "id": "/uebersicht",
@@ -20,7 +20,7 @@
   ],
   "shortcuts": [
     { "name": "Stundenplan FST 2 TB", "url": "./stundenplan/" },
-    { "name": "Railnav", "url": "./railnav/" },
+    { "name": "TrackPilot", "url": "./trackpilot/" },
     { "name": "Punktcodes", "url": "./punktcodes/" },
     { "name": "3D-Aufnahmen", "url": "./pw-viewer/" }
   ]

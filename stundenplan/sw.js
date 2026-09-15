@@ -16,7 +16,7 @@
    schadet aber nicht.
    ═══════════════════════════════════════════════════════════════════════ */
 
-const CACHE = 'fst2tb-v1';
+const CACHE = 'fst2tb-v2';
 
 const CORE = [
   './',
@@ -28,6 +28,7 @@ const CORE = [
   './icon.svg',
   './icon-192.png',
   './icon-512.png',
+  './icon-maskable-512.png',
 ];
 
 self.addEventListener('install', event => {

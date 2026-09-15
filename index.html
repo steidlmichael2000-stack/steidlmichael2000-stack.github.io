@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Übersicht · steidlmichael2000-stack</title>
-<meta name="description" content="Übersicht der Projekte von steidlmichael2000-stack: Stundenplan der Fachschulklasse FST 2 TB (Josef-Greising-Schule Würzburg), Punktwolken-Viewer für 3D-Aufnahmen, Railnav zum Verorten von Streckenkilometern und die Punktcode-Suche für den Außendienst.">
+<title>MS Tools · steidlmichael2000-stack</title>
+<meta name="description" content="MS Tools – die Projekte von steidlmichael2000-stack: Stundenplan der Fachschulklasse FST 2 TB (Josef-Greising-Schule Würzburg), Punktwolken-Viewer für 3D-Aufnahmen, TrackPilot zum Verorten von Streckenkilometern und die Punktcode-Suche für den Außendienst.">
 <meta name="color-scheme" content="dark light">
 <!-- Die Media-Variante zuerst, damit im Hellmodus die helle Farbe greift. -->
 <meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Übersicht">
+<meta name="apple-mobile-web-app-title" content="MS Tools">
 
 <!-- ═══════════════════════════════════════════════════════════════════
      SKRIPT (a) · STANDALONE-REDIRECT
@@ -21,12 +21,12 @@
      haben dieses Icon auf dem Homescreen. Damit es weiterhin direkt im
      Stundenplan landet, wird im Standalone-Modus sofort weitergeleitet.
      Läuft absichtlich als ERSTES Skript (noch im <head>), damit die
-     Übersicht nicht kurz aufblitzt.
+     MS Tools nicht kurz aufblitzt.
      Ausnahme: Mit "?home=1" (bzw. beliebigem "home" in der Query) wird die
-     Weiterleitung übersprungen – so ist die Übersicht auch aus einer
+     Weiterleitung übersprungen – so ist MS Tools auch aus einer
      installierten App heraus erreichbar.
-     Genau darauf zeigt die "start_url" im Manifest ("./?home=1"): Wer die
-     Übersicht selbst installiert, landet in der Übersicht; die alten
+     Genau darauf zeigt die "start_url" im Manifest ("./?home=1"): Wer
+     MS Tools selbst installiert, landet in MS Tools; die alten
      Homescreen-Icons zeigen weiterhin auf "/" und damit auf den Stundenplan.
      ═══════════════════════════════════════════════════════════════════ -->
 <script>
@@ -37,7 +37,7 @@
     if (standalone && !location.search.includes('home')) {
       location.replace('./stundenplan/');
     }
-  } catch (e) { /* Kein Redirect – die Übersicht bleibt einfach stehen. */ }
+  } catch (e) { /* Kein Redirect – MS Tools bleibt einfach stehen. */ }
 })();
 </script>
 
@@ -154,10 +154,10 @@ body::before {
 /* ═══════════════ KOPFBEREICH ═══════════════ */
 .head { padding: 0 2px; margin-bottom: 30px; }
 
-/* Kleine Bildmarke, nimmt das Raster-Motiv des Favicons auf */
+/* Kleine Bildmarke – dasselbe Monogramm wie Favicon und App-Icon */
 .mark {
   display: block;
-  width: 24px; height: 24px;
+  width: auto; height: 28px;
   margin-bottom: 16px;
   color: var(--accent);
   filter: drop-shadow(0 0 14px rgba(245,158,11,0.35));
@@ -409,13 +409,8 @@ h1 {
 
   <!-- ═══════════════ KOPFBEREICH ═══════════════ -->
   <header class="head animate">
-    <svg class="mark" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true">
-      <rect x="1"  y="1"  width="13" height="13" rx="3.5"/>
-      <rect x="18" y="1"  width="13" height="13" rx="3.5" opacity=".62"/>
-      <rect x="1"  y="18" width="13" height="13" rx="3.5" opacity=".62"/>
-      <rect x="18" y="18" width="13" height="13" rx="3.5" opacity=".42"/>
-    </svg>
-    <h1>Übersicht</h1>
+    <img class="mark" src="logo.svg" alt="" aria-hidden="true">
+    <h1>MS Tools</h1>
     <p class="host">steidlmichael2000-stack.github.io</p>
   </header>
 
@@ -475,8 +470,8 @@ h1 {
       </svg>
     </a>
 
-    <!-- Karte 3 · Railnav -->
-    <a class="card card-rail animate" href="./railnav/" style="animation-delay: 0.18s">
+    <!-- Karte 3 · TrackPilot -->
+    <a class="card card-rail animate" href="./trackpilot/" style="animation-delay: 0.18s">
       <span class="card-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <!-- Strecke mit Kilometersteinen -->
@@ -488,7 +483,7 @@ h1 {
         </svg>
       </span>
       <span class="card-body">
-        <h2 class="card-title">Railnav</h2>
+        <h2 class="card-title">TrackPilot</h2>
         <p class="card-desc">Streckenkilometer verorten. Streckennummer und Kilometer eingeben – oder auf die Karte tippen und ablesen, welcher Kilometer dort liegt. Mit Kilometersteinen, Luftbild und Absprung nach Google&nbsp;Maps.</p>
         <span class="card-meta">
           <span class="chip">VzG-Strecken</span>
@@ -537,7 +532,7 @@ h1 {
 
 <!-- ═══════════════════════════════════════════════════════════════════
      SKRIPT (b) · SERVICE WORKER
-     `./sw.js` macht die Übersicht offlinefähig und installierbar – Chrome
+     `./sw.js` macht MS Tools offlinefähig und installierbar – Chrome
      bietet die Installation nur an, wenn ein Worker mit fetch-Handler
      registriert ist.
 

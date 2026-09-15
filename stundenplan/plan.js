@@ -18,7 +18,7 @@ const KLASSE = {
   schuleZusatz: 'Städtisches Gewerbliches Berufsbildungszentrum II',
   leiter:       'Matthias Finck',
   gueltigAb:    '2026-09-15',
-  semesterEnde: '2027-02-05',
+  semesterEnde: '2027-02-19',   // Semesterwechsel laut Korrekturblatt
 };
 
 /* ── Stundenraster (gilt für alle Tage, Abweichungen unten) ───────────── */
@@ -139,19 +139,51 @@ const LESSONS = [
   },
 ];
 
-/* ── Unterrichtsfreie Tage (Bayern, Semesterzeitraum) ──────────────────
+/* ── Unterrichtsfreie Tage ───────────────────────────────────
    [von, bis, Bezeichnung]  ·  bis ist inklusive
-   Stand geprüft am 03.08.2026 gegen die offiziellen bayerischen Termine.
+   Quelle: "Korrekturblatt zur Begrüßungsmappe 2026-27" der Schule.
 
-   ACHTUNG: Bayern hat zusätzlich 4 bewegliche Ferientage pro Schuljahr,
-   die jede Schule selbst festlegt. Die stehen hier nicht drin, weil sie
-   schulspezifisch sind — sobald du sie kennst, einfach als weitere Zeile
-   ergänzen, z. B.  ['2026-12-23', '2026-12-23', 'beweglicher Ferientag'].
-   Dasselbe gilt für Prüfungs- oder Projekttage ohne Unterricht.        */
+   Achtung: Buß- und Bettag steht bewusst NICHT hier. An allgemein-
+   bildenden Schulen in Bayern ist er unterrichtsfrei, an den Fachschulen
+   laut Korrekturblatt aber nicht — SW 9 (16.–20.11.2026) ist dort eine
+   volle Unterrichtswoche.                                              */
 const FREE_RANGES = [
-  ['2026-11-02', '2026-11-06', 'Herbstferien'],
-  ['2026-11-18', '2026-11-18', 'Buß- und Bettag'],   // in Bayern unterrichtsfrei
+  ['2026-11-02', '2026-11-06', 'Allerheiligenferien'],
   ['2026-12-24', '2027-01-08', 'Weihnachtsferien'],
-  /* nach Semesterende, nur noch für die Kalenderansicht relevant */
   ['2027-02-08', '2027-02-12', 'Frühjahrsferien'],
+  /* ab hier Sommersemester — nur noch für die Kalenderansicht */
+  ['2027-03-22', '2027-04-02', 'Osterferien'],
+  ['2027-05-06', '2027-05-07', 'Christi Himmelfahrt & Brückentag'],
+  ['2027-05-17', '2027-05-28', 'Pfingstferien'],
+  ['2027-08-02', '2027-09-10', 'Sommerferien'],
+];
+
+/* ── Termine für die Monatsansicht ──────────────────────────────
+   d    = Datum (bei mehrtägigen Terminen der erste Tag)
+   bis  = optional, letzter Tag
+   art  = 'nachschreiben' | 'pruefung' | 'info'  (steuert nur die Farbe)
+   text = Bezeichnung
+   zeit / raum = optional                                               */
+const TERMINE = [
+  /* Nachschreibtermine, jeweils Freitag 14:00 Uhr in B 101 */
+  { d: '2026-11-13', art: 'nachschreiben', text: 'Nachschreibtermin', zeit: '14:00', raum: 'B 101' },
+  { d: '2026-12-18', art: 'nachschreiben', text: 'Nachschreibtermin', zeit: '14:00', raum: 'B 101' },
+  { d: '2027-01-29', art: 'nachschreiben', text: 'Nachschreibtermin', zeit: '14:00', raum: 'B 101' },
+  { d: '2027-02-05', art: 'nachschreiben', text: 'Nachschreibtermin', zeit: '14:00', raum: 'B 101' },
+  { d: '2027-03-12', art: 'nachschreiben', text: 'Nachschreibtermin', zeit: '14:00', raum: 'B 101' },
+  { d: '2027-04-30', art: 'nachschreiben', text: 'Nachschreibtermin', zeit: '14:00', raum: 'B 101' },
+  { d: '2027-06-04', art: 'nachschreiben', text: 'Nachschreibtermin', zeit: '14:00', raum: 'B 101' },
+  { d: '2027-06-25', art: 'nachschreiben', text: 'Nachschreibtermin', zeit: '14:00', raum: 'B 101' },
+  { d: '2027-07-23', art: 'nachschreiben', text: 'Nachschreibtermin', zeit: '14:00', raum: 'B 101' },
+
+  /* Ablauf des Schuljahres */
+  { d: '2027-02-19', art: 'info', text: 'Semesterwechsel' },
+  { d: '2027-03-15', bis: '2027-03-19', art: 'info', text: 'Semesterfahrt' },
+  { d: '2027-06-11', art: 'info', text: 'Letzter Unterrichtstag (BAföG)' },
+
+  /* Abschlussprüfung — handschriftlich auf dem Korrekturblatt */
+  { d: '2027-06-14', bis: '2027-06-18', art: 'pruefung', text: 'Schriftliche Prüfung' },
+  { d: '2027-07-05', art: 'pruefung', text: 'Notenbekanntgabe' },
+  { d: '2027-07-09', art: 'pruefung', text: 'Mündliche Prüfung' },
+  { d: '2027-07-12', art: 'pruefung', text: 'Verabschiedung & Zeugnis' },
 ];

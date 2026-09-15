@@ -14,7 +14,7 @@ const CAL_HEAD  = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];   // Montag zuerst
 const WD_SHORT  = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];   // nach Date.getDay()
 const MONTHS    = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni',
                    'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
-const VIEWS   = ['week', 'day', 'month', 'subj'];
+const VIEWS   = ['week', 'day', 'month'];
 const ACCENTS = ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899', '#ef4444', '#06b6d4'];
 const STORE   = 'fst2tb.';
 
@@ -92,6 +92,30 @@ FREE_RANGES.forEach(([from, to, label]) => {
   const end = parseKey(to);
   while (cur <= end) { freeMap.set(dateKey(cur), label); cur = addDays(cur, 1); }
 });
+
+/* Termine nach Datum aufgeschluesselt; mehrtaegige Termine stehen an
+   jedem betroffenen Tag, behalten aber ihren Startzeitpunkt. */
+const terminMap = new Map();
+(typeof TERMINE === 'undefined' ? [] : TERMINE).forEach(t => {
+  let cur = parseKey(t.d);
+  const end = parseKey(t.bis || t.d);
+  while (cur <= end) {
+    const k = dateKey(cur);
+    if (!terminMap.has(k)) terminMap.set(k, []);
+    terminMap.get(k).push(t);
+    cur = addDays(cur, 1);
+  }
+});
+
+/** Beschriftung eines Termins fuer die Liste, z. B. "Fr 13.11." oder "15.-19.03." */
+function terminDatum(t) {
+  const von = parseKey(t.d);
+  if (!t.bis || t.bis === t.d) {
+    return `${WD_SHORT[von.getDay()]} ${pad(von.getDate())}.${pad(von.getMonth() + 1)}.`;
+  }
+  const bis = parseKey(t.bis);
+  return `${pad(von.getDate())}.${pad(von.getMonth() + 1)}.–${pad(bis.getDate())}.${pad(bis.getMonth() + 1)}.`;
+}
 
 /** Was für ein Tag ist das?  school | free | weekend | before | after */
 function dayInfo(date) {
@@ -701,85 +725,64 @@ function renderCalendar() {
       cell.classList.add('outside');
       cell.title = info.label;
     }
+    // Termine des Tages markieren (Punkt oben rechts)
+    const tage = terminMap.get(dateKey(cursor));
+    if (tage && tage.length) {
+      const rang = { pruefung: 3, nachschreiben: 2, info: 1 };
+      const wichtigster = tage.reduce((a, b) => (rang[b.art] || 0) > (rang[a.art] || 0) ? b : a);
+      cell.classList.add('has-termin', 'termin-' + wichtigster.art);
+      const bisher = cell.title ? cell.title + ' · ' : '';
+      cell.title = bisher + tage.map(t => t.text).join(' · ');
+    }
+
     if (dateKey(cursor) === todayKey) cell.classList.add('today');
 
     grid.appendChild(cell);
     cursor = addDays(cursor, 1);
   }
+
+  renderTermine();
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   FÄCHERÜBERSICHT
-   ═══════════════════════════════════════════════════════════════════ */
-function buildSubjects() {
-  const box = $('view-subj');
+/* ─── TERMINLISTE UNTER DEM KALENDER ─────────────────────────────────
+   Zeigt alle Termine, die in den angezeigten Monat hineinreichen.     */
+function renderTermine() {
+  const box = $('termin-liste');
   box.textContent = '';
 
-  const stats = new Map();
-  LESSONS.forEach((day, d) => {
-    Object.keys(day).forEach(nr => {
-      const l = day[nr];
-      const key = l.s + (l.alt ? '/' + l.alt : '');
-      if (!stats.has(key)) {
-        stats.set(key, { lesson: l, hours: 0, days: new Set(), rooms: new Set(), teachers: new Set(), dropped: !!l.drop });
-      }
-      const e = stats.get(key);
-      e.hours++;
-      e.days.add(d);
-      e.rooms.add(l.r);
-      e.teachers.add(l.t);
-    });
-  });
+  const monatsStart = new Date(calYear, calMonth, 1);
+  const monatsEnde = new Date(calYear, calMonth + 1, 0);
+  const liste = (typeof TERMINE === 'undefined' ? [] : TERMINE)
+    .filter(t => parseKey(t.bis || t.d) >= monatsStart && parseKey(t.d) <= monatsEnde)
+    .sort((a, b) => a.d.localeCompare(b.d));
 
-  const rows = [...stats.values()].sort((a, b) =>
-    (a.dropped - b.dropped) || (b.hours - a.hours) || lessonTitle(a.lesson).localeCompare(lessonTitle(b.lesson), 'de'));
+  if (!liste.length) { box.hidden = true; return; }
+  box.hidden = false;
 
-  const mine = rows.filter(r => !r.dropped);
-  const gone = rows.filter(r => r.dropped);
-  const sumMine = mine.reduce((s, r) => s + r.hours, 0);
-  const sumGone = gone.reduce((s, r) => s + r.hours, 0);
+  const titel = mk('div', 'termin-titel');
+  titel.textContent = `Termine im ${MONTHS[calMonth]}`;
+  box.appendChild(titel);
 
-  const sum = mk('div', 'subj-summary');
-  sum.innerHTML =
-    `<span><b>${sumMine}</b> Wochenstunden für dich</span>` +
-    `<span><b>${mine.length}</b> Fächer</span>` +
-    (sumGone ? `<span><b>${sumGone}</b> Stunden entfallen</span>` : '') +
-    `<span>Klasse gesamt: <b>${sumMine + sumGone}</b></span>`;
-  box.appendChild(sum);
+  const heute = dateKey(new Date());
+  liste.forEach(t => {
+    const zeile = mk('div', 'termin-zeile termin-' + t.art);
+    if ((t.bis || t.d) < heute) zeile.classList.add('vorbei');
 
-  const maxHours = Math.max(...rows.map(r => r.hours), 1);
+    const datum = mk('span', 'termin-datum');
+    datum.textContent = terminDatum(t);
+    zeile.appendChild(datum);
 
-  rows.forEach((r, i) => {
-    const row = mk('div', 'subj-row');
-    row.style.setProperty('--sc', subjColor(r.lesson.s));
-    row.style.setProperty('--i', i);
-    if (r.dropped) row.classList.add('is-dropped');
-
-    const main = mk('div', 'subj-row-main');
-    const name = mk('div', 'subj-row-name');
-    name.textContent = lessonTitle(r.lesson);
-    main.appendChild(name);
-
-    const meta = mk('div', 'subj-row-meta');
-    const days = [...r.days].sort().map(d => DAY_SHORT[d]).join(', ');
-    meta.textContent = `${days} · ${[...r.teachers].join(', ')} · ${[...r.rooms].join(', ')}` +
-      (r.dropped ? ' · entfällt für dich' : '');
-    main.appendChild(meta);
-
-    // Balken zeigt das Gewicht des Fachs in der Woche
-    const bar = mk('div', 'subj-bar');
-    const barFill = mk('i');
-    barFill.style.width = `${(r.hours / maxHours) * 100}%`;
-    bar.appendChild(barFill);
-    main.appendChild(bar);
-
-    row.appendChild(main);
-
-    const h = mk('span', 'subj-row-hours');
-    h.textContent = `${r.hours} Std`;
-    row.appendChild(h);
-
-    box.appendChild(row);
+    const mitte = mk('span', 'termin-body');
+    const text = mk('span', 'termin-text');
+    text.textContent = t.text;
+    mitte.appendChild(text);
+    if (t.zeit || t.raum) {
+      const meta = mk('span', 'termin-meta');
+      meta.textContent = [t.zeit && t.zeit + ' Uhr', t.raum].filter(Boolean).join(' · ');
+      mitte.appendChild(meta);
+    }
+    zeile.appendChild(mitte);
+    box.appendChild(zeile);
   });
 }
 
@@ -1120,7 +1123,6 @@ function afterViewShown() {
     buildDay();
   }
   if (currentView === 'month') renderCalendar();
-  if (currentView === 'subj') buildSubjects();
 }
 
 function initSwipe() {
@@ -1150,7 +1152,7 @@ function initKeyboard() {
     const i = VIEWS.indexOf(currentView);
     if (e.key === 'ArrowRight' && i < VIEWS.length - 1) { switchView(VIEWS[i + 1]); e.preventDefault(); }
     else if (e.key === 'ArrowLeft' && i > 0) { switchView(VIEWS[i - 1]); e.preventDefault(); }
-    else if (e.key >= '1' && e.key <= '4') { switchView(VIEWS[Number(e.key) - 1]); e.preventDefault(); }
+    else if (e.key >= '1' && e.key <= '3') { switchView(VIEWS[Number(e.key) - 1]); e.preventDefault(); }
     else if (e.key.toLowerCase() === 't') {
       const t = todayIdx();
       if (t >= 0) { dayIdx = t; dayPinned = false; }
@@ -1225,7 +1227,6 @@ function rebuildAll() {
   buildDayTabs();
   buildDay();
   renderCalendar();
-  buildSubjects();
   const now = new Date();
   highlightWeek(todayIdx(), now.getHours() * 60 + now.getMinutes());
   updateStatus(now);
@@ -1499,7 +1500,7 @@ function init() {
   $('about').textContent =
     `${KLASSE.klasse} · Semesterplan ${KLASSE.semester.replace('Wintersemester ', '')} · ` +
     `Semesterleiter ${KLASSE.leiter} · ${fmtDateShort(parseKey(SEM_START))} – ${fmtDateShort(parseKey(SEM_END))} · ` +
-    `Angaben ohne Gewähr · Tasten: 1–4 Ansicht, T heute, E Einstellungen`;
+    `Angaben ohne Gewähr · Tasten: 1–3 Ansicht, T heute, E Einstellungen`;
 
   dayIdx = pickStartDay();
 
@@ -1519,7 +1520,6 @@ function init() {
   buildDayTabs();
   buildDay();
   renderCalendar();
-  buildSubjects();
 
   // Ansichten verdrahten
   document.querySelectorAll('#view-toggle .vt-btn').forEach(b =>

@@ -16,6 +16,9 @@
   --accent: #f59e0b;
   --accent2: #3b82f6;
   --green: #10b981;
+  --t-nach: #38bdf8;      /* Nachschreibtermin */
+  --t-pruef: #fb7185;     /* Prüfung */
+  --t-info: #a78bfa;      /* Ablauftermin */
   --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --sans: 'Outfit', system-ui, -apple-system, 'Segoe UI', sans-serif;
 
@@ -41,6 +44,9 @@
   --accent: #d97706;
   --accent2: #2563eb;
   --green: #059669;
+  --t-nach: #0284c7;
+  --t-pruef: #e11d48;
+  --t-info: #7c3aed;
 }
 
 /* ─── RESET & BASE ──────────────────────────────────────────────────── */
@@ -118,15 +124,14 @@ body::after {
 }
 
 /* dieselbe Tiefe für die Panels, die kein .glass tragen */
-.table-wrap, .day-view, .month-view-inner, .subjects-view {
+.table-wrap, .day-view, .month-view-inner {
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.05),
     0 22px 46px -30px rgba(0,0,0,0.75);
 }
 [data-theme="light"] .table-wrap,
 [data-theme="light"] .day-view,
-[data-theme="light"] .month-view-inner,
-[data-theme="light"] .subjects-view {
+[data-theme="light"] .month-view-inner {
   box-shadow:
     inset 0 1px 0 rgba(255,255,255,0.9),
     0 18px 40px -28px rgba(15,20,40,0.2);
@@ -148,13 +153,13 @@ body::after {
 }
 
 /* Gestaffeltes Einblenden — läuft nur beim Neuaufbau, nicht im Sekundentakt */
-#plan-body tr, .dt-slot, .subj-row {
+#plan-body tr, .dt-slot, .termin-zeile {
   animation: riseIn 0.38s var(--ease) backwards;
 }
 /* nach oben begrenzt, damit lange Listen nicht träge wirken */
 #plan-body tr { animation-delay: calc(min(var(--i, 0), 13) * 20ms); }
 .dt-slot      { animation-delay: calc(min(var(--i, 0), 10) * 26ms); }
-.subj-row     { animation-delay: calc(min(var(--i, 0), 9) * 22ms); }
+.termin-zeile { animation-delay: calc(min(var(--i, 0), 9) * 22ms); }
 
 .fade-content { transition: opacity 0.28s ease, transform 0.28s ease; }
 .fade-content.slide-out-left  { opacity: 0; transform: translateX(-30px) scale(0.98); }
@@ -670,7 +675,7 @@ td {
 }
 
 /* ─── TAGESANSICHT ──────────────────────────────────────────────────── */
-.day-view, .month-view-inner, .subjects-view {
+.day-view, .month-view-inner {
   border-radius: var(--r-xl);
   border: 1px solid var(--surface-border);
   background: var(--surface);
@@ -680,7 +685,7 @@ td {
 }
 [data-theme="light"] .day-view,
 [data-theme="light"] .month-view-inner,
-[data-theme="light"] .subjects-view { background: rgba(255,255,255,0.7); }
+
 
 .day-tabs {
   display: flex;
@@ -1004,61 +1009,75 @@ td {
 .cal-day.school:hover { filter: brightness(1.2); transform: scale(1.07); }
 .cal-hours { font-size: 7px; font-weight: 800; letter-spacing: 0.04em; opacity: 0.75; font-family: var(--mono); }
 
-/* ─── FÄCHER-ANSICHT ────────────────────────────────────────────────── */
-.subjects-view { display: flex; flex-direction: column; gap: var(--sp-sm); }
-.subj-summary {
-  font-size: 0.7rem;
-  color: var(--muted);
-  padding-bottom: var(--sp-sm);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
+/* ─── TERMINE IM KALENDER ─────────────────────────────── */
+.termin-nachschreiben { --tc: var(--t-nach); }
+.termin-pruefung      { --tc: var(--t-pruef); }
+.termin-info          { --tc: var(--t-info); }
+
+/* Punkt oben rechts in der Kalenderzelle */
+.cal-day.has-termin::after {
+  content: '';
+  position: absolute;
+  top: 5px; right: 5px;
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--tc, var(--accent2));
+  box-shadow: 0 0 7px color-mix(in srgb, var(--tc, var(--accent2)) 65%, transparent);
 }
-.subj-summary b { color: var(--text); font-weight: 700; }
-.subj-row {
-  display: flex;
+
+.cal-leg-item.leg-termin {
+  display: inline-flex;
   align-items: center;
-  gap: var(--sp-md);
-  padding: 9px 12px;
-  border-radius: var(--r-md);
-  background: rgba(255,255,255,0.022);
-  border: 1px solid rgba(255,255,255,0.04);
-  border-left: 3px solid var(--sc, var(--accent));
+  gap: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  border-color: var(--surface-border);
 }
-[data-theme="light"] .subj-row { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.05); }
-.subj-row.is-dropped { opacity: 0.42; }
-.subj-row.is-dropped .subj-row-name { text-decoration: line-through; }
-.subj-row-main { flex: 1; min-width: 0; }
-.subj-row-name { font-size: 0.82rem; font-weight: 700; }
-.subj-row-meta { font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
-/* Balken zeigt das Gewicht des Fachs in der Woche */
-.subj-bar {
-  margin-top: 7px;
-  max-width: 240px;
-  height: 3px;
-  border-radius: 2px;
-  background: rgba(255,255,255,0.07);
-  overflow: hidden;
+.cal-leg-item.leg-termin::before {
+  content: '';
+  width: 5px; height: 5px;
+  border-radius: 50%;
+  background: var(--t-nach);
 }
-[data-theme="light"] .subj-bar { background: rgba(0,0,0,0.08); }
-.subj-bar i {
-  display: block;
-  height: 100%;
-  border-radius: 2px;
-  background: linear-gradient(90deg, color-mix(in srgb, var(--sc) 50%, transparent), var(--sc));
+
+/* Liste unter dem Kalender */
+.termin-liste {
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
 }
-.subj-row-hours {
+.termin-titel {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 3px;
+}
+.termin-zeile {
+  display: flex;
+  align-items: baseline;
+  gap: 11px;
+  padding: 6px 0 6px 11px;
+  border-left: 2px solid var(--tc, var(--accent));
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--tc) 9%, transparent), transparent 62%);
+}
+.termin-zeile.vorbei { opacity: 0.42; }
+.termin-datum {
   font-family: var(--mono);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
-  color: var(--sc, var(--accent));
-  background: color-mix(in srgb, var(--sc, var(--accent)) 12%, transparent);
-  padding: 4px 9px;
-  border-radius: var(--r-full);
+  color: var(--tc);
   white-space: nowrap;
-  flex-shrink: 0;
+  min-width: 76px;
 }
+.termin-body { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.termin-text { font-size: 0.76rem; font-weight: 600; color: var(--text); }
+.termin-meta { font-size: 0.66rem; color: var(--muted); font-family: var(--mono); }
 
 /* ─── EINSTELLUNGEN ─────────────────────────────────────────────────── */
 .settings-panel { margin-bottom: var(--sp-md); animation: slideIn 0.3s ease; }
@@ -1280,7 +1299,7 @@ input[type="date"].settings-input { color-scheme: dark; }
   .time-badge { font-size: 7px; padding: 1px 4px; }
 
   /* Tagesansicht: Zeitachse etwas schmaler */
-  .day-view, .month-view-inner, .subjects-view { padding: 12px 10px; }
+  .day-view, .month-view-inner { padding: 12px 10px; }
   .dt-time { width: 44px; padding: 8px 8px 8px 0; font-size: 0.64rem; }
   .day-timeline::before, .day-timeline::after { left: 44px; }
   .dt-dot { left: 38px; }
@@ -1301,15 +1320,16 @@ input[type="date"].settings-input { color-scheme: dark; }
   .cal-day { font-size: 0.68rem; border-radius: 8px; padding-bottom: 6px; }
   .cal-hours { font-size: 6px; }
   .cal-strip { left: 3px; right: 3px; bottom: 3px; height: 2.5px; }
-  .subj-bar { max-width: none; }
+  .cal-day.has-termin::after { top: 3px; right: 3px; width: 4px; height: 4px; }
   .cal-leg-item { font-size: 0.56rem; padding: 4px 8px; }
   .cal-title { font-size: 0.9rem; }
 
-  /* Fächer */
-  .subj-row { gap: 10px; padding: 8px 10px; }
-  .subj-row-name { font-size: 0.78rem; }
-  .subj-row-meta { font-size: 0.63rem; }
-  .subj-summary { font-size: 0.65rem; gap: 10px; }
+  /* Termine */
+  .termin-liste { margin-top: 15px; padding-top: 12px; }
+  .termin-zeile { gap: 9px; padding-left: 9px; }
+  .termin-datum { min-width: 68px; font-size: 0.65rem; }
+  .termin-text { font-size: 0.73rem; }
+  .termin-meta { font-size: 0.63rem; }
 
   /* Einstellungen */
   .settings-inner { padding: 13px; max-height: 78vh; }
@@ -1351,7 +1371,7 @@ input[type="date"].settings-input { color-scheme: dark; }
   body::before, body::after { display: none; }
 
   .header-right, .clock, .view-toggle, .settings-panel, .status-card, .banner,
-  .update-banner, .day-view, .month-view, .subjects-view, .home-link { display: none !important; }
+  .update-banner, .day-view, .month-view, .home-link { display: none !important; }
 
   /* Gedruckt wird immer die Wochenübersicht, egal welche Ansicht offen ist */
   #view-week, #view-week[hidden] { display: block !important; }

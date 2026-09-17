@@ -595,7 +595,7 @@ function buildEndSlot(model, lastBlock) {
   return slot;
 }
 
-/** Fortschrittslinie + leuchtender Punkt in der Tagesansicht. */
+/** Fortschrittslinie + Jetzt-Zeiger auf der Zeitachse der Tagesansicht. */
 function updateDayMarker() {
   const tl = $('day-timeline');
   const old = tl.querySelector('.tl-marker');
@@ -823,7 +823,7 @@ function resetStatus() {
   $('next-preview').classList.add('hidden');
 }
 
-/** Umgebungsfarbe der Karte — färbt Rand, Schein und Ring. */
+/** Kennfarbe der Karte — färbt die Kopfkante und den Zeigerring. */
 function setAccentColor(color) {
   const card = $('status-card');
   card.style.setProperty('--ac', color);
@@ -834,7 +834,6 @@ function setDot(color) {
   const dot = $('status-dot');
   dot.classList.add('is-live');
   dot.style.background = color;
-  dot.style.boxShadow = `0 0 0 4px color-mix(in srgb, ${color} 18%, transparent), 0 0 16px ${color}`;
 }
 
 /** Kompakte Zeit für die Ringmitte: 40:00 bzw. 1:05 ab einer Stunde. */

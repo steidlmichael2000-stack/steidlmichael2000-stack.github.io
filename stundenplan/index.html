@@ -49,6 +49,9 @@
     </div>
   </header>
 
+  <!-- Strichmaß — dasselbe Bauteil wie auf der Dachseite -->
+  <div class="rule header-rule"></div>
+
   <!-- ═══════════════ UPDATE-HINWEIS ═══════════════ -->
   <div class="update-banner" id="update-banner" role="status">
     <span>Neue Version verfügbar.</span>
@@ -57,7 +60,7 @@
 
   <!-- ═══════════════ EINSTELLUNGEN ═══════════════ -->
   <section class="settings-panel" id="settings-panel" hidden aria-label="Einstellungen">
-    <div class="settings-inner glass">
+    <div class="settings-inner panel">
       <div class="settings-header">
         <h2>Einstellungen</h2>
         <button class="icon-btn" id="settings-close" aria-label="Einstellungen schließen">
@@ -170,8 +173,7 @@
   <div class="banner" id="info-banner" role="status"></div>
 
   <!-- ═══════════════ STATUS-KARTE ═══════════════ -->
-  <div class="status-card glass" id="status-card" role="status" aria-live="polite">
-    <span class="status-glow" id="status-glow" aria-hidden="true"></span>
+  <div class="status-card" id="status-card" role="status" aria-live="polite">
     <div class="status-head">
       <span class="status-dot" id="status-dot" aria-hidden="true"></span>
       <div class="status-text">

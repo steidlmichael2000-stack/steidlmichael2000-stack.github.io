@@ -586,8 +586,10 @@ body {
 .pair-table .group-start { border-left: 1px solid var(--line-2); }
 
 /* Zwei Spalten je Tag heißt halbe Breite: nur Fach und Raum, die
-   Lehrkraft steht in der Tagesansicht und im Tooltip. */
+   Lehrkraft steht in der Tagesansicht und im Tooltip. Eine Zelle, die
+   sich beide Klassen teilen, ist doppelt so breit — da passt sie hin. */
 .pair-table .i-teacher { display: none; }
+.pair-table .is-merged .i-teacher { display: inline; }
 .pair-table .lesson-chip { padding: 3px 2px; gap: 2px; }
 .pair-table .lesson-chip .subj-tag { font-size: 9.5px; letter-spacing: -0.01em; }
 .pair-table .lesson-chip .info { font-size: 8px; }
@@ -1433,6 +1435,8 @@ input[type="date"].settings-input { font-family: var(--mono); color-scheme: dark
   .pair-table { min-width: 720px; table-layout: auto; }
   .pair-table thead tr:first-child th { height: 24px; }
   .pair-table thead tr:nth-child(2) th { top: 24px; }
+  /* auch die doppelt breite Zelle ist hier zu schmal für die Lehrkraft */
+  .pair-table .is-merged .i-teacher { display: none; }
   col.time-col { width: 40px; }
   thead th { font-size: 0.54rem; letter-spacing: 0.08em; padding: 8px 2px; }
   .time-cell { font-size: 9px; padding: 4px 3px; letter-spacing: -0.03em; }

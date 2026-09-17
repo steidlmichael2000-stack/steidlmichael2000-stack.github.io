@@ -463,6 +463,28 @@ function buildWeekPane(cls) {
    Jeder Tag bekommt zwei Spalten, eine je Klasse. Nur so lässt sich
    Stunde für Stunde vergleichen: was habe ich, wenn die anderen X haben.
    Der Kopf ist zweistöckig — oben der Tag, darunter die Klasse.        */
+
+/* Steht in offen[], wo die Zeile zu einem Block darüber gehört. Muss von
+   „nichts an dieser Stelle" (null) unterscheidbar sein: das eine wird
+   übersprungen, das andere ist eine leere Zelle. */
+const SKIP = Symbol('skip');
+
+/**
+ * Dürfen die Zellen beider Klassen zu einer verschmelzen?
+ * Nur, wenn wirklich dasselbe dasteht — gleiches Fach bei gleicher
+ * Lehrkraft im gleichen Raum, zur gleichen Zeit, über gleich viele
+ * Stunden. Sonst stünde eine Zelle für zwei verschiedene Sachen.
+ */
+function gleicheZelle(a, b) {
+  if (!a && !b) return true;                     // beide außerhalb des Tages
+  if (!a || !b) return false;
+  if (a.kind !== b.kind) return false;
+  if (a.sMin !== b.sMin) return false;
+  if ((a.endMin || a.eMin) !== (b.endMin || b.eMin)) return false;
+  if ((a.span || 1) !== (b.span || 1)) return false;
+  if (a.kind === 'lesson') return sameLesson(a, b);
+  return true;                                   // Pause, Mittag, Freistunde
+}
 function buildWeekPair(list) {
   const pane = mk('div', 'plan-pane');
 
@@ -534,10 +556,23 @@ function buildWeekPair(list) {
     tr.appendChild(timeCell(p));
 
     for (let d = 0; d < 5; d++) {
+      const offen = list.map((cls, ci) => days[d][ci].skip.has(i) ? SKIP : (days[d][ci].map.get(i) || null));
+
+      // Haben beide Klassen dasselbe, steht es einmal über beide Spalten
+      if (offen.length === 2 && offen[0] !== SKIP && offen[1] !== SKIP
+          && gleicheZelle(offen[0], offen[1])) {
+        const td = planCell(p, offen[0], list[0], d);
+        td.colSpan = 2;
+        td.dataset.cls = list.map(c => c.id).join('+');
+        td.classList.add('group-start', 'is-merged');
+        if (td.dataset.tip) td.dataset.tip += ' · beide Klassen';
+        tr.appendChild(td);
+        continue;
+      }
+
       list.forEach((cls, ci) => {
-        const { map, skip } = days[d][ci];
-        if (skip.has(i)) return;
-        const td = planCell(p, map.get(i), cls, d);
+        if (offen[ci] === SKIP) return;
+        const td = planCell(p, offen[ci], cls, d);
         if (ci === 0) td.classList.add('group-start');
         tr.appendChild(td);
       });

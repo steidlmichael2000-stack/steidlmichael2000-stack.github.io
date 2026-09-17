@@ -559,7 +559,7 @@ function trimTimelineTail() {
   const tl = $('day-timeline');
   const end = tl.querySelector('.dt-slot.is-end');
   if (!end || !end.offsetHeight) { tl.style.removeProperty('--tl-tail'); return; }
-  const DOT_CENTER = 18;   // Mitte des Schlusspunkts vom oberen Slotrand
+  const DOT_CENTER = 16.5;   // Mitte der Schlussmarke vom oberen Slotrand (top 13px + 7px/2)
   tl.style.setProperty('--tl-tail', `${Math.max(0, end.offsetHeight - DOT_CENTER)}px`);
 }
 

@@ -234,9 +234,42 @@ body {
 .icon-btn svg { width: 16px; height: 16px; }
 .icon-btn.is-on { color: var(--accent); border-color: var(--accent); }
 
+/* ─── SIGNALKANTE ───────────────────────────────────────────────────
+   Die farbige Kante ist eine eigene Fläche über der Rahmenkante, kein
+   eigener border. Grund: treffen zwei Rahmen unterschiedlicher Breite
+   und Farbe aufeinander, schneidet der Browser die Ecke auf Gehrung —
+   der Balken läuft dann schräg aus. Die Fläche liegt bündig über dem
+   1px-Rahmen und bleibt rechteckig.                                   */
+.status-card::before,
+.banner::before,
+.update-banner::before,
+.dt-card.lesson::before,
+.dt-card.lunch::before,
+.note-row .tag-mini::before {
+  content: '';
+  position: absolute;
+  background: var(--sig, var(--line-2));
+}
+/* Kennung oben */
+.status-card::before {
+  inset: -1px -1px auto -1px;
+  height: 2px;
+  transition: background 0.5s var(--ease);
+}
+/* Kennung links */
+.banner::before,
+.update-banner::before,
+.dt-card.lesson::before,
+.dt-card.lunch::before,
+.note-row .tag-mini::before {
+  inset: -1px auto -1px -1px;
+  width: 3px;
+}
+
 /* ─── BANNER ────────────────────────────────────────────────────────── */
 .banner {
-  padding: 11px 14px;
+  position: relative;
+  padding: 11px 14px 11px 16px;
   margin-bottom: 14px;
   font-size: 0.82rem;
   font-weight: 500;
@@ -244,22 +277,23 @@ body {
   color: var(--text-dim);
   background: var(--panel);
   border: 1px solid var(--line);
-  border-left: 3px solid var(--green);
+  --sig: var(--green);
   animation: slideIn 0.3s var(--ease);
 }
 .banner.show { display: block; }
 
 .update-banner {
+  position: relative;
   display: none;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
+  padding: 10px 14px 10px 16px;
   margin-bottom: 14px;
   font-size: 0.78rem;
   color: var(--text-dim);
   background: var(--panel);
   border: 1px solid var(--line);
-  border-left: 3px solid var(--accent);
+  --sig: var(--accent);
   animation: slideIn 0.3s var(--ease);
 }
 .update-banner.show { display: flex; }
@@ -291,10 +325,8 @@ body {
   /* Die Kennung sitzt oben wie bei den Karten der Dachseite: läuft eine
      Stunde, nimmt sie die Fachfarbe an. Die Kante ist immer da, damit
      beim Umschalten nichts springt. */
-  border-top: 3px solid var(--line-2);
-  transition: border-top-color 0.5s var(--ease);
 }
-.status-card.is-live { border-top-color: var(--ac); }
+.status-card.is-live { --sig: var(--ac); }
 
 .status-head { display: flex; align-items: center; gap: 14px; }
 
@@ -736,17 +768,23 @@ td {
 }
 .dt-time .dt-hour-nr { font-size: 0.55rem; color: var(--faint); font-weight: 700; margin-bottom: 1px; }
 
-/* Teilungsmarke auf der Achse */
+/* Teilungsmarke auf der Achse. Die Achse liegt auf 54–55px, ihre Mitte
+   also auf 54,5 — die Marke muss darauf zentriert sitzen, sonst läuft
+   die Linie sichtbar aus der Mitte.
+   background-clip, weil Fläche und Rahmen dieselbe halbdurchsichtige
+   Farbe tragen: liefe der Hintergrund unter den Rahmen durch, läge dort
+   Farbe auf Farbe und der Rahmen würde doppelt so hell. */
 .dt-dot {
   width: 7px; height: 7px;
   background: var(--panel);
+  background-clip: padding-box;
   border: 1px solid var(--line-2);
   position: absolute;
-  left: 50px; top: 14px;
+  left: 51px; top: 14px;
   z-index: 2;
   transition: background var(--t-normal), border-color var(--t-normal);
 }
-.dt-slot.is-pause .dt-dot { width: 3px; height: 3px; left: 52px; top: 12px; }
+.dt-slot.is-pause .dt-dot { width: 3px; height: 3px; left: 53px; top: 12px; }
 
 .dt-content { flex: 1; margin-left: 20px; padding: 6px 0; min-width: 0; }
 
@@ -758,7 +796,8 @@ td {
 .dt-card.lesson {
   background: color-mix(in srgb, var(--sc, var(--accent)) 8%, transparent);
   border: 1px solid var(--line);
-  border-left: 3px solid color-mix(in srgb, var(--sc, var(--accent)) 70%, transparent);
+  padding-left: 16px;
+  --sig: color-mix(in srgb, var(--sc, var(--accent)) 70%, transparent);
 }
 .dt-card.pause-card {
   background: transparent;
@@ -771,7 +810,8 @@ td {
 .dt-card.lunch {
   background: color-mix(in srgb, var(--green) 5%, transparent);
   border: 1px solid var(--line);
-  border-left: 3px solid color-mix(in srgb, var(--green) 55%, transparent);
+  padding-left: 16px;
+  --sig: color-mix(in srgb, var(--green) 55%, transparent);
 }
 .dt-card.free {
   background: transparent;
@@ -788,6 +828,9 @@ td {
   padding-left: 8px;
   border-left: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
 }
+/* Zwei Hinweise nebeneinander: die App setzt sie ohne Leerzeichen
+   aneinander, ohne eigenen Abstand würden sie sich berühren. */
+.dt-card-hint + .dt-card-hint { margin-left: 6px; }
 .dt-card-hint {
   display: inline-flex;
   align-items: center;
@@ -813,13 +856,13 @@ td {
 }
 
 .dt-slot.is-dropped .dt-card { opacity: 0.42; }
-.dt-slot.is-dropped .dt-card.lesson { border-left-style: dashed; }
+.dt-slot.is-dropped .dt-card.lesson { border-style: dashed; }
 .dt-slot.is-dropped .subj-tag { text-decoration: line-through; text-decoration-thickness: 1.5px; }
 
 .dt-slot.is-active .dt-card.lesson {
   background: color-mix(in srgb, var(--sc, var(--accent)) 16%, transparent);
   border-color: color-mix(in srgb, var(--sc, var(--accent)) 35%, transparent);
-  border-left-color: var(--sc, var(--accent));
+  --sig: var(--sc, var(--accent));
 }
 .dt-slot.is-active .dt-dot {
   background: var(--sc, var(--accent));
@@ -837,7 +880,7 @@ td {
 .dt-slot.is-end .dt-time { color: var(--muted); }
 .dt-dot.dot-end {
   width: 7px; height: 7px;
-  left: 50px; top: 13px;
+  left: 51px; top: 13px;
   background: var(--bg);
   border: 1px solid var(--green);
 }
@@ -1162,18 +1205,19 @@ input[type="date"].settings-input { font-family: var(--mono); color-scheme: dark
 .notes-list { display: flex; flex-direction: column; gap: 6px; }
 .note-row { display: flex; align-items: stretch; gap: 0; }
 .note-row .tag-mini {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.62rem;
   font-weight: 700;
-  padding: 3px 8px;
+  padding: 3px 8px 3px 10px;
   white-space: nowrap;
   min-width: 82px;
   color: var(--sc);
   border: 1px solid var(--line-2);
   border-right: none;
-  border-left: 2px solid var(--sc);
+  --sig: var(--sc);
 }
 .note-row input {
   flex: 1; min-width: 0;
@@ -1260,8 +1304,9 @@ input[type="date"].settings-input { font-family: var(--mono); color-scheme: dark
   .day-view, .month-view-inner { padding: 12px 10px; }
   .dt-time { width: 44px; padding: 8px 8px 8px 0; font-size: 0.64rem; }
   .day-timeline::before, .day-timeline::after { left: 44px; }
-  .dt-dot, .dt-dot.dot-end { left: 40px; }
-  .dt-slot.is-pause .dt-dot { left: 42px; }
+  /* Achse auf 44–45px, Mitte 44,5 — die Marken sitzen darauf zentriert */
+  .dt-dot, .dt-dot.dot-end { left: 41px; }
+  .dt-slot.is-pause .dt-dot { left: 43px; }
   .tl-marker { left: 36px; }
   .dt-content { margin-left: 14px; }
   .dt-card { padding: 9px 11px; }

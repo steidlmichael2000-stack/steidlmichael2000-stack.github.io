@@ -25,6 +25,7 @@ const mk = (tag, cls) => { const n = document.createElement(tag); if (cls) n.cla
 const DEFAULTS = {
   theme: '',            // '' = Systemvorgabe folgen
   accent: '#f59e0b',
+  klasse: MEINE_KLASSE, // 'tb' | 'hb' | 'beide'
   showAll: false,       // kompletten Klassenplan zeigen
   showFree: true,
   compact: false,
@@ -81,6 +82,16 @@ function fmtDate(d) {
 function fmtDateShort(d) {
   return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
 }
+
+/* ─── KLASSEN ──────────────────────────────────────────────────────────
+   settings.klasse ist entweder eine Klassen-ID oder 'beide'.
+   · shownClasses() = was auf den Tafeln steht (beim Vergleich zwei)
+   · mainClass()    = worauf sich Statuskarte, Erinnerungen, Kalender
+                      und Export beziehen — beim Vergleich die eigene   */
+const clsOf = id => CLASSES.find(c => c.id === id) || CLASSES[0];
+const isPair = () => settings.klasse === 'beide';
+const shownClasses = () => isPair() ? CLASSES.slice() : [clsOf(settings.klasse)];
+const mainClass = () => isPair() ? clsOf(MEINE_KLASSE) : clsOf(settings.klasse);
 
 /* ─── SEMESTER & FREIE TAGE ───────────────────────────────────────── */
 const SEM_START = KLASSE.gueltigAb;
@@ -146,11 +157,18 @@ function lessonAbbr(l) {
 }
 
 /* ─── ZEITEN (inkl. Abweichungen) ─────────────────────────────────── */
-function timesOf(dayIdx, planIdx) {
+function timesOf(dayIdx, planIdx, cls) {
   const p = PLAN[planIdx];
-  const ov = p.type === 'hour' && TIME_OVERRIDES[dayIdx] && TIME_OVERRIDES[dayIdx][p.nr];
-  if (!ov) return { start: p.start, end: p.end, shifted: false };
-  return { start: ov.start || p.start, end: ov.end || p.end, shifted: true };
+  const ovDay = cls.timeOverrides && cls.timeOverrides[dayIdx];
+  const ov = p.type === 'hour' && ovDay && ovDay[p.nr];
+  if (!ov) return { start: p.start, end: p.end, shifted: false, shiftEnd: false };
+  // getrennt merken: eine Stunde, die früher endet, beginnt nicht später
+  return {
+    start: ov.start || p.start,
+    end:   ov.end   || p.end,
+    shifted: !!ov.start,
+    shiftEnd: !!ov.end,
+  };
 }
 
 /* ─── TAGESMODELL ─────────────────────────────────────────────────────
@@ -159,11 +177,12 @@ function timesOf(dayIdx, planIdx) {
 let modelCache = new Map();
 const invalidateModels = () => { modelCache = new Map(); };
 
-function dayModel(dayIdx) {
-  const ck = `${dayIdx}|${settings.showAll ? 1 : 0}`;
+function dayModel(dayIdx, cls) {
+  cls = cls || mainClass();
+  const ck = `${cls.id}|${dayIdx}|${settings.showAll ? 1 : 0}`;
   if (modelCache.has(ck)) return modelCache.get(ck);
 
-  const lessons = LESSONS[dayIdx] || {};
+  const lessons = cls.lessons[dayIdx] || {};
   const visible = nr => {
     const l = lessons[nr];
     if (!l) return null;
@@ -177,7 +196,7 @@ function dayModel(dayIdx) {
   });
 
   const model = {
-    dayIdx, segs: [], hours: 0, mine: 0, empty: firstIdx < 0,
+    dayIdx, cls, segs: [], hours: 0, mine: 0, empty: firstIdx < 0,
     firstMin: 0, lastMin: 0, mineFirstMin: 0, mineLastMin: 0,
   };
   if (model.empty) { modelCache.set(ck, model); return model; }
@@ -185,11 +204,11 @@ function dayModel(dayIdx) {
   const raw = [];
   for (let i = firstIdx; i <= lastIdx; i++) {
     const p = PLAN[i];
-    const t = timesOf(dayIdx, i);
+    const t = timesOf(dayIdx, i, cls);
     const sMin = toMin(t.start), eMin = toMin(t.end);
     if (p.type === 'pause') { raw.push({ kind: 'pause', planIdx: i, sMin, eMin }); continue; }
     const l = visible(p.nr);
-    if (l) raw.push({ kind: 'lesson', planIdx: i, nr: p.nr, sMin, eMin, lesson: l, dropped: !!l.drop, shifted: t.shifted });
+    if (l) raw.push({ kind: 'lesson', planIdx: i, nr: p.nr, sMin, eMin, lesson: l, dropped: !!l.drop, shifted: t.shifted, shiftEnd: t.shiftEnd });
     else   raw.push({ kind: 'free',   planIdx: i, nr: p.nr, sMin, eMin });
   }
 
@@ -241,7 +260,8 @@ function groupBlocks(segs) {
     let j = i;
     while (j + 1 < segs.length && segs[j + 1].kind === 'lesson'
            && segs[j + 1].sMin === segs[j].eMin && sameLesson(s, segs[j + 1])) j++;
-    out.push({ ...s, span: j - i + 1, endMin: segs[j].eMin, lastNr: segs[j].nr });
+    // Beginn kommt vom ersten, Ende vom letzten Abschnitt des Blocks
+    out.push({ ...s, span: j - i + 1, endMin: segs[j].eMin, lastNr: segs[j].nr, shiftEnd: !!segs[j].shiftEnd });
     i = j;
   }
   return out;
@@ -256,7 +276,7 @@ function subjectRuns(segs) {
     let j = i;
     while (j + 1 < les.length && sameLesson(les[i], les[j + 1])
            && les[j + 1].planIdx <= les[j].planIdx + 2) j++;
-    out.push({ ...les[i], endMin: les[j].eMin, span: j - i + 1, lastNr: les[j].nr });
+    out.push({ ...les[i], endMin: les[j].eMin, span: j - i + 1, lastNr: les[j].nr, shiftEnd: !!les[j].shiftEnd });
     i = j + 1;
   }
   return out;
@@ -274,12 +294,65 @@ const notified = new Set();
 /* ═══════════════════════════════════════════════════════════════════
    WOCHENANSICHT
    ═══════════════════════════════════════════════════════════════════ */
+/** Überschrift einer Tafel — steht nur, wenn zwei nebeneinanderliegen. */
+function paneCaption(cls) {
+  const cap = mk('div', 'pane-caption');
+  const name = mk('span', 'pc-klasse');
+  name.textContent = cls.klasse;
+  const zweig = mk('span', 'pc-zweig');
+  zweig.textContent = cls.zweig;
+  cap.appendChild(name);
+  cap.appendChild(zweig);
+  if (cls.id === MEINE_KLASSE) {
+    const mine = mk('span', 'pc-mine');
+    mine.textContent = 'meine Klasse';
+    cap.appendChild(mine);
+  }
+  return cap;
+}
+
 function buildWeek() {
-  const body = $('plan-body');
-  body.textContent = '';
+  const box = $('week-panes');
+  const list = shownClasses();
+  box.textContent = '';
+  box.classList.toggle('pair', list.length > 1);
+  list.forEach(cls => box.appendChild(buildWeekPane(cls, list.length > 1)));
+}
+
+function buildWeekPane(cls, withCaption) {
+  const pane = mk('div', 'plan-pane');
+  pane.dataset.cls = cls.id;
+  if (withCaption) pane.appendChild(paneCaption(cls));
+
+  const wrap = mk('div', 'table-wrap');
+  const table = mk('table');
+  table.setAttribute('aria-label', `Wochenplan ${cls.klasse}`);
+
+  const cg = mk('colgroup');
+  cg.appendChild(mk('col', 'time-col'));
+  for (let d = 0; d < 5; d++) cg.appendChild(mk('col'));
+  table.appendChild(cg);
+
+  const thead = mk('thead');
+  const htr = mk('tr');
+  const th0 = mk('th');
+  th0.scope = 'col';
+  th0.textContent = 'Zeit';
+  htr.appendChild(th0);
+  DAY_SHORT.forEach((n, d) => {
+    const th = mk('th');
+    th.scope = 'col';
+    th.dataset.day = d;
+    th.textContent = n;
+    htr.appendChild(th);
+  });
+  thead.appendChild(htr);
+  table.appendChild(thead);
+
+  const body = mk('tbody');
 
   const days = [0, 1, 2, 3, 4].map(d => {
-    const model = dayModel(d);
+    const model = dayModel(d, cls);
     const blocks = groupBlocks(model.segs.filter(s => s.kind !== 'gap'));
     const map = new Map(), skip = new Set();
     blocks.forEach(b => {
@@ -350,16 +423,18 @@ function buildWeek() {
         info.appendChild(teacher);
         chip.appendChild(info);
 
-        if (seg.shifted) {
+        if (seg.shifted || seg.shiftEnd) {
           const badge = mk('span', 'time-badge');
-          badge.textContent = `ab ${fmtMin(seg.sMin)}`;
+          badge.textContent = seg.shifted
+            ? `ab ${fmtMin(seg.sMin)}`
+            : `bis ${fmtMin(seg.endMin || seg.eMin)}`;
           chip.appendChild(badge);
         }
         td.appendChild(chip);
 
         const parts = [lessonTitle(seg.lesson), seg.lesson.t, seg.lesson.r];
         if (seg.span > 1) parts.push(`${seg.span} ${plural(seg.span, 'Stunde', 'Stunden')}`);
-        if (seg.dropped) parts.push('entfällt für dich');
+        if (seg.dropped) parts.push(cls.id === MEINE_KLASSE ? 'entfällt für dich' : 'entfällt');
         td.dataset.tip = parts.join(' · ');
       }
 
@@ -370,19 +445,26 @@ function buildWeek() {
 
     body.appendChild(tr);
   });
+
+  table.appendChild(body);
+  wrap.appendChild(table);
+  pane.appendChild(wrap);
+  return pane;
 }
 
-/** Markiert die heutige Spalte und die laufende Stunde. */
+/** Markiert die heutige Spalte und die laufende Stunde — auf jeder Tafel. */
 function highlightWeek(todayIdx, nowMin) {
-  const body = $('plan-body');
-  body.querySelectorAll('.today-col, .active').forEach(td => td.classList.remove('today-col', 'active'));
-  for (let d = 0; d < 5; d++) $(`head-${d}`).classList.toggle('today-head', d === todayIdx);
-  if (todayIdx < 0 || todayIdx > 4) return;
+  document.querySelectorAll('#week-panes table').forEach(table => {
+    table.querySelectorAll('.today-col, .active').forEach(td => td.classList.remove('today-col', 'active'));
+    table.querySelectorAll('thead th[data-day]').forEach(th =>
+      th.classList.toggle('today-head', Number(th.dataset.day) === todayIdx));
+    if (todayIdx < 0 || todayIdx > 4) return;
 
-  body.querySelectorAll(`td[data-day="${todayIdx}"]`).forEach(td => {
-    td.classList.add('today-col');
-    const s = Number(td.dataset.smin), e = Number(td.dataset.emin);
-    if (nowMin != null && !Number.isNaN(s) && nowMin >= s && nowMin < e) td.classList.add('active');
+    table.querySelectorAll(`tbody td[data-day="${todayIdx}"]`).forEach(td => {
+      td.classList.add('today-col');
+      const s = Number(td.dataset.smin), e = Number(td.dataset.emin);
+      if (nowMin != null && !Number.isNaN(s) && nowMin >= s && nowMin < e) td.classList.add('active');
+    });
   });
 }
 
@@ -407,13 +489,29 @@ function buildDayTabs() {
 }
 
 function buildDay() {
-  const model = dayModel(dayIdx);
-  const head = $('day-view-header');
-  const tl = $('day-timeline');
-  head.textContent = '';
-  tl.textContent = '';
-  tl.style.removeProperty('--tl-progress');
-  tl.style.removeProperty('--tl-color');
+  const box = $('day-panes');
+  const list = shownClasses();
+  box.textContent = '';
+  box.classList.toggle('pair', list.length > 1);
+
+  list.forEach(cls => {
+    const pane = mk('div', 'plan-pane');
+    pane.dataset.cls = cls.id;
+    if (list.length > 1) pane.appendChild(paneCaption(cls));
+    const head = mk('div', 'day-view-header');
+    const tl = mk('div', 'day-timeline');
+    pane.appendChild(head);
+    pane.appendChild(tl);
+    box.appendChild(pane);
+    buildDayPane(cls, head, tl);
+  });
+
+  trimTimelineTail();
+  updateDayMarker();
+}
+
+function buildDayPane(cls, head, tl) {
+  const model = dayModel(dayIdx, cls);
 
   const title = mk('span', 'dv-title');
   title.textContent = DAY_FULL[dayIdx] + (dayIdx === todayIdx() ? ' · heute' : '');
@@ -526,6 +624,11 @@ function buildDay() {
         hint.textContent = `Beginnt erst um ${fmtMin(b.sMin)}`;
         card.appendChild(hint);
       }
+      if (b.shiftEnd) {
+        const hint = mk('div', 'dt-card-hint');
+        hint.textContent = `Endet schon um ${fmtMin(b.endMin)}`;
+        card.appendChild(hint);
+      }
       if (!b.dropped && prevRoom && prevRoom !== b.lesson.r) {
         const hint = mk('div', 'dt-card-hint');
         hint.textContent = `Raumwechsel → ${b.lesson.r}`;
@@ -549,18 +652,16 @@ function buildDay() {
     // Direkt nach der letzten eigenen Stunde: unmissverständliche Schlussmarke
     if (b === lastOwn) tl.appendChild(buildEndSlot(model, b));
   });
-
-  trimTimelineTail();
-  updateDayMarker();
 }
 
 /** Lässt die Zeitachse genau am Schlusspunkt enden statt darunter auszulaufen. */
 function trimTimelineTail() {
-  const tl = $('day-timeline');
-  const end = tl.querySelector('.dt-slot.is-end');
-  if (!end || !end.offsetHeight) { tl.style.removeProperty('--tl-tail'); return; }
-  const DOT_CENTER = 16.5;   // Mitte der Schlussmarke vom oberen Slotrand (top 13px + 7px/2)
-  tl.style.setProperty('--tl-tail', `${Math.max(0, end.offsetHeight - DOT_CENTER)}px`);
+  document.querySelectorAll('#day-panes .day-timeline').forEach(tl => {
+    const end = tl.querySelector('.dt-slot.is-end');
+    if (!end || !end.offsetHeight) { tl.style.removeProperty('--tl-tail'); return; }
+    const DOT_CENTER = 16.5;   // Mitte der Schlussmarke vom oberen Slotrand (top 13px + 7px/2)
+    tl.style.setProperty('--tl-tail', `${Math.max(0, end.offsetHeight - DOT_CENTER)}px`);
+  });
 }
 
 /** Abschlusszeile der Timeline: „Schulschluss · 13:45“ */
@@ -595,9 +696,12 @@ function buildEndSlot(model, lastBlock) {
   return slot;
 }
 
-/** Fortschrittslinie + Jetzt-Zeiger auf der Zeitachse der Tagesansicht. */
+/** Fortschrittslinie + Jetzt-Zeiger auf jeder Zeitachse der Tagesansicht. */
 function updateDayMarker() {
-  const tl = $('day-timeline');
+  document.querySelectorAll('#day-panes .day-timeline').forEach(markTimeline);
+}
+
+function markTimeline(tl) {
   const old = tl.querySelector('.tl-marker');
   if (old) old.remove();
   tl.style.removeProperty('--tl-progress');
@@ -1231,6 +1335,41 @@ function rebuildAll() {
   updateStatus(now);
 }
 
+/* ─── KLASSENWAHL ─────────────────────────────────────────────────────
+   Kopfzeile, Umschalter und Fußnote hängen daran.                     */
+function applyKlasse() {
+  const list = shownClasses();
+  const main = mainClass();
+
+  // Überschrift: „FST 2 TB“ bzw. beim Vergleich „FST 2 TB + HB“
+  const h1 = $('header-klasse');
+  h1.textContent = '';
+  h1.appendChild(document.createTextNode('FST '));
+  const span = mk('span');
+  // beim Vergleich „FST 2 TB + HB“ statt zweimal der vollen Klassenbezeichnung
+  span.textContent = isPair()
+    ? main.klasse.replace('FST ', '') + CLASSES.filter(c => c !== main).map(c => ' + ' + c.kurz).join('')
+    : main.klasse.replace('FST ', '');
+  h1.appendChild(span);
+
+  document.querySelectorAll('#class-switch .cs-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.cls === settings.klasse));
+
+  $('about').textContent =
+    `${list.map(c => c.klasse).join(' · ')} · Semesterplan ${KLASSE.semester.replace('Wintersemester ', '')} · ` +
+    `Semesterleiter ${main.leiter} · ${fmtDateShort(parseKey(SEM_START))} – ${fmtDateShort(parseKey(SEM_END))} · ` +
+    `Angaben ohne Gewähr · Tasten: 1–3 Ansicht, T heute, E Einstellungen`;
+}
+
+function setKlasse(value) {
+  if (settings.klasse === value) return;
+  settings.klasse = value;
+  saveSettings();
+  applyKlasse();
+  buildNotesList();
+  rebuildAll();
+}
+
 function onToggle(key) {
   settings[key] = !settings[key];
   saveSettings();
@@ -1240,6 +1379,33 @@ function onToggle(key) {
   if (key === 'showFerien') { updateBreakPill(new Date()); return; }
   if (key === 'notif') { setupNotifications(); return; }
   rebuildAll();
+}
+
+/** Umschalter über den Ansichten: je Klasse ein Knopf, dazu „Beide“. */
+function buildClassSwitch() {
+  const box = $('class-switch');
+  box.textContent = '';
+
+  const label = mk('span', 'cs-label');
+  label.textContent = 'Klasse';
+  box.appendChild(label);
+
+  const strip = mk('div', 'cs-strip');
+  const opts = [
+    ...CLASSES.map(c => ({ v: c.id, text: c.kurz, title: `${c.klasse} · ${c.zweig}` })),
+    { v: 'beide', text: 'Beide', title: 'Beide Klassen nebeneinander' },
+  ];
+  opts.forEach(o => {
+    const b = mk('button', 'cs-btn');
+    b.type = 'button';
+    b.dataset.cls = o.v;
+    b.textContent = o.text;
+    b.title = o.title;
+    b.setAttribute('aria-label', o.title);
+    b.addEventListener('click', () => setKlasse(o.v));
+    strip.appendChild(b);
+  });
+  box.appendChild(strip);
 }
 
 function buildAccentPicker() {
@@ -1264,11 +1430,12 @@ function buildAccentPicker() {
 function buildNotesList() {
   const box = $('notes-list');
   box.textContent = '';
+  // Nur die Fächer, die gerade auch auf einer Tafel stehen
   const used = new Set();
-  LESSONS.forEach(day => Object.keys(day).forEach(nr => {
+  shownClasses().forEach(cls => cls.lessons.forEach(day => Object.keys(day).forEach(nr => {
     const l = day[nr];
     if (!l.drop || settings.showAll) used.add(l.s);
-  }));
+  })));
 
   [...used]
     .sort((a, b) => subjOf(a).name.localeCompare(subjOf(b).name, 'de'))
@@ -1360,13 +1527,16 @@ function icsLocal(date, minutes) {
 }
 
 function exportICS() {
+  // Exportiert wird immer genau eine Klasse: die angezeigte, beim
+  // Vergleich die eigene.
+  const cls = mainClass();
   const out = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Josef-Greising-Schule//FST 2 TB Stundenplan//DE',
+    `PRODID:-//Josef-Greising-Schule//${cls.klasse} Stundenplan//DE`,
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
-    `X-WR-CALNAME:${icsEscape(KLASSE.klasse + ' Stundenplan')}`,
+    `X-WR-CALNAME:${icsEscape(cls.klasse + ' Stundenplan')}`,
     'X-WR-TIMEZONE:Europe/Berlin',
   ];
   const stamp = icsStamp(new Date());
@@ -1376,13 +1546,13 @@ function exportICS() {
 
   while (cursor <= end) {
     if (dayInfo(cursor).kind === 'school') {
-      const model = dayModel(cursor.getDay() - 1);
+      const model = dayModel(cursor.getDay() - 1, cls);
       subjectRuns(model.segs).forEach(run => {
         if (run.dropped) return;   // nur die eigenen Stunden
         const note = notes[run.lesson.s];
         out.push(
           'BEGIN:VEVENT',
-          `UID:${dateKey(cursor)}-${run.nr}-fst2tb@steidlmichael2000-stack.github.io`,
+          `UID:${dateKey(cursor)}-${run.nr}-fst2${cls.id}@steidlmichael2000-stack.github.io`,
           `DTSTAMP:${stamp}`,
           `DTSTART:${icsLocal(cursor, run.sMin)}`,
           `DTEND:${icsLocal(cursor, run.endMin)}`,
@@ -1402,7 +1572,7 @@ function exportICS() {
   const url = URL.createObjectURL(blob);
   const a = mk('a');
   a.href = url;
-  a.download = 'fst2tb-stundenplan.ics';
+  a.download = `fst2${cls.id}-stundenplan.ics`;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -1496,10 +1666,8 @@ function init() {
   applyCompact();
 
   $('header-sub').textContent = `${KLASSE.schule.replace(' Würzburg', '')} · ${KLASSE.semester}`;
-  $('about').textContent =
-    `${KLASSE.klasse} · Semesterplan ${KLASSE.semester.replace('Wintersemester ', '')} · ` +
-    `Semesterleiter ${KLASSE.leiter} · ${fmtDateShort(parseKey(SEM_START))} – ${fmtDateShort(parseKey(SEM_END))} · ` +
-    `Angaben ohne Gewähr · Tasten: 1–3 Ansicht, T heute, E Einstellungen`;
+  buildClassSwitch();
+  applyKlasse();
 
   dayIdx = pickStartDay();
 

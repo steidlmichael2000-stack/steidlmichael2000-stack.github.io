@@ -125,11 +125,11 @@ body {
 @keyframes blink   { 50% { opacity: 0.32; } }
 
 /* Gestaffeltes Einblenden — läuft nur beim Neuaufbau, nicht im Sekundentakt */
-#plan-body tr, .dt-slot, .termin-zeile {
+#week-panes tbody tr, .dt-slot, .termin-zeile {
   animation: riseIn 0.38s var(--ease) backwards;
 }
 /* nach oben begrenzt, damit lange Listen nicht träge wirken */
-#plan-body tr { animation-delay: calc(min(var(--i, 0), 13) * 20ms); }
+#week-panes tbody tr { animation-delay: calc(min(var(--i, 0), 13) * 20ms); }
 .dt-slot      { animation-delay: calc(min(var(--i, 0), 10) * 26ms); }
 .termin-zeile { animation-delay: calc(min(var(--i, 0), 9) * 22ms); }
 
@@ -451,6 +451,90 @@ body {
 .vt-btn:hover { color: var(--text); }
 .vt-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
 .vt-btn.active { color: var(--text); border-bottom-color: var(--accent); }
+
+/* ─── KLASSENWAHL ───────────────────────────────────────────────────
+   Steht über den Ansichten, weil sie für alle drei gilt.             */
+.class-switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.cs-label {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.cs-strip { display: flex; }
+.cs-btn {
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 5px 12px;
+  border: 1px solid var(--line-2);
+  margin-left: -1px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: color var(--t-fast), border-color var(--t-fast), background var(--t-fast);
+}
+.cs-btn:first-child { margin-left: 0; }
+.cs-btn:hover { color: var(--text); }
+.cs-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; position: relative; z-index: 1; }
+.cs-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── TAFELN ────────────────────────────────────────────────────────
+   Eine Tafel je angezeigter Klasse. Untereinander, in der Tagesansicht
+   ab 720px nebeneinander — zwei Wochentabellen nebeneinander wären auf
+   keiner Bildschirmbreite mehr lesbar.                                */
+.plan-panes { display: grid; gap: var(--sp-md); }
+.plan-panes.pair { gap: var(--sp-lg); }
+@media (min-width: 720px) {
+  #day-panes.pair { grid-template-columns: 1fr 1fr; gap: var(--sp-md); }
+}
+.plan-pane { min-width: 0; }
+
+.pane-caption {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding-bottom: 6px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid var(--line-2);
+}
+.pc-klasse { font-size: 0.82rem; font-weight: 700; letter-spacing: -0.01em; }
+.pc-zweig {
+  font-family: var(--mono);
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.pc-mine {
+  font-family: var(--mono);
+  font-size: 0.55rem;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  padding: 1px 6px;
+  margin-left: auto;
+}
 
 /* ─── WOCHENANSICHT (TABELLE) ───────────────────────────────────────── */
 .table-wrap {
@@ -1369,8 +1453,11 @@ input[type="date"].settings-input { font-family: var(--mono); color-scheme: dark
 
   body { background: #fff; color: #000; padding: 0; }
 
-  .header-right, .clock, .view-toggle, .settings-panel, .status-card, .banner,
-  .update-banner, .day-view, .month-view, .home-link, .header-rule { display: none !important; }
+  .header-right, .clock, .view-toggle, .class-switch, .settings-panel, .status-card,
+  .banner, .update-banner, .day-view, .month-view, .home-link, .header-rule { display: none !important; }
+
+  /* Beim Vergleich kommt jede Klasse auf ein eigenes Blatt */
+  .plan-panes.pair .plan-pane + .plan-pane { break-before: page; }
 
   /* Gedruckt wird immer die Wochenübersicht, egal welche Ansicht offen ist */
   #view-week, #view-week[hidden] { display: block !important; }

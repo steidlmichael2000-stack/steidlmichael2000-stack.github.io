@@ -31,7 +31,7 @@
         Übersicht
       </a>
       <div class="header-title-row">
-        <h1>FST <span>2 TB</span></h1>
+        <h1 id="header-klasse">FST <span>2 TB</span></h1>
         <div class="clock" id="live-clock" aria-label="Aktuelle Uhrzeit">--:--:--</div>
       </div>
       <p id="header-sub">Josef-Greising-Schule · Wintersemester 2026/27</p>
@@ -196,6 +196,10 @@
     </div>
   </div>
 
+  <!-- ═══════════════ KLASSENWAHL ═══════════════
+       Die Knöpfe baut die App aus den Klassen in plan.js. -->
+  <div class="class-switch" id="class-switch" aria-label="Klasse wählen"></div>
+
   <!-- ═══════════════ ANSICHTEN ═══════════════ -->
   <div class="view-toggle" id="view-toggle" role="tablist" aria-label="Ansicht wählen">
     <button class="vt-btn active" data-view="week"  role="tab" aria-selected="true"  aria-controls="view-week">Woche</button>
@@ -203,27 +207,15 @@
     <button class="vt-btn"        data-view="month" role="tab" aria-selected="false" aria-controls="view-month">Monat</button>
   </div>
 
-  <!-- Wochenansicht -->
-  <div class="table-wrap fade-content" id="view-week" role="tabpanel">
-    <table aria-label="Wochenplan">
-      <colgroup><col class="time-col"><col><col><col><col><col></colgroup>
-      <thead><tr>
-        <th scope="col">Zeit</th>
-        <th scope="col" id="head-0">Mo</th>
-        <th scope="col" id="head-1">Di</th>
-        <th scope="col" id="head-2">Mi</th>
-        <th scope="col" id="head-3">Do</th>
-        <th scope="col" id="head-4">Fr</th>
-      </tr></thead>
-      <tbody id="plan-body"></tbody>
-    </table>
+  <!-- Wochenansicht — je angezeigter Klasse eine Tafel -->
+  <div class="fade-content" id="view-week" role="tabpanel">
+    <div class="plan-panes" id="week-panes"></div>
   </div>
 
-  <!-- Tagesansicht -->
+  <!-- Tagesansicht — Wochentag gilt für beide Klassen -->
   <div class="day-view fade-content" id="view-day" role="tabpanel" hidden>
     <div class="day-tabs" id="day-tabs" role="tablist" aria-label="Wochentag wählen"></div>
-    <div class="day-view-header" id="day-view-header"></div>
-    <div class="day-timeline" id="day-timeline"></div>
+    <div class="plan-panes" id="day-panes"></div>
   </div>
 
   <!-- Monatsansicht -->

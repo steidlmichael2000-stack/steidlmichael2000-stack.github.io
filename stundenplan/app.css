@@ -536,6 +536,64 @@ body {
   margin-left: auto;
 }
 
+/* ─── VERGLEICHSTABELLE ─────────────────────────────────────────────
+   Beide Klassen in einem Raster: je Tag zwei Spalten. Elf Spalten passen
+   auf kein Handy — die Tabelle wird deshalb breiter als der Bildschirm
+   und waagerecht gescrollt, die Zeitspalte bleibt dabei stehen.       */
+.pair-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 18px;
+  margin-bottom: 10px;
+  font-family: var(--mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.pl-item b { color: var(--text-dim); font-weight: 700; letter-spacing: 0.12em; }
+.pl-item.is-mine b { color: var(--accent); }
+
+.pair-table { min-width: 860px; }
+
+/* Die Zeitspalte bleibt beim seitlichen Scrollen stehen. Ihre Kante muss
+   als Schatten kommen: ein border einer klebenden Zelle wird bei
+   border-collapse nicht mitgezogen. */
+.pair-table .time-cell,
+.pair-table .pause-cell.pause-time,
+.pair-table thead th.corner {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  box-shadow: 1px 0 0 var(--line-2);
+}
+.pair-table thead th.corner { z-index: 4; }
+
+/* Zweistöckiger Kopf: oben der Tag, darunter die Klasse. Die zweite Reihe
+   klebt unter der ersten, deren Höhe deshalb fest. */
+.pair-table thead tr:first-child th { height: 26px; top: 0; }
+.pair-table thead tr:nth-child(2) th { top: 26px; }
+.pair-table .cls-head {
+  font-size: 0.55rem;
+  letter-spacing: 0.12em;
+  padding: 4px 2px;
+}
+.pair-table .cls-head.is-mine { color: var(--accent); }
+/* Die Marke für „heute" gehört über den Tag, nicht noch einmal über die
+   Klasse darunter — sonst stehen zwei Striche übereinander. */
+.pair-table .cls-head.today-head { box-shadow: none; }
+
+/* Trennt die Tage voneinander — sonst verschwimmen die Paare */
+.pair-table .group-start { border-left: 1px solid var(--line-2); }
+
+/* Zwei Spalten je Tag heißt halbe Breite: nur Fach und Raum, die
+   Lehrkraft steht in der Tagesansicht und im Tooltip. */
+.pair-table .i-teacher { display: none; }
+.pair-table .lesson-chip { padding: 3px 2px; gap: 2px; }
+.pair-table .lesson-chip .subj-tag { font-size: 9.5px; letter-spacing: -0.01em; }
+.pair-table .lesson-chip .info { font-size: 8px; }
+.pair-table .lunch-cell { font-size: 7.5px; letter-spacing: 0.1em; }
+.pair-table .free-cell .free-mark { font-size: 7.5px; }
+
 /* ─── WOCHENANSICHT (TABELLE) ───────────────────────────────────────── */
 .table-wrap {
   overflow: hidden;
@@ -1370,6 +1428,11 @@ input[type="date"].settings-input { font-family: var(--mono); color-scheme: dark
 
   /* Wochentabelle passt jetzt in die Bildschirmbreite */
   table { min-width: 0; table-layout: fixed; }
+  /* Die Vergleichstabelle nicht: zehn Tagesspalten auf 375px wären
+     unlesbar. Sie bleibt breit und wird gescrollt. */
+  .pair-table { min-width: 720px; table-layout: auto; }
+  .pair-table thead tr:first-child th { height: 24px; }
+  .pair-table thead tr:nth-child(2) th { top: 24px; }
   col.time-col { width: 40px; }
   thead th { font-size: 0.54rem; letter-spacing: 0.08em; padding: 8px 2px; }
   .time-cell { font-size: 9px; padding: 4px 3px; letter-spacing: -0.03em; }
@@ -1469,7 +1532,11 @@ input[type="date"].settings-input { font-family: var(--mono); color-scheme: dark
   .about { font-size: 7.5pt; color: #555; margin-top: 10px; }
 
   .table-wrap { border-color: #9aa0a6; background: #fff; overflow: visible; }
-  table { min-width: 0; }
+  table, .pair-table { min-width: 0; }
+  /* Auf Papier gibt es kein Scrollen — die Zeitspalte klebt an nichts */
+  .pair-table .time-cell, .pair-table .pause-cell.pause-time,
+  .pair-table thead th.corner { position: static; box-shadow: none; }
+  .pair-table .lesson-chip .info { font-size: 7pt; }
   thead th { background: #f1f1f2; color: #000; position: static; box-shadow: none; }
   td { border-color: #c4c8cc; }
 

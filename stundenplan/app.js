@@ -316,13 +316,101 @@ function buildWeek() {
   const list = shownClasses();
   box.textContent = '';
   box.classList.toggle('pair', list.length > 1);
-  list.forEach(cls => box.appendChild(buildWeekPane(cls, list.length > 1)));
+  box.appendChild(list.length > 1 ? buildWeekPair(list) : buildWeekPane(list[0]));
 }
 
-function buildWeekPane(cls, withCaption) {
+/** Zeitspalte einer Zeile — Stundennummer, Beginn, Ende. */
+function timeCell(p) {
+  if (p.type === 'pause') return mk('td', 'pause-cell pause-time');
+  const tc = mk('td', 'time-cell');
+  const nr = mk('span', 'hour-nr');
+  nr.textContent = `${p.nr}.`;
+  tc.appendChild(nr);
+  tc.appendChild(document.createTextNode(fmt(p.start)));
+  tc.appendChild(mk('br'));
+  tc.appendChild(document.createTextNode(fmt(p.end)));
+  return tc;
+}
+
+/** Ein Tag einer Klasse, nach Rasterzeile aufgeschlüsselt. */
+function weekDayMap(d, cls) {
+  const model = dayModel(d, cls);
+  const blocks = groupBlocks(model.segs.filter(s => s.kind !== 'gap'));
+  const map = new Map(), skip = new Set();
+  blocks.forEach(b => {
+    if (b.planIdx == null) return;
+    map.set(b.planIdx, b);
+    for (let k = 1; k < b.span; k++) skip.add(b.planIdx + k);
+  });
+  return { map, skip, model };
+}
+
+/** Eine Zelle der Wochentabelle. Beide Tabellen bauen damit. */
+function planCell(p, seg, cls, d) {
+  let td;
+
+  if (p.type === 'pause') {
+    td = mk('td', 'pause-cell');
+  } else if (!seg) {
+    td = mk('td', 'free-cell');
+  } else if (seg.kind === 'lunch') {
+    td = mk('td', 'lunch-cell');
+    td.textContent = 'Mittag';
+  } else if (seg.kind === 'free') {
+    td = mk('td', 'free-cell');
+    if (settings.showFree) {
+      const s = mk('span', 'free-mark');
+      s.textContent = 'frei';
+      td.appendChild(s);
+    }
+  } else {
+    td = mk('td', 'lesson-cell');
+    td.rowSpan = seg.span;
+    td.style.setProperty('--sc', subjColor(seg.lesson.s));
+    if (seg.dropped) td.classList.add('is-dropped');
+
+    // Eigene Fläche pro Stunde: getönte Karte statt nackter Tabellenzelle
+    const chip = mk('div', 'lesson-chip');
+
+    const tag = mk('span', 'subj-tag');
+    tag.textContent = lessonAbbr(seg.lesson);
+    chip.appendChild(tag);
+
+    // Raum und Lehrkraft getrennt, damit auf dem Handy nur der Raum bleibt
+    const info = mk('span', 'info');
+    const room = mk('span', 'i-room');
+    room.textContent = seg.lesson.r;
+    const teacher = mk('span', 'i-teacher');
+    teacher.textContent = seg.lesson.t;
+    info.appendChild(room);
+    info.appendChild(teacher);
+    chip.appendChild(info);
+
+    if (seg.shifted || seg.shiftEnd) {
+      const badge = mk('span', 'time-badge');
+      badge.textContent = seg.shifted
+        ? `ab ${fmtMin(seg.sMin)}`
+        : `bis ${fmtMin(seg.endMin || seg.eMin)}`;
+      chip.appendChild(badge);
+    }
+    td.appendChild(chip);
+
+    const parts = [lessonTitle(seg.lesson), seg.lesson.t, seg.lesson.r];
+    if (seg.span > 1) parts.push(`${seg.span} ${plural(seg.span, 'Stunde', 'Stunden')}`);
+    if (seg.dropped) parts.push(cls.id === MEINE_KLASSE ? 'entfällt für dich' : 'entfällt');
+    td.dataset.tip = parts.join(' · ');
+  }
+
+  if (seg) { td.dataset.smin = seg.sMin; td.dataset.emin = seg.endMin || seg.eMin; }
+  td.dataset.day = d;
+  td.dataset.cls = cls.id;
+  return td;
+}
+
+/* ─── EINE KLASSE ─────────────────────────────────────────────────── */
+function buildWeekPane(cls) {
   const pane = mk('div', 'plan-pane');
   pane.dataset.cls = cls.id;
-  if (withCaption) pane.appendChild(paneCaption(cls));
 
   const wrap = mk('div', 'table-wrap');
   const table = mk('table');
@@ -350,99 +438,110 @@ function buildWeekPane(cls, withCaption) {
   table.appendChild(thead);
 
   const body = mk('tbody');
-
-  const days = [0, 1, 2, 3, 4].map(d => {
-    const model = dayModel(d, cls);
-    const blocks = groupBlocks(model.segs.filter(s => s.kind !== 'gap'));
-    const map = new Map(), skip = new Set();
-    blocks.forEach(b => {
-      if (b.planIdx == null) return;
-      map.set(b.planIdx, b);
-      for (let k = 1; k < b.span; k++) skip.add(b.planIdx + k);
-    });
-    return { map, skip, model };
-  });
+  const days = [0, 1, 2, 3, 4].map(d => weekDayMap(d, cls));
 
   PLAN.forEach((p, i) => {
     const tr = mk('tr');
     tr.style.setProperty('--i', i);   // für den gestaffelten Einblendeffekt
-
-    if (p.type === 'pause') {
-      tr.appendChild(mk('td', 'pause-cell pause-time'));
-    } else {
-      const tc = mk('td', 'time-cell');
-      const nr = mk('span', 'hour-nr');
-      nr.textContent = `${p.nr}.`;
-      tc.appendChild(nr);
-      tc.appendChild(document.createTextNode(fmt(p.start)));
-      tc.appendChild(mk('br'));
-      tc.appendChild(document.createTextNode(fmt(p.end)));
-      tr.appendChild(tc);
-    }
+    tr.appendChild(timeCell(p));
 
     for (let d = 0; d < 5; d++) {
       const { map, skip } = days[d];
       if (skip.has(i)) continue;
-      const seg = map.get(i);
-      let td;
-
-      if (p.type === 'pause') {
-        td = mk('td', 'pause-cell');
-      } else if (!seg) {
-        td = mk('td', 'free-cell');
-      } else if (seg.kind === 'lunch') {
-        td = mk('td', 'lunch-cell');
-        td.textContent = 'Mittag';
-      } else if (seg.kind === 'free') {
-        td = mk('td', 'free-cell');
-        if (settings.showFree) {
-          const s = mk('span', 'free-mark');
-          s.textContent = 'frei';
-          td.appendChild(s);
-        }
-      } else {
-        td = mk('td', 'lesson-cell');
-        td.rowSpan = seg.span;
-        td.style.setProperty('--sc', subjColor(seg.lesson.s));
-        if (seg.dropped) td.classList.add('is-dropped');
-
-        // Eigene Fläche pro Stunde: getönte Karte statt nackter Tabellenzelle
-        const chip = mk('div', 'lesson-chip');
-
-        const tag = mk('span', 'subj-tag');
-        tag.textContent = lessonAbbr(seg.lesson);
-        chip.appendChild(tag);
-
-        // Raum und Lehrkraft getrennt, damit auf dem Handy nur der Raum bleibt
-        const info = mk('span', 'info');
-        const room = mk('span', 'i-room');
-        room.textContent = seg.lesson.r;
-        const teacher = mk('span', 'i-teacher');
-        teacher.textContent = seg.lesson.t;
-        info.appendChild(room);
-        info.appendChild(teacher);
-        chip.appendChild(info);
-
-        if (seg.shifted || seg.shiftEnd) {
-          const badge = mk('span', 'time-badge');
-          badge.textContent = seg.shifted
-            ? `ab ${fmtMin(seg.sMin)}`
-            : `bis ${fmtMin(seg.endMin || seg.eMin)}`;
-          chip.appendChild(badge);
-        }
-        td.appendChild(chip);
-
-        const parts = [lessonTitle(seg.lesson), seg.lesson.t, seg.lesson.r];
-        if (seg.span > 1) parts.push(`${seg.span} ${plural(seg.span, 'Stunde', 'Stunden')}`);
-        if (seg.dropped) parts.push(cls.id === MEINE_KLASSE ? 'entfällt für dich' : 'entfällt');
-        td.dataset.tip = parts.join(' · ');
-      }
-
-      if (seg) { td.dataset.smin = seg.sMin; td.dataset.emin = seg.endMin || seg.eMin; }
-      td.dataset.day = d;
-      tr.appendChild(td);
+      tr.appendChild(planCell(p, map.get(i), cls, d));
     }
+    body.appendChild(tr);
+  });
 
+  table.appendChild(body);
+  wrap.appendChild(table);
+  pane.appendChild(wrap);
+  return pane;
+}
+
+/* ─── BEIDE KLASSEN IN EINEM RASTER ───────────────────────────────────
+   Jeder Tag bekommt zwei Spalten, eine je Klasse. Nur so lässt sich
+   Stunde für Stunde vergleichen: was habe ich, wenn die anderen X haben.
+   Der Kopf ist zweistöckig — oben der Tag, darunter die Klasse.        */
+function buildWeekPair(list) {
+  const pane = mk('div', 'plan-pane');
+
+  // Im Kopf steht nur das Kürzel — was es bedeutet, sagt die Legende
+  const legend = mk('div', 'pair-legend');
+  list.forEach(cls => {
+    const item = mk('span', 'pl-item');
+    if (cls.id === MEINE_KLASSE) item.classList.add('is-mine');
+    const k = mk('b');
+    k.textContent = cls.kurz;
+    item.appendChild(k);
+    item.appendChild(document.createTextNode(
+      ` ${cls.klasse} · ${cls.zweig}${cls.id === MEINE_KLASSE ? ' · meine Klasse' : ''}`));
+    legend.appendChild(item);
+  });
+  pane.appendChild(legend);
+
+  const wrap = mk('div', 'table-wrap');
+  const table = mk('table', 'pair-table');
+  table.setAttribute('aria-label', `Wochenplan ${list.map(c => c.klasse).join(' und ')}`);
+
+  const cg = mk('colgroup');
+  cg.appendChild(mk('col', 'time-col'));
+  for (let d = 0; d < 5; d++) list.forEach(() => cg.appendChild(mk('col')));
+  table.appendChild(cg);
+
+  const thead = mk('thead');
+
+  const tr1 = mk('tr');
+  const th0 = mk('th', 'corner');
+  th0.scope = 'col';
+  th0.rowSpan = 2;
+  th0.textContent = 'Zeit';
+  tr1.appendChild(th0);
+  DAY_SHORT.forEach((n, d) => {
+    const th = mk('th', 'day-head');
+    th.scope = 'colgroup';
+    th.colSpan = list.length;
+    th.dataset.day = d;
+    th.textContent = n;
+    tr1.appendChild(th);
+  });
+  thead.appendChild(tr1);
+
+  const tr2 = mk('tr');
+  for (let d = 0; d < 5; d++) {
+    list.forEach((cls, ci) => {
+      const th = mk('th', 'cls-head');
+      th.scope = 'col';
+      th.dataset.day = d;
+      th.dataset.cls = cls.id;
+      if (ci === 0) th.classList.add('group-start');
+      if (cls.id === MEINE_KLASSE) th.classList.add('is-mine');
+      th.textContent = cls.kurz;
+      th.title = `${cls.klasse} · ${cls.zweig}`;
+      tr2.appendChild(th);
+    });
+  }
+  thead.appendChild(tr2);
+  table.appendChild(thead);
+
+  const body = mk('tbody');
+  // je Tag und Klasse eine eigene Aufschlüsselung — die Blöcke sind verschieden
+  const days = [0, 1, 2, 3, 4].map(d => list.map(cls => weekDayMap(d, cls)));
+
+  PLAN.forEach((p, i) => {
+    const tr = mk('tr');
+    tr.style.setProperty('--i', i);
+    tr.appendChild(timeCell(p));
+
+    for (let d = 0; d < 5; d++) {
+      list.forEach((cls, ci) => {
+        const { map, skip } = days[d][ci];
+        if (skip.has(i)) return;
+        const td = planCell(p, map.get(i), cls, d);
+        if (ci === 0) td.classList.add('group-start');
+        tr.appendChild(td);
+      });
+    }
     body.appendChild(tr);
   });
 

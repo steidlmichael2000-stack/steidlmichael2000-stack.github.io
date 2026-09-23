@@ -1221,9 +1221,13 @@ function updateStatus(now) {
   const run = runs.find(r => nowMin >= r.sMin && nowMin < r.endMin) || current;
 
   if (current.dropped) {
-    label.textContent = `${current.nr}. Stunde · entfällt für dich`;
+    // „für dich" gilt nur, solange die eigene Klasse angezeigt wird
+    const eigene = mainClass().id === MEINE_KLASSE;
+    label.textContent = `${current.nr}. Stunde · ${eigene ? 'entfällt für dich' : 'entfällt'}`;
     main.textContent = lessonTitle(l);
-    sub.textContent = `Die Klasse hat ${lessonTitle(l)} bis ${fmtMin(current.endMin)} · ${l.r}`;
+    sub.textContent = eigene
+      ? `Die Klasse hat ${lessonTitle(l)} bis ${fmtMin(current.endMin)} · ${l.r}`
+      : `${mainClass().klasse} hätte ${lessonTitle(l)} bis ${fmtMin(current.endMin)} · ${l.r}`;
     showNextOwn(now);
     return;
   }
@@ -1449,8 +1453,10 @@ function applyTheme() {
   const theme = settings.theme
     || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
   document.documentElement.dataset.theme = theme;
+  // Muss zum Seitengrund passen, sonst sitzt am oberen Rand ein fremder
+  // Streifen. Die Werte sind --bg aus dem Stylesheet.
   const meta = document.querySelector('meta[name="theme-color"]');
-  if (meta) meta.setAttribute('content', theme === 'light' ? '#f4f5f7' : '#07080d');
+  if (meta) meta.setAttribute('content', theme === 'light' ? '#eceae3' : '#06070b');
 
   const icon = $('theme-icon');
   if (icon) {
@@ -1553,6 +1559,9 @@ function onToggle(key) {
   if (key === 'compact') { applyCompact(); return; }
   if (key === 'showFerien') { updateBreakPill(new Date()); return; }
   if (key === 'notif') { setupNotifications(); return; }
+  // Mit dem kompletten Klassenplan kommen Fächer dazu, die vorher nicht
+  // sichtbar waren — die Notizliste zeigt nur die sichtbaren.
+  if (key === 'showAll') buildNotesList();
   rebuildAll();
 }
 

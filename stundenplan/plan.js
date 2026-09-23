@@ -49,37 +49,42 @@ const PLAN = [
 
 /* ── Fächer beider Klassen ─────────────────────────────────────────────
    dark / light = Fachfarbe im jeweiligen Theme
-   abbr         = Kurzform in der Wochenansicht                         */
+   abbr         = Kurzform in der Wochenansicht
+
+   Die Zelle ist mit derselben Farbe zu 11 % getönt, der Fachname steht
+   in voller Sättigung darauf. Beide Töne halten damit mindestens 4,5:1
+   gegen ihre eigene Fläche — Mathe stand im Hellen vorher bei 2,45:1,
+   Vermessung bei 2,57:1. Wer eine Farbe ändert, rechnet das nach.      */
 const SUBJECTS = {
   /* gemeinsam */
-  mathe:        { name: 'Mathematik',                    abbr: 'Mathe',      dark: '#facc15', light: '#ca8a04' },
-  englisch:     { name: 'Englisch',                      abbr: 'Englisch',   dark: '#c084fc', light: '#9333ea' },
-  baurecht:     { name: 'Baurecht & Bauplanung',         abbr: 'B-Recht',    dark: '#fb923c', light: '#ea580c' },
-  bauvertrag:   { name: 'Bauvertragsrecht',              abbr: 'B-Vertr.',   dark: '#fb7185', light: '#e11d48' },
-  stahlbeton:   { name: 'Stahlbetonbau',                 abbr: 'StB-Bau',    dark: '#f87171', light: '#dc2626' },
-  baubetrieb:   { name: 'Baubetrieb',                    abbr: 'Baubetr.',   dark: '#fbbf24', light: '#d97706' },
-  arbeitsvorb:  { name: 'Arbeitsvorbereitung',           abbr: 'Arb.-Vorb.', dark: '#f472b6', light: '#db2777' },
-  bwr:          { name: 'Betriebswirtschaftliches Rechnungswesen', abbr: 'BWR', dark: '#38bdf8', light: '#0284c7' },
+  mathe:        { name: 'Mathematik',                    abbr: 'Mathe',      dark: '#facc15', light: '#8a5f03' },
+  englisch:     { name: 'Englisch',                      abbr: 'Englisch',   dark: '#c084fc', light: '#8d31e1' },
+  baurecht:     { name: 'Baurecht & Bauplanung',         abbr: 'B-Recht',    dark: '#fb923c', light: '#b14209' },
+  bauvertrag:   { name: 'Bauvertragsrecht',              abbr: 'B-Vertr.',   dark: '#fb7185', light: '#c5193f' },
+  stahlbeton:   { name: 'Stahlbetonbau',                 abbr: 'StB-Bau',    dark: '#f87171', light: '#c42222' },
+  baubetrieb:   { name: 'Baubetrieb',                    abbr: 'Baubetr.',   dark: '#fbbf24', light: '#9b5504' },
+  arbeitsvorb:  { name: 'Arbeitsvorbereitung',           abbr: 'Arb.-Vorb.', dark: '#f472b6', light: '#b71f63' },
+  bwr:          { name: 'Betriebswirtschaftliches Rechnungswesen', abbr: 'BWR', dark: '#38bdf8', light: '#026ca3' },
   bwl:          { name: 'Betriebswirtschaftslehre',      abbr: 'BWL',        dark: '#818cf8', light: '#4f46e5' },
-  baugeschichte:{ name: 'Baugeschichte',                 abbr: 'Baugesch.',  dark: '#e879f9', light: '#c026d3' },
+  baugeschichte:{ name: 'Baugeschichte',                 abbr: 'Baugesch.',  dark: '#e879f9', light: '#a921ba' },
   uvv:          { name: 'Unfallverhütungsvorschriften',  abbr: 'UVV',        dark: '#f0abfc', light: '#a21caf' },
 
   /* nur Tiefbau */
-  vermessung:   { name: 'Vermessung',                    abbr: 'Vermess.',   dark: '#a3e635', light: '#65a30d' },
-  tiefbaucad:   { name: 'Tiefbau CAD',                   abbr: 'Tiefb. CAD', dark: '#22d3ee', light: '#0891b2' },
-  strbrueck:    { name: 'Straßen- und Brückenbau',       abbr: 'Str./Brb.',  dark: '#4ade80', light: '#16a34a' },
-  brueckenbau:  { name: 'Brückenbau',                    abbr: 'Brückenb.',  dark: '#60a5fa', light: '#2563eb' },
-  projekt:      { name: 'Projektarbeit',                 abbr: 'Projekt',    dark: '#a78bfa', light: '#7c3aed' },
+  vermessung:   { name: 'Vermessung',                    abbr: 'Vermess.',   dark: '#a3e635', light: '#477309' },
+  tiefbaucad:   { name: 'Tiefbau CAD',                   abbr: 'Tiefb. CAD', dark: '#22d3ee', light: '#067089' },
+  strbrueck:    { name: 'Straßen- und Brückenbau',       abbr: 'Str./Brb.',  dark: '#4ade80', light: '#107636' },
+  brueckenbau:  { name: 'Brückenbau',                    abbr: 'Brückenb.',  dark: '#60a5fa', light: '#235ddd' },
+  projekt:      { name: 'Projektarbeit',                 abbr: 'Projekt',    dark: '#a78bfa', light: '#7b3aec' },
   geotechnik:   { name: 'Geotechnik',                    abbr: 'Geotechn.',  dark: '#d6a15a', light: '#92400e' },
-  wasserbau:    { name: 'Wasserbau',                     abbr: 'Wasserb.',   dark: '#2dd4bf', light: '#0d9488' },
+  wasserbau:    { name: 'Wasserbau',                     abbr: 'Wasserb.',   dark: '#2dd4bf', light: '#0a736a' },
   strunterhalt: { name: 'Straßenunterhalt',              abbr: 'Str.-Unt.',  dark: '#94a3b8', light: '#475569' },
 
   /* nur Hochbau */
-  baukonstr:    { name: 'Baukonstruktion',               abbr: 'Baukonstr.', dark: '#5eead4', light: '#0f766e' },
-  facility:     { name: 'Facility-Management',           abbr: 'Facility',   dark: '#bef264', light: '#4d7c0f' },
+  baukonstr:    { name: 'Baukonstruktion',               abbr: 'Baukonstr.', dark: '#5eead4', light: '#0f736b' },
+  facility:     { name: 'Facility-Management',           abbr: 'Facility',   dark: '#bef264', light: '#47730e' },
   tgebaeude:    { name: 'Technische Gebäudeausrüstung',  abbr: 'T.-Geb.',    dark: '#7dd3fc', light: '#0369a1' },
-  hochbaucad:   { name: 'Hochbau CAD',                   abbr: 'Hochb. CAD', dark: '#67e8f9', light: '#0e7490' },
-  bemessung:    { name: 'Bemessung von Tragwerken',      abbr: 'Bemessung',  dark: '#86efac', light: '#15803d' },
+  hochbaucad:   { name: 'Hochbau CAD',                   abbr: 'Hochb. CAD', dark: '#67e8f9', light: '#0d6a84' },
+  bemessung:    { name: 'Bemessung von Tragwerken',      abbr: 'Bemessung',  dark: '#86efac', light: '#137638' },
 };
 
 /* ── Die Klassen ───────────────────────────────────────────────────────

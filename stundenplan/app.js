@@ -1362,13 +1362,40 @@ function afterViewShown() {
   if (currentView === 'month') renderCalendar();
 }
 
+/* ─── BLÄTTERN ─────────────────────────────────────────────────────── */
+
+/** Wochentag weiter oder zurück. Freitag führt auf Montag — der nächste
+    Schultag ist eben der Montag. */
+function shiftDay(delta) {
+  dayIdx = (dayIdx + delta + 5) % 5;
+  dayPinned = true;
+  buildDayTabs();
+  buildDay();
+}
+
+function shiftMonth(delta) {
+  calMonth += delta;
+  while (calMonth < 0)  { calMonth += 12; calYear--; }
+  while (calMonth > 11) { calMonth -= 12; calYear++; }
+  renderCalendar();
+}
+
+/* ─── WISCHEN ──────────────────────────────────────────────────────────
+   Gewischt wird innerhalb der Ansicht, nicht zwischen den Ansichten:
+   in der Tagesansicht zum nächsten Tag, im Kalender zum nächsten Monat.
+   Die Wochenansicht bleibt frei — beim Vergleich ist ihre Tabelle breiter
+   als der Bildschirm und muss sich selbst seitlich schieben lassen.     */
 function initSwipe() {
   let x0 = 0, y0 = 0, t0 = 0, tracking = false;
   const area = document.querySelector('.wrap');
+
   area.addEventListener('touchstart', e => {
-    if (e.touches.length !== 1) { tracking = false; return; }
+    if (e.touches.length !== 1 || !SWIPE[currentView]) { tracking = false; return; }
+    // Nichts wegnehmen, was selbst seitlich zu schieben ist
+    if (scrollsSideways(e.target)) { tracking = false; return; }
     x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; t0 = Date.now(); tracking = true;
   }, { passive: true });
+
   area.addEventListener('touchend', e => {
     if (!tracking) return;
     tracking = false;
@@ -1376,19 +1403,33 @@ function initSwipe() {
     const dy = e.changedTouches[0].clientY - y0;
     if (Date.now() - t0 > 700) return;
     if (Math.abs(dx) < 60 || Math.abs(dy) > 70) return;
-    const i = VIEWS.indexOf(currentView);
-    const next = dx < 0 ? i + 1 : i - 1;
-    if (next >= 0 && next < VIEWS.length) switchView(VIEWS[next]);
+    const fn = SWIPE[currentView];
+    if (fn) fn(dx < 0 ? 1 : -1);      // nach links gewischt heißt vorwärts
   }, { passive: true });
+}
+
+const SWIPE = { day: shiftDay, month: shiftMonth };
+
+/** Liegt der Finger in etwas, das selbst breiter ist als sein Fenster? */
+function scrollsSideways(el) {
+  for (let n = el; n && n !== document.body; n = n.parentElement) {
+    if (n.scrollWidth > n.clientWidth + 1) {
+      const ox = getComputedStyle(n).overflowX;
+      if (ox === 'auto' || ox === 'scroll') return true;
+    }
+  }
+  return false;
 }
 
 function initKeyboard() {
   document.addEventListener('keydown', e => {
     if (e.target.matches('input, textarea')) return;
     if (e.ctrlKey || e.metaKey || e.altKey) return;
-    const i = VIEWS.indexOf(currentView);
-    if (e.key === 'ArrowRight' && i < VIEWS.length - 1) { switchView(VIEWS[i + 1]); e.preventDefault(); }
-    else if (e.key === 'ArrowLeft' && i > 0) { switchView(VIEWS[i - 1]); e.preventDefault(); }
+    // Pfeile blättern innerhalb der Ansicht, die Zifferntasten wechseln sie —
+    // dieselbe Aufteilung wie beim Wischen
+    const blaettern = SWIPE[currentView];
+    if (e.key === 'ArrowRight' && blaettern) { blaettern(1); e.preventDefault(); }
+    else if (e.key === 'ArrowLeft' && blaettern) { blaettern(-1); e.preventDefault(); }
     else if (e.key >= '1' && e.key <= '3') { switchView(VIEWS[Number(e.key) - 1]); e.preventDefault(); }
     else if (e.key.toLowerCase() === 't') {
       const t = todayIdx();
@@ -1492,7 +1533,7 @@ function applyKlasse() {
   $('about').textContent =
     `${list.map(c => c.klasse).join(' · ')} · Semesterplan ${KLASSE.semester.replace('Wintersemester ', '')} · ` +
     `Semesterleiter ${main.leiter} · ${fmtDateShort(parseKey(SEM_START))} – ${fmtDateShort(parseKey(SEM_END))} · ` +
-    `Angaben ohne Gewähr · Tasten: 1–3 Ansicht, T heute, E Einstellungen`;
+    `Angaben ohne Gewähr · Tasten: 1–3 Ansicht, ← → blättern, T heute, E Einstellungen`;
 }
 
 function setKlasse(value) {
@@ -1853,16 +1894,8 @@ function init() {
       syncSettingsUI();
     }));
 
-  $('cal-prev').addEventListener('click', () => {
-    calMonth--;
-    if (calMonth < 0) { calMonth = 11; calYear--; }
-    renderCalendar();
-  });
-  $('cal-next').addEventListener('click', () => {
-    calMonth++;
-    if (calMonth > 11) { calMonth = 0; calYear++; }
-    renderCalendar();
-  });
+  $('cal-prev').addEventListener('click', () => shiftMonth(-1));
+  $('cal-next').addEventListener('click', () => shiftMonth(1));
 
   $('cd-set').addEventListener('click', () => {
     settings.cdLabel = $('cd-label').value.trim();

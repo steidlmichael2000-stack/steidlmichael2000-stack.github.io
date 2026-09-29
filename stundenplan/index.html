@@ -6,7 +6,7 @@
 <!-- Alle Apps teilen sich die Herkunft steidlmichael2000-stack.github.io und damit
      localStorage und Caches. Die CSP sorgt dafür, dass nur eigene Skripte laufen.
      GitHub Pages kann keine Header setzen, deshalb steht sie hier als Meta-Tag. -->
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>FST 2 TB · Stundenplan</title>
 <meta name="description" content="Stundenplan der FST 2 TB – Josef-Greising-Schule Würzburg, Wintersemester 2026/27. Mit Live-Status, Tages- und Monatsansicht, offline nutzbar.">
@@ -18,9 +18,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="FST 2 TB">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="fonts/mstools.css">
 <link rel="stylesheet" href="app.css">
 </head>
 <body>

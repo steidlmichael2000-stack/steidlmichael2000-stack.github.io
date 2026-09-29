@@ -25,7 +25,7 @@
    würden die Nachbar-Apps bei jedem Deploy ihren Offline-Bestand verlieren.
    ═══════════════════════════════════════════════════════════════════════ */
 
-const VERSION = 'v5';
+const VERSION = 'v6';
 const CACHE = `mstools-${VERSION}`;
 
 const SHELL = [
@@ -35,7 +35,12 @@ const SHELL = [
   'logo.svg',
   'manifest.webmanifest',
   'icon-192.png',
-  'icon-512.png'
+  'icon-512.png',
+  'fonts/mstools.css',
+  'fonts/jetbrains-mono-latin.woff2',
+  'fonts/jetbrains-mono-latin-ext.woff2',
+  'fonts/outfit-latin.woff2',
+  'fonts/outfit-latin-ext.woff2'
 ];
 
 // Alles ausserhalb des eigenen Ordners bleibt unangetastet – die anderen

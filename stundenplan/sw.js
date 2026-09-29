@@ -7,7 +7,7 @@
    Strategie:
    · eigene Dateien  →  network-first, Cache als Fallback
      (damit ein Deploy sofort ankommt und die App trotzdem offline läuft)
-   · Google Fonts    →  cache-first (ändern sich praktisch nie)
+   · fremde Hosts    →  gar nicht angefasst (Schriften liegen unter fonts/)
 
    Bei einer neuen Version wartet der Worker, bis die App
    'skipWaiting' schickt — die zeigt vorher den Update-Hinweis an.
@@ -16,7 +16,7 @@
    schadet aber nicht.
    ═══════════════════════════════════════════════════════════════════════ */
 
-const CACHE = 'fst2tb-v3';
+const CACHE = 'fst2tb-v4';
 
 const CORE = [
   './',
@@ -29,6 +29,11 @@ const CORE = [
   './icon-192.png',
   './icon-512.png',
   './icon-maskable-512.png',
+  './fonts/mstools.css',
+  './fonts/jetbrains-mono-latin.woff2',
+  './fonts/jetbrains-mono-latin-ext.woff2',
+  './fonts/outfit-latin.woff2',
+  './fonts/outfit-latin-ext.woff2',
 ];
 
 self.addEventListener('install', event => {
@@ -85,22 +90,7 @@ self.addEventListener('fetch', event => {
         });
       }
     })());
-    return;
   }
-
-  // ── Google Fonts: cache-first. Andere fremde Hosts gehen unberührt ans Netz,
-  //    damit sich keine opaken Antworten im gemeinsamen Speicher ansammeln. ──
-  if (url.hostname !== 'fonts.googleapis.com' && url.hostname !== 'fonts.gstatic.com') return;
-  event.respondWith((async () => {
-    const cache = await caches.open(CACHE);
-    const cached = await cache.match(req);
-    if (cached) return cached;
-    try {
-      const fresh = await fetch(req);
-      if (fresh && (fresh.ok || fresh.type === 'opaque')) cache.put(req, fresh.clone());
-      return fresh;
-    } catch {
-      return new Response('', { status: 504 });
-    }
-  })());
+  // Fremde Hosts gehen unberührt ans Netz. Die Schriften liegen seit 29.09.2026
+  // selbst unter fonts/, die App lädt nichts mehr von Google.
 });

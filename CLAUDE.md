@@ -46,11 +46,27 @@ als eigene App mit eigenem Icon installiert. Zwei Regeln dazu:
 
 ## Der Service Worker hier darf die Unter-Apps nicht anfassen
 
-`sw.js` hat eine Liste `FOREIGN` mit den Pfaden der eigenständigen Apps; Anfragen
-dorthin werden durchgereicht. **Kommt eine App dazu, muss ihr Pfad dort rein.**
-Ebenso wichtig: beim Aufräumen nur Caches mit dem eigenen Präfix `uebersicht-`
-löschen — `caches.delete()` arbeitet origin-weit und würde sonst den
-Offline-Bestand der Nachbar-Apps mitnehmen.
+Die Wurzel-`sw.js` hat **keinen `fetch`-Handler** mehr: Sie räumt nur Altbestand
+ab und meldet sich danach selbst ab. So muss es bleiben, denn ein Worker auf `/`
+könnte jede Anfrage aller Apps abfangen.
+
+Jede App räumt beim Aktivieren **nur Caches mit dem eigenen Präfix** ab
+(`mstools-`, `fst2tb-`, `punktcodes-`, `trackpilot-`/`railnav-`, `pwviewer-`).
+`caches.keys()` und `caches.delete()` arbeiten origin-weit. Ein pauschales
+`keys.filter(k => k !== CACHE)` löscht deshalb den Offline-Bestand aller
+Nachbar-Apps. Genau so ein Filter stand bis 29.09.2026 im Stundenplan und in
+Punktcodes. Aus demselben Grund `cache.match()` am eigenen Cache aufrufen, nicht
+`caches.match()`.
+
+## Sicherheit: eine Herkunft für alle
+
+Alle Apps teilen sich localStorage, IndexedDB und Cache Storage. Eine XSS-Lücke
+in einer App reicht deshalb für die Daten aller Apps. Jede Seite hat darum eine
+Content-Security-Policy als Meta-Tag (GitHub Pages kann keine Header setzen):
+nur Skripte von `'self'`, Inline-Skripte nur per SHA-256-Hash. Wer ein
+freigegebenes Inline-Skript ändert, muss den Hash neu berechnen; sonst läuft
+das Skript nicht mehr. Freitext aus Speicher, Dateien oder Netz kommt nur per
+`textContent` in die Seite, nie per `innerHTML`.
 
 ## Icon-System
 

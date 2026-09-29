@@ -41,8 +41,10 @@ self.addEventListener('install', event => {
 
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
+    // caches.keys() liefert die Caches der ganzen Herkunft, also auch die von
+    // TrackPilot, Punktcodes & Co. — nur den eigenen Präfix aufräumen.
     const keys = await caches.keys();
-    await Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)));
+    await Promise.all(keys.filter(k => k.startsWith('fst2tb-') && k !== CACHE).map(k => caches.delete(k)));
     await self.clients.claim();
   })());
 });
@@ -70,10 +72,11 @@ self.addEventListener('fetch', event => {
         }
         return fresh;
       } catch {
-        const cached = await caches.match(req);
+        const cache = await caches.open(CACHE);
+        const cached = await cache.match(req);
         if (cached) return cached;
         if (req.mode === 'navigate') {
-          const shell = await caches.match('./index.html');
+          const shell = await cache.match('./index.html');
           if (shell) return shell;
         }
         return new Response('Offline und nicht im Cache.', {
@@ -85,16 +88,16 @@ self.addEventListener('fetch', event => {
     return;
   }
 
-  // ── Fremde Hosts (Google Fonts): cache-first ──
+  // ── Google Fonts: cache-first. Andere fremde Hosts gehen unberührt ans Netz,
+  //    damit sich keine opaken Antworten im gemeinsamen Speicher ansammeln. ──
+  if (url.hostname !== 'fonts.googleapis.com' && url.hostname !== 'fonts.gstatic.com') return;
   event.respondWith((async () => {
-    const cached = await caches.match(req);
+    const cache = await caches.open(CACHE);
+    const cached = await cache.match(req);
     if (cached) return cached;
     try {
       const fresh = await fetch(req);
-      if (fresh && (fresh.ok || fresh.type === 'opaque')) {
-        const cache = await caches.open(CACHE);
-        cache.put(req, fresh.clone());
-      }
+      if (fresh && (fresh.ok || fresh.type === 'opaque')) cache.put(req, fresh.clone());
       return fresh;
     } catch {
       return new Response('', { status: 504 });

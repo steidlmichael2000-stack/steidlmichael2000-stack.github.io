@@ -1,0 +1,3 @@
+# Nur für GitHub Pages: Projektnotizen nicht mitveröffentlichen.
+exclude:
+  - CLAUDE.md

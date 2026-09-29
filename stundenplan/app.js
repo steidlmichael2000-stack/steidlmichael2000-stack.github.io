@@ -1309,9 +1309,13 @@ function updateCustomPill(now) {
   const d = dayDiff(now, target);
   const name = settings.cdLabel || 'Termin';
   if (d < 0) { pill.classList.add('hidden'); return; }
-  pill.innerHTML = d === 0
-    ? `${name} <span class="cd-value">heute</span>`
-    : `${name} in <span class="cd-value">${d}</span> ${plural(d, 'Tag', 'Tagen')}`;
+  // Die Bezeichnung ist Freitext aus localStorage — als Text einsetzen, nie als HTML.
+  const val = document.createElement('span');
+  val.className = 'cd-value';
+  val.textContent = d === 0 ? 'heute' : String(d);
+  pill.textContent = '';
+  if (d === 0) pill.append(name + ' ', val);
+  else pill.append(name + ' in ', val, ' ' + plural(d, 'Tag', 'Tagen'));
   pill.classList.remove('hidden');
 }
 

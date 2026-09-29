@@ -3,6 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- Nur eigene Skripte zulassen. Das Inline-Skript unten (Worker-Registrierung) ist
+     über seinen Hash freigegeben — wer es ändert, muss den Hash neu berechnen:
+     SHA-256 über den Skripttext zwischen den beiden Tags, Base64. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-gemQZ5i8jbwARdysQRcozWC7mSX0W0zp+foBcO0TLxA='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
 <title>MS Tools · steidlmichael2000-stack</title>
 <meta name="description" content="MS Tools – die Projekte von steidlmichael2000-stack: Stundenplan der Fachschulklasse FST 2 TB (Josef-Greising-Schule Würzburg), Punktwolken-Viewer für 3D-Aufnahmen, TrackPilot zum Verorten von Streckenkilometern und die Punktcode-Suche für den Außendienst.">
 <meta name="color-scheme" content="dark light">

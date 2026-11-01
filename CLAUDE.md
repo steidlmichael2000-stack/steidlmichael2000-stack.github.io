@@ -9,7 +9,7 @@ Caches und Installationen der entscheidende Punkt.
 | MS Tools (Dachseite) | `/start/` | **hier im Repo**, Unterordner `start/` |
 | Stundenplan FST 2 TB | `/stundenplan/` | **hier im Repo**, Unterordner `stundenplan/` |
 | 3D-Aufnahmen | `/pw-viewer/` | eigenes Repo `pw-viewer` |
-| TrackPilot | `/trackpilot/` | eigenes Repo `trackpilot` |
+| Topovo (bis Nov. 2026 TrackPilot) | `/topovo/`, `/trackpilot/` nur noch Weiterleitung | eigenes Repo `topovo` |
 | Punktcodes | `/punktcodes/` | eigenes Repo `punktcodes` |
 
 ## Auf der Wurzel darf nie wieder eine App liegen
@@ -21,7 +21,7 @@ sondern der Kern der Sache:
 Ein `scope` muss die eigene `start_url` enthalten. Eine App auf `/` hat damit
 zwingend den Scope `/` — und Chrome rechnet **jede** Seite, die im Scope einer
 installierten App liegt, dieser App zu. Solange MS Tools auf der Wurzel lag,
-bot Chrome auf `/punktcodes/`, `/trackpilot/` und `/pw-viewer/` deshalb keine
+bot Chrome auf `/punktcodes/`, `/trackpilot/` (heute `/topovo/`) und `/pw-viewer/` deshalb keine
 Installation mehr an, sondern nur noch „in MS Tools öffnen". Nur der
 Stundenplan kam durch, weil dort schon eine Installation mit dem engeren
 Scope `/stundenplan/` lag — bei mehreren passenden Scopes gewinnt der
@@ -51,7 +51,7 @@ ab und meldet sich danach selbst ab. So muss es bleiben, denn ein Worker auf `/`
 könnte jede Anfrage aller Apps abfangen.
 
 Jede App räumt beim Aktivieren **nur Caches mit dem eigenen Präfix** ab
-(`mstools-`, `fst2tb-`, `punktcodes-`, `trackpilot-`/`railnav-`, `pwviewer-`).
+(`mstools-`, `fst2tb-`, `punktcodes-`, `topovo-`/`trackpilot-`/`railnav-`, `pwviewer-`).
 `caches.keys()` und `caches.delete()` arbeiten origin-weit. Ein pauschales
 `keys.filter(k => k !== CACHE)` löscht deshalb den Offline-Bestand aller
 Nachbar-Apps. Genau so ein Filter stand bis 29.09.2026 im Stundenplan und in
@@ -100,8 +100,9 @@ Beim Umzug entfallen sind die `shortcuts` im Manifest — Kurzbefehl-Ziele müss
 im Scope liegen, und die Apps liegen jetzt ausserhalb. Sie haben ohnehin eigene
 Icons auf dem Startbildschirm.
 
-## „Railnav" heißt seit dem 15.09.2026 „TrackPilot"
+## „Railnav" hieß ab 15.09.2026 „TrackPilot", seit November 2026 „Topovo"
 
-Grund war die Namenskollision mit dem kommerziellen **RaiLNav** von Geo++.
-Der alte Name darf hier nirgends wieder auftauchen; Einzelheiten stehen in der
-`CLAUDE.md` des Repos `trackpilot`.
+Erst die Namenskollision mit dem kommerziellen **RaiLNav** von Geo++, dann zwei
+eingetragene Marken auf „TrackPilot" beim DPMA (PLT TrackPilot, TRACKPILOT
+platinum). Beide alten Namen dürfen als Produktname nirgends wieder auftauchen;
+Einzelheiten stehen in der `CLAUDE.md` des Repos `topovo`.

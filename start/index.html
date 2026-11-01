@@ -9,7 +9,7 @@
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'sha256-gemQZ5i8jbwARdysQRcozWC7mSX0W0zp+foBcO0TLxA='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'none'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <title>MS Tools · steidlmichael2000-stack</title>
-<meta name="description" content="MS Tools – die Projekte von steidlmichael2000-stack: Stundenplan der Fachschulklasse FST 2 TB (Josef-Greising-Schule Würzburg), Punktwolken-Viewer für 3D-Aufnahmen, TrackPilot zum Verorten von Streckenkilometern und die Punktcode-Suche für den Außendienst.">
+<meta name="description" content="MS Tools – die Projekte von steidlmichael2000-stack: Stundenplan der Fachschulklasse FST 2 TB (Josef-Greising-Schule Würzburg), Punktwolken-Viewer für 3D-Aufnahmen, Topovo zum Verorten von Streckenkilometern und die Punktcode-Suche für den Außendienst.">
 <meta name="color-scheme" content="dark light">
 <!-- Die Media-Variante zuerst, damit im Hellmodus die helle Farbe greift. -->
 <meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
@@ -42,7 +42,7 @@
   --grid:   rgba(255,255,255,0.028);
 
   /* Eine Signalfarbe je App, sonst nichts Buntes.
-     TrackPilot traegt Lapis, den Blauton des Firmenlogos — dieselbe Farbe
+     Topovo traegt Lapis, den Blauton des Firmenlogos — dieselbe Farbe
      wie in der App und auf ihrem Icon. */
   --signal-plan: #f5a524;
   --signal-pw:   #4a90d9;
@@ -371,20 +371,23 @@ h1 {
       </svg>
     </a>
 
-    <!-- Karte 3 · TrackPilot -->
-    <a class="card card-rail animate" href="../trackpilot/" style="animation-delay: 0.18s">
+    <!-- Karte 3 · Topovo -->
+    <a class="card card-rail animate" href="../topovo/" style="animation-delay: 0.18s">
       <span class="card-icon">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <!-- Strecke mit Kilometersteinen -->
-          <path d="M6.4 3v18"/>
-          <path d="M3.6 7.4h2.8M3.6 12h2.8M3.6 16.6h2.8"/>
-          <!-- Markierter Punkt -->
-          <path d="M16 21s4.3-4.8 4.3-7.9a4.3 4.3 0 1 0-8.6 0C11.7 16.2 16 21 16 21z"/>
-          <circle cx="16" cy="13.1" r="1.5" fill="currentColor" stroke="none"/>
+          <!-- Strichfassung des App-Icons (Motiv D): Geländekämme, darüber die Ortsmarke;
+               um 1,4 nach oben, damit der Umriss samt Strich (5,5…21,3) mittig sitzt -->
+          <g transform="translate(0 -1.4)">
+            <path d="M3 16.4l3.6-2.6 2.6 1.4"/>
+            <path d="M14.8 14.6l2.8-2 3.4 2.4"/>
+            <path d="M3 20.4l5-1.4 4 1 4.4-1.3L21 19.8"/>
+            <path d="M12 16.6s3.4-3.9 3.4-6.8a3.4 3.4 0 1 0-6.8 0c0 2.9 3.4 6.8 3.4 6.8z"/>
+            <circle cx="12" cy="9.8" r="1.2" fill="currentColor" stroke="none"/>
+          </g>
         </svg>
       </span>
       <span class="card-body">
-        <h2 class="card-title">TrackPilot</h2>
+        <h2 class="card-title">Topovo</h2>
         <p class="card-desc">Streckenkilometer verorten. Streckennummer und Kilometer eingeben – oder auf die Karte tippen und ablesen, welcher Kilometer dort liegt. Mit Kilometersteinen, Luftbild und Absprung nach Google&nbsp;Maps.</p>
         <span class="card-meta">
           <span class="chip">VzG-Strecken</span>
